@@ -113,8 +113,9 @@ public class SpdxWriter implements SbomWriter {
 
     private void setExternalRefs(Package pkg, SpdxPackage spdxPackage) {
         List<SpdxExternalReference> spdxExternalReferences = new ArrayList<>(
-                pkg.getExternalPurlRefs().stream().map(this::transformExternalPurlRef).toList());
-        spdxExternalReferences.addAll(pkg.getExternalVulRefs().stream().map(this::transformExternalVulRef).toList());
+                pkg.getExternalPurlRefs().stream().map(this::transformExternalPurlRef).collect(Collectors.toSet()).stream().toList());
+        spdxExternalReferences.addAll(pkg.getExternalVulRefs().stream()
+                .map(this::transformExternalVulRef).collect(Collectors.toSet()).stream().toList());
         spdxPackage.setExternalRefs(spdxExternalReferences);
     }
 

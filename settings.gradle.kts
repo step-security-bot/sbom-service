@@ -9,7 +9,8 @@ pluginManagement {
     }
 }
 
-includeBuild("ort")
+includeBuild("sbom-tools/sbom-ort")
 
 include("analyzer")
 include("utils")
+include("clients:cve-manager")

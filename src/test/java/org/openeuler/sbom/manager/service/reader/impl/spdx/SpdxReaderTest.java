@@ -33,6 +33,7 @@ import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -123,7 +124,7 @@ class SpdxReaderTest {
         assertThat(checksumRepository.count()).isLessThan(checksumSize);
         assertThat(externalPurlRefRepository.count()).isLessThan(externalPurlRefSize);
         assertThat(vulnerabilityRepository.count()).isEqualTo(vulnerabilitySize);
-        assertThat(externalVulRefRepository.count()).isLessThan(externalVulRefSize);
+        assertThat(externalVulRefRepository.count()).isLessThanOrEqualTo(externalVulRefSize);
     }
 
     private void cleanDb() {
@@ -131,6 +132,7 @@ class SpdxReaderTest {
         if (sbom == null) {
             return;
         }
+        Vulnerability vulnerability = vulnerabilityRepository.findById("cve-2022-00000").orElse(null);
 
         long sbomCreatorSize = sbomCreatorRepository.count();
         long sbomElementRelationshipSize = sbomElementRelationshipRepository.count();
@@ -143,7 +145,9 @@ class SpdxReaderTest {
         long externalVulRefSize = externalVulRefRepository.count();
 
         sbomRepository.delete(sbom);
-        vulnerabilityRepository.deleteAll();
+        if (Objects.nonNull(vulnerability)) {
+            vulnerabilityRepository.delete(vulnerability);
+        }
 
         assertThat(sbomRepository.findByProductId(PRODUCT_ID).orElse(null)).isNull();
         assertThat(sbomCreatorRepository.count()).isLessThan(sbomCreatorSize);
@@ -153,7 +157,7 @@ class SpdxReaderTest {
         assertThat(pkgVerfCodeExcludedFileRepository.count()).isLessThan(pkgVerfCodeExcludedFileSize);
         assertThat(checksumRepository.count()).isLessThan(checksumSize);
         assertThat(externalPurlRefRepository.count()).isLessThan(externalPurlRefSize);
-        assertThat(vulnerabilityRepository.count()).isLessThan(vulnerabilitySize);
+        assertThat(vulnerabilityRepository.count()).isLessThanOrEqualTo(vulnerabilitySize);
         assertThat(externalVulRefRepository.count()).isLessThan(externalVulRefSize);
     }
 
@@ -201,6 +205,6 @@ class SpdxReaderTest {
         assertThat(externalPurlRefs.size()).isEqualTo(76);
 
         List<ExternalVulRef> externalVulRefs = externalVulRefRepository.findBySbomId(sbom.getId());
-        assertThat(externalVulRefs.size()).isEqualTo(1);
+        assertThat(externalVulRefs.size()).isEqualTo(0);
     }
 }

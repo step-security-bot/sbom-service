@@ -61,7 +61,6 @@ public class ExternalPurlRef {
      */
     @Column(columnDefinition = "JSONB", nullable = false)
     @Type(type = "jsonb")
-    @JsonIgnoreProperties(ignoreUnknown = true)
     private PackageUrlVo purl;
 
     /**
