@@ -10,20 +10,24 @@ version = "1.0-SNAPSHOT"
 
 val commonsIoVersion: String by project
 val commonsLang3Version: String by project
+val commonsCollections4Version: String by project
 val packageUrlJavaVersion: String by project
 val hibernateTypesVersion: String by project
 
 dependencies {
     implementation(project(":analyzer"))
     implementation(project(":utils"))
+    implementation(project(":clients:cve-manager"))
 
     implementation("oss-review-toolkit:model")
     implementation("oss-review-toolkit:utils:spdx-utils")
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("org.apache.commons:commons-lang3:$commonsLang3Version")
+    implementation("org.apache.commons:commons-collections4:$commonsCollections4Version")
     implementation("commons-io:commons-io:$commonsIoVersion")
     implementation("com.github.package-url:packageurl-java:$packageUrlJavaVersion")
     implementation("com.vladmihalcea:hibernate-types-55:$hibernateTypesVersion")
@@ -37,12 +41,6 @@ dependencies {
 
 springBoot {
     mainClass.set("org.openeuler.sbom.manager.SbomManagerApplication")
-}
-
-configurations {
-    all {
-        exclude(group = "org.springframework.boot", module = "spring-boot-starter-logging")
-    }
 }
 
 allprojects {
@@ -59,6 +57,12 @@ allprojects {
         implementation("org.apache.logging.log4j:log4j-core")
         implementation("org.apache.logging.log4j:log4j-slf4j-impl")
         implementation("org.slf4j:slf4j-api")
+    }
+
+    configurations {
+        all {
+            exclude(group = "org.springframework.boot", module = "spring-boot-starter-logging")
+        }
     }
 }
 

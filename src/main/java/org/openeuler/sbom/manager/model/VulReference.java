@@ -3,7 +3,6 @@ package org.openeuler.sbom.manager.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -21,6 +20,7 @@ import java.util.UUID;
  */
 @Entity
 @Table(indexes = {
+        @Index(name = "vul_ref_uk", columnList = "source, url, vul_id", unique = true),
         @Index(name = "vul_id_idx", columnList = "vul_id")
 })
 public class VulReference {

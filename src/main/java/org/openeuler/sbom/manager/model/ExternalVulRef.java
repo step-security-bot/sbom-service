@@ -1,9 +1,13 @@
 package org.openeuler.sbom.manager.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
+import org.openeuler.sbom.manager.model.vo.PackageUrlVo;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -20,8 +24,11 @@ import java.util.UUID;
  * External vulnerability reference of a package.
  */
 @Entity
+@TypeDefs({
+        @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
+})
 @Table(indexes = {
-        @Index(name = "package_vul_uk", columnList = "pkg_id, vul_id", unique = true)
+        @Index(name = "package_vul_purl_uk", columnList = "pkg_id, vul_id, purl", unique = true)
 })
 public class ExternalVulRef {
     @Id
@@ -52,6 +59,13 @@ public class ExternalVulRef {
      */
     @Column(columnDefinition = "TEXT")
     private String comment;
+
+    /**
+     * Purl of the software component that the vulnerability belongs to.
+     */
+    @Column(columnDefinition = "JSONB")
+    @Type(type = "jsonb")
+    private PackageUrlVo purl;
 
     /**
      * Vulnerability of the reference.
@@ -107,6 +121,14 @@ public class ExternalVulRef {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public PackageUrlVo getPurl() {
+        return purl;
+    }
+
+    public void setPurl(PackageUrlVo purl) {
+        this.purl = purl;
     }
 
     public Vulnerability getVulnerability() {

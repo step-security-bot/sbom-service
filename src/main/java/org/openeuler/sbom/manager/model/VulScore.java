@@ -3,7 +3,6 @@ package org.openeuler.sbom.manager.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -21,7 +20,7 @@ import java.util.UUID;
  */
 @Entity
 @Table(indexes = {
-        @Index(name = "vul_score_uk", columnList = "scoring_system, score, vector", unique = true)
+        @Index(name = "vul_score_uk", columnList = "scoring_system, score, vul_id", unique = true)
 })
 public class VulScore {
     @Id
