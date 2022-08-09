@@ -29,8 +29,7 @@ hs_err_pid*
 .idea/
 
 # Build
-*/build/
-/build/
+/**/build/
 
 # JPA
 .jpb/
