@@ -86,7 +86,7 @@ public class SpdxReader implements SbomReader {
         sbom.setSbomElementRelationships(sbomElementRelationships);
         List<Package> packages = persistPackages(document, sbom);
         sbom.setPackages(packages);
-        return sbomRepository.save(sbom);
+        return sbomRepository.saveAndFlush(sbom);
     }
 
     private List<SbomCreator> persistSbomCreators(SpdxDocument document, Sbom sbom) {
