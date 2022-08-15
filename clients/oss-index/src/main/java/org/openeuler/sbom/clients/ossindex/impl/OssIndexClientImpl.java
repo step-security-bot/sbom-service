@@ -21,16 +21,17 @@ import java.time.Duration;
 import java.util.List;
 
 @Service
-@PropertySource("token.properties")
+@PropertySource("classpath:ossindex.properties")
 public class OssIndexClientImpl implements OssIndexClient {
 
     private static final Logger logger = LoggerFactory.getLogger(OssIndexClientImpl.class);
 
-    private static final String DEFAULT_BASE_URL = "https://ossindex.sonatype.org";
+    @Value("${ossindex.api.url}")
+    private String defaultBaseUrl;
 
     @Bean({"ossIndexWebClient"})
     private WebClient createWebClient() {
-        return WebClient.create(DEFAULT_BASE_URL);
+        return WebClient.create(defaultBaseUrl);
     }
 
     @Value("${ossindex.api.token}")
