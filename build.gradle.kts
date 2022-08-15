@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":analyzer"))
     implementation(project(":utils"))
     implementation(project(":clients:cve-manager"))
+    implementation(project(":clients:oss-index"))
 
     implementation("oss-review-toolkit:model")
     implementation("oss-review-toolkit:utils:spdx-utils")
