@@ -2,7 +2,15 @@
 
 set -e
 
-export DB_PASSWORD=$(cat ${DB_PASSWORD_FILE})
+if [ -f "${DB_PASSWORD_FILE}" ]; then
+  DB_PASSWORD=$(cat "${DB_PASSWORD_FILE}")
+  export DB_PASSWORD
+fi
+
+if [ -f "${OSSINDEX_API_TOKEN_FILE}" ]; then
+  OSSINDEX_API_TOKEN=$(cat "${OSSINDEX_API_TOKEN_FILE}")
+  export OSSINDEX_API_TOKEN
+fi
 
 WORKSPACE=/opt/sbom-service
 

@@ -20,8 +20,7 @@ import java.util.UUID;
  */
 @Entity
 @Table(indexes = {
-        @Index(name = "vul_ref_uk", columnList = "source, url, vul_id", unique = true),
-        @Index(name = "vul_id_idx", columnList = "vul_id")
+        @Index(name = "vul_ref_uk", columnList = "source, url, vul_id", unique = true)
 })
 public class VulReference {
     @Id

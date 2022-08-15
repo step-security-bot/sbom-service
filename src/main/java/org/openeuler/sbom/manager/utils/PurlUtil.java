@@ -40,6 +40,16 @@ public class PurlUtil {
         }
     }
 
+    public static String convertPackageType(PackageUrlVo vo, String type) {
+        PackageURL packageURL = PackageUrlVoToPackageURL(vo);
+        try {
+            return new PackageURL(type, packageURL.getNamespace(), packageURL.getName(), packageURL.getVersion(),
+                    (TreeMap<String, String>) packageURL.getQualifiers(), packageURL.getSubpath()).canonicalize();
+        } catch (MalformedPackageURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Deprecated
     public static Pair<String, Boolean> generatePurlQueryCondition(PackageUrlVo purl) throws MalformedPackageURLException {
         String type = StringUtils.lowerCase(purl.getType());

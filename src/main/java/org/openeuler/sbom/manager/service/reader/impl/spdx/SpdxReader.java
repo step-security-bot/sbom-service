@@ -49,8 +49,12 @@ public class SpdxReader implements SbomReader {
     @Autowired
     private VulnerabilityRepository vulnerabilityRepository;
 
+    private final List<VulService> vulServices;
+
     @Autowired
-    private VulService vulService;
+    public SpdxReader(List<VulService> vulServices) {
+        this.vulServices = vulServices;
+    }
 
     @Override
     public void read(String productId, File file) throws IOException {
@@ -66,7 +70,7 @@ public class SpdxReader implements SbomReader {
     public void read(String productId, SbomFormat format, byte[] fileContent) throws IOException {
         SpdxDocument document = SbomMapperUtil.readDocument(format, SbomSpecification.SPDX_2_2.getDocumentClass(), fileContent);
         Sbom sbom = persistSbom(productId, document);
-        vulService.persistExternalVulRefForSbom(sbom, true);
+        vulServices.forEach(vulService -> vulService.persistExternalVulRefForSbom(sbom, true));
     }
 
     private Sbom persistSbom(String productId, SpdxDocument document) {
