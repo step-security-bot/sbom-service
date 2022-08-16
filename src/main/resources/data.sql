@@ -81,3 +81,20 @@ INSERT INTO product(id, name, attribute)
 VALUES('e686d5ba-cd30-41e7-b97a-a3481bb6e0a2', 'mindspore-1.8.0-cp37-cp37m-linux_x86_64.whl', '{"productType": "MindSpore", "version": "1.8.0","platform": "CPU", "os": "Linux", "arch": "x86_64", "language": "Python 3.7.0"}'::jsonb)
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+--Test
+INSERT INTO product(id, name, attribute)
+VALUES('11111111-1111-41e7-b97a-a3481bb6e111', 'mindsporeTest', '{"arg":"1"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('11111111-1111-41e7-b97a-a3481bb6e222', 'SpdxReaderTest', '{"arg":"2"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('11111111-1111-41e7-b97a-a3481bb6e333', 'SpdxWriterTest', '{"arg":"3"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
