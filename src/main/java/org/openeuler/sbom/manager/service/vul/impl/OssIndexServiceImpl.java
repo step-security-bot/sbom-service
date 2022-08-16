@@ -71,6 +71,10 @@ public class OssIndexServiceImpl extends AbstractVulService {
     @Override
     public void persistExternalVulRefForSbom(Sbom sbom, Boolean blocking) {
         logger.info("Start to persistExternalVulRefForSbom from OssIndex for sbom {}", sbom.getId());
+        if (!ossIndexClient.needRequest()) {
+            logger.warn("ossIndexClient does not request");
+            return;
+        }
 
         List<ExternalPurlRef> externalPurlRefs = sbom.getPackages().stream()
                 .map(Package::getExternalPurlRefs)

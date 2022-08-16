@@ -6,11 +6,10 @@ import org.openeuler.sbom.clients.ossindex.model.ComponentReportRequestBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
@@ -21,7 +20,6 @@ import java.time.Duration;
 import java.util.List;
 
 @Service
-@PropertySource("classpath:ossindex.properties")
 public class OssIndexClientImpl implements OssIndexClient {
 
     private static final Logger logger = LoggerFactory.getLogger(OssIndexClientImpl.class);
@@ -29,13 +27,17 @@ public class OssIndexClientImpl implements OssIndexClient {
     @Value("${ossindex.api.url}")
     private String defaultBaseUrl;
 
-    @Bean({"ossIndexWebClient"})
     private WebClient createWebClient() {
         return WebClient.create(defaultBaseUrl);
     }
 
     @Value("${ossindex.api.token}")
     private String token;
+
+    @Override
+    public boolean needRequest() {
+        return StringUtils.hasText(this.defaultBaseUrl) && StringUtils.hasText(this.token);
+    }
 
     @Override
     public Mono<ComponentReportElement[]> getComponentReport(List<String> coordinates) {

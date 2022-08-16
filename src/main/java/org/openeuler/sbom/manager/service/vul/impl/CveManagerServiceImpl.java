@@ -62,6 +62,10 @@ public class CveManagerServiceImpl extends AbstractVulService {
     @Override
     public void persistExternalVulRefForSbom(Sbom sbom, Boolean blocking) {
         logger.info("Start to persistExternalVulRefForSbom from cve-manager for sbom {}", sbom.getId());
+        if (!cveManagerClient.needRequest()) {
+            logger.warn("cveManagerClient does not request");
+            return;
+        }
 
         List<ExternalPurlRef> externalPurlRefs = sbom.getPackages().stream()
                 .map(Package::getExternalPurlRefs)
@@ -117,7 +121,7 @@ public class CveManagerServiceImpl extends AbstractVulService {
                     externalVulRef.setVulnerability(vulnerability);
                     externalVulRef.setPkg(ref.getPkg());
                     externalVulRefRepository.saveAndFlush(externalVulRef);
-        }));
+                }));
     }
 
     private Vulnerability persistVulnerability(CveManagerVulnerability cveManagerVulnerability) {

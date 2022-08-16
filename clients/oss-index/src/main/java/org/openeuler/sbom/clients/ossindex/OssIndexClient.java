@@ -7,5 +7,7 @@ import java.util.List;
 
 public interface OssIndexClient {
 
+    boolean needRequest();
+
     Mono<ComponentReportElement[]> getComponentReport(List<String> coordinates);
 }
