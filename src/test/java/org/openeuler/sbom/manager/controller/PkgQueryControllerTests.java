@@ -469,7 +469,7 @@ public class PkgQueryControllerTests {
 
     @Test
     public void queryVulnerabilityByPackageId() throws Exception {
-        Sbom sbom = sbomRepository.findByProductId(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
         assertThat(sbom).isNotNull();
         Package pkg = sbom.getPackages().stream()
                 .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))

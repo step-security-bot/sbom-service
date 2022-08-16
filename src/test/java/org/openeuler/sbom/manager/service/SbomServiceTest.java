@@ -244,14 +244,14 @@ class SbomServiceTest {
 
     @Test
     public void queryVulnerabilityByPackageId() {
-        Sbom sbom = sbomRepository.findByProductId(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
         assertThat(sbom).isNotNull();
         Package pkg = sbom.getPackages().stream()
                 .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
                 .findFirst().orElse(null);
         assertThat(pkg).isNotNull();
 
-        PageVo<VulnerabilityVo> result = sbomService.queryVulnerabilityByPackageId(pkg.getId().toString(), PageRequest.of(0, 15, Sort.by("all_vul.vul_id")));
+        PageVo<VulnerabilityVo> result = sbomService.queryVulnerabilityByPackageId(pkg.getId().toString(), PageRequest.of(0, 15, Sort.by("all_vul.v_vul_id")));
         assertThat(result).isNotEmpty();
         assertThat(result.getTotalElements()).isEqualTo(3);
         assertThat(result.getTotalPages()).isEqualTo(1);
@@ -260,6 +260,7 @@ class SbomServiceTest {
         assertThat(result.getContent().get(0).getScoringSystem()).isEqualTo("CVSS3");
         assertThat(result.getContent().get(0).getScore()).isEqualTo(5.3);
         assertThat(result.getContent().get(0).getVector()).isEqualTo("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N");
+        assertThat(result.getContent().get(0).getPurl()).isEqualTo("pkg:pypi/asttokens@2.0.5");
         assertThat(result.getContent().get(0).getReferences().size()).isEqualTo(2);
         assertThat(result.getContent().get(0).getReferences().get(0).getFirst()).isEqualTo("NVD");
         assertThat(result.getContent().get(0).getReferences().get(0).getSecond()).isEqualTo("http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00000-test");
@@ -270,6 +271,7 @@ class SbomServiceTest {
         assertThat(result.getContent().get(1).getScoringSystem()).isEqualTo("CVSS2");
         assertThat(result.getContent().get(1).getScore()).isEqualTo(9.8);
         assertThat(result.getContent().get(1).getVector()).isEqualTo("(AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H)");
+        assertThat(result.getContent().get(0).getPurl()).isEqualTo("pkg:pypi/asttokens@2.0.5");
         assertThat(result.getContent().get(1).getReferences().size()).isEqualTo(1);
         assertThat(result.getContent().get(1).getReferences().get(0).getFirst()).isEqualTo("NVD");
         assertThat(result.getContent().get(1).getReferences().get(0).getSecond()).isEqualTo("http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00001-test");
@@ -278,6 +280,7 @@ class SbomServiceTest {
         assertThat(result.getContent().get(2).getScoringSystem()).isNull();
         assertThat(result.getContent().get(2).getScore()).isNull();
         assertThat(result.getContent().get(2).getVector()).isNull();
+        assertThat(result.getContent().get(0).getPurl()).isEqualTo("pkg:pypi/asttokens@2.0.5");
         assertThat(result.getContent().get(2).getReferences().size()).isEqualTo(2);
         assertThat(result.getContent().get(2).getReferences().get(0).getFirst()).isEqualTo("NVD");
         assertThat(result.getContent().get(2).getReferences().get(0).getSecond()).isEqualTo("http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00002-test");

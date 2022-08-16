@@ -6,21 +6,21 @@ import org.apache.commons.lang3.StringUtils;
 import org.openeuler.sbom.manager.SbomApplicationContextHolder;
 import org.openeuler.sbom.manager.constant.SbomConstants;
 import org.openeuler.sbom.manager.dao.ExternalPurlRefRepository;
+import org.openeuler.sbom.manager.dao.ExternalVulRefRepository;
 import org.openeuler.sbom.manager.dao.PackageRepository;
 import org.openeuler.sbom.manager.dao.ProductConfigRepository;
 import org.openeuler.sbom.manager.dao.ProductRepository;
 import org.openeuler.sbom.manager.dao.ProductTypeRepository;
 import org.openeuler.sbom.manager.dao.RawSbomRepository;
 import org.openeuler.sbom.manager.dao.SbomRepository;
-import org.openeuler.sbom.manager.dao.VulnerabilityRepository;
 import org.openeuler.sbom.manager.dao.spec.ExternalPurlRefSpecs;
 import org.openeuler.sbom.manager.model.ExternalPurlRef;
+import org.openeuler.sbom.manager.model.ExternalVulRef;
 import org.openeuler.sbom.manager.model.Package;
 import org.openeuler.sbom.manager.model.Product;
 import org.openeuler.sbom.manager.model.ProductType;
 import org.openeuler.sbom.manager.model.RawSbom;
 import org.openeuler.sbom.manager.model.Sbom;
-import org.openeuler.sbom.manager.model.Vulnerability;
 import org.openeuler.sbom.manager.model.spdx.ReferenceCategory;
 import org.openeuler.sbom.manager.model.vo.BinaryManagementVo;
 import org.openeuler.sbom.manager.model.vo.PackagePurlVo;
@@ -81,7 +81,7 @@ public class SbomServiceImpl implements SbomService {
     private ProductRepository productRepository;
 
     @Autowired
-    private VulnerabilityRepository vulnerabilityRepository;
+    private ExternalVulRefRepository externalVulRefRepository;
 
     @Override
     public void readSbomFile(String productName, String fileName, byte[] fileContent) throws IOException {
@@ -270,8 +270,8 @@ public class SbomServiceImpl implements SbomService {
 
     @Override
     public PageVo<VulnerabilityVo> queryVulnerabilityByPackageId(String packageId, Pageable pageable) {
-        Page<Vulnerability> result = vulnerabilityRepository.findByPackageId(UUID.fromString(packageId), pageable);
-        return new PageVo<>(new PageImpl<>(result.stream().map(VulnerabilityVo::fromVulnerability).toList(),
+        Page<ExternalVulRef> result = externalVulRefRepository.findByPackageId(UUID.fromString(packageId), pageable);
+        return new PageVo<>(new PageImpl<>(result.stream().map(VulnerabilityVo::fromExternalVulRef).toList(),
                 result.getPageable(),
                 result.getTotalElements()));
     }

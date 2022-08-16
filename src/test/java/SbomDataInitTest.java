@@ -19,6 +19,7 @@ import org.openeuler.sbom.manager.model.VulReference;
 import org.openeuler.sbom.manager.model.VulScore;
 import org.openeuler.sbom.manager.model.VulScoringSystem;
 import org.openeuler.sbom.manager.model.Vulnerability;
+import org.openeuler.sbom.manager.utils.PurlUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -94,17 +95,17 @@ public class SbomDataInitTest {
         insertVulRef(vul_4, VulRefSource.NVD.name(), "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00002-test");
         insertVulRef(vul_4, VulRefSource.GITHUB.name(), "https://github.com/xxx/xxx/security/advisories/xxx");
 
-        Sbom sbom = sbomRepository.findByProductId(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
         assertThat(sbom).isNotNull();
         Package pkg = sbom.getPackages().stream()
                 .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
                 .findFirst().orElse(null);
         assertThat(pkg).isNotNull();
 
-        insertExternalVulRef(pkg, vul_1);
-        insertExternalVulRef(pkg, vul_2);
-        insertExternalVulRef(pkg, vul_3);
-        insertExternalVulRef(pkg, vul_4);
+        insertExternalVulRef(pkg, vul_1, "pkg:pypi/asttokens@2.0.5");
+        insertExternalVulRef(pkg, vul_2, "pkg:pypi/asttokens@2.0.5");
+        insertExternalVulRef(pkg, vul_3, "pkg:pypi/asttokens@2.0.5");
+        insertExternalVulRef(pkg, vul_4, "pkg:pypi/asttokens@2.0.5");
     }
 
     private Vulnerability insertVulnerability(String vulId, String source) {
@@ -138,12 +139,13 @@ public class SbomDataInitTest {
         vulReferenceRepository.save(vulReference);
     }
 
-    private void insertExternalVulRef(Package pkg, Vulnerability vul) {
+    private void insertExternalVulRef(Package pkg, Vulnerability vul, String purl) {
         ExternalVulRef externalVulRef = new ExternalVulRef();
         externalVulRef.setPkg(pkg);
         externalVulRef.setVulnerability(vul);
         externalVulRef.setCategory("SECURITY");
         externalVulRef.setType("cve");
+        externalVulRef.setPurl(PurlUtil.strToPackageUrlVo(purl));
         externalVulRefRepository.save(externalVulRef);
     }
 
