@@ -45,8 +45,8 @@ public class SpdxWriter implements SbomWriter {
     private SbomRepository sbomRepository;
 
     @Override
-    public byte[] write(String productId, SbomFormat format) throws IOException {
-        Sbom sbom = sbomRepository.findByProductId(productId).orElseThrow(() -> new RuntimeException("can't find %s's sbom metadata".formatted(productId)));
+    public byte[] write(String productName, SbomFormat format) throws IOException {
+        Sbom sbom = sbomRepository.findByProductName(productName).orElseThrow(() -> new RuntimeException("can't find %s's sbom metadata".formatted(productName)));
         SpdxDocument document = new SpdxDocument(sbom.getId().toString());
 
         document.setSpdxVersion(SPDX_VERSION);

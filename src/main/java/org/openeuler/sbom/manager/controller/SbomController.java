@@ -51,16 +51,16 @@ public class SbomController {
     private SbomService sbomService;
 
     @PostMapping("/uploadSbomFile")
-    public @ResponseBody ResponseEntity uploadSbomFile(HttpServletRequest request, @RequestParam String productId) throws IOException {//HttpServletRequest request
+    public @ResponseBody ResponseEntity uploadSbomFile(HttpServletRequest request, @RequestParam String productName) throws IOException {//HttpServletRequest request
         MultipartFile file = ((MultipartHttpServletRequest) request).getFile("uploadFileName");
         if (file == null || file.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("upload file is empty");
         }
         String fileName = file.getOriginalFilename();
-        logger.info("upload {}`s sbom file name: {}, file length: {}", productId, fileName, file.getBytes().length);
+        logger.info("upload {}`s sbom file name: {}, file length: {}", productName, fileName, file.getBytes().length);
 
         try {
-            sbomService.readSbomFile(productId, fileName, file.getBytes());
+            sbomService.readSbomFile(productName, fileName, file.getBytes());
         } catch (Exception e) {
             logger.error("uploadSbomFile failed", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
@@ -70,10 +70,10 @@ public class SbomController {
     }
 
     @RequestMapping("/exportSbomFile")
-    public void exportSbomFile(HttpServletRequest request, HttpServletResponse response, @RequestParam String productId, @RequestParam String spec,
+    public void exportSbomFile(HttpServletRequest request, HttpServletResponse response, @RequestParam String productName, @RequestParam String spec,
                                @RequestParam String specVersion, @RequestParam String format) throws IOException {
-        logger.info("download original sbom file productId:{}, use spec:{}, specVersion:{}, format:{}",
-                productId,
+        logger.info("download original sbom file productName:{}, use spec:{}, specVersion:{}, format:{}",
+                productName,
                 spec,
                 specVersion,
                 format);
@@ -81,7 +81,7 @@ public class SbomController {
         String errorMsg = null;
 
         try {
-            rawSbom = sbomService.writeSbomFile(productId, spec, specVersion, format);
+            rawSbom = sbomService.writeSbomFile(productName, spec, specVersion, format);
         } catch (Exception e) {
             logger.error("exportSbomFile failed", e);
             errorMsg = e.getMessage();
@@ -93,7 +93,7 @@ public class SbomController {
             String returnContent =
                     StringUtils.hasText(errorMsg) ? errorMsg :
                             "can not find %s`s sbom, use spec:%s, specVersion:%s, format:%s".formatted(
-                                    productId,
+                                    productName,
                                     spec,
                                     specVersion,
                                     format);
@@ -115,7 +115,7 @@ public class SbomController {
             outputStream.flush();
         } else {
             byte[] exportContent = rawSbom.getValue();
-            String fileName = "%s-%s-sbom.%s".formatted(productId, spec, format);
+            String fileName = "%s-%s-sbom.%s".formatted(productName, spec, format);
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
             response.setContentType("application/octet-stream");
             response.setHeader("Content-Disposition", "attachment;filename=" +
@@ -129,10 +129,10 @@ public class SbomController {
     }
 
     @RequestMapping("/exportSbom")
-    public void exportSbom(HttpServletRequest request, HttpServletResponse response, @RequestParam String productId, @RequestParam String spec,
+    public void exportSbom(HttpServletRequest request, HttpServletResponse response, @RequestParam String productName, @RequestParam String spec,
                            @RequestParam String specVersion, @RequestParam String format) throws IOException {
-        logger.info("download sbom metadata productId:{}, use spec:{}, specVersion:{}, format:{}",
-                productId,
+        logger.info("download sbom metadata productName:{}, use spec:{}, specVersion:{}, format:{}",
+                productName,
                 spec,
                 specVersion,
                 format);
@@ -140,7 +140,7 @@ public class SbomController {
         String errorMsg = null;
 
         try {
-            sbom = sbomService.writeSbom(productId, spec, specVersion, format);
+            sbom = sbomService.writeSbom(productName, spec, specVersion, format);
         } catch (Exception e) {
             logger.error("export sbom metadata failed", e);
             errorMsg = e.getMessage();
@@ -151,7 +151,7 @@ public class SbomController {
             String returnContent =
                     StringUtils.hasText(errorMsg) ? errorMsg :
                             "can not find %s`s sbom metadata, use spec:%s, specVersion:%s, format:%s".formatted(
-                                    productId,
+                                    productName,
                                     spec,
                                     specVersion,
                                     format);
@@ -164,7 +164,7 @@ public class SbomController {
             outputStream.write(returnContent.getBytes(StandardCharsets.UTF_8));
             outputStream.flush();
         } else {
-            String fileName = "%s-%s-sbom.%s".formatted(productId, spec, format);
+            String fileName = "%s-%s-sbom.%s".formatted(productName, spec, format);
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
             response.setContentType("application/octet-stream");
             response.setHeader("Content-Disposition", "attachment;filename=" +
@@ -186,29 +186,29 @@ public class SbomController {
     }
 
     @PostMapping("/querySbomPackages")
-    public @ResponseBody ResponseEntity querySbomPackages(@RequestParam("productId") String productId,
+    public @ResponseBody ResponseEntity querySbomPackages(@RequestParam("productName") String productName,
                                                           @RequestParam(value = "packageName", required = false) String packageName,
                                                           @RequestParam(value = "isExactly", required = false) Boolean isExactly,
                                                           @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
                                                           @RequestParam(name = "size", required = false, defaultValue = "15") Integer size) {
-        logger.info("query sbom packages by productId:{}, packageName:{}, isExactly:{}, page:{}, size:{}",
-                productId,
+        logger.info("query sbom packages by productName:{}, packageName:{}, isExactly:{}, page:{}, size:{}",
+                productName,
                 packageName,
                 isExactly,
                 page,
                 size);
-        PageVo<Package> packagesPage = sbomService.getPackageInfoByNameForPage(productId, packageName, isExactly, page, size);
+        PageVo<Package> packagesPage = sbomService.getPackageInfoByNameForPage(productName, packageName, isExactly, page, size);
 
         logger.info("query sbom packages result:{}", packagesPage);
         return ResponseEntity.status(HttpStatus.OK).body(packagesPage);
     }
 
-    @GetMapping("/querySbomPackages/{productId}/{packageName}/{isExactly}")
-    public @ResponseBody ResponseEntity getPackagesInfoByName(@PathVariable("productId") String productId,
+    @GetMapping("/querySbomPackages/{productName}/{packageName}/{isExactly}")
+    public @ResponseBody ResponseEntity getPackagesInfoByName(@PathVariable("productName") String productName,
                                                               @PathVariable("packageName") String packageName,
                                                               @PathVariable(value = "isExactly") boolean isExactly) {
-        logger.info("query sbom packages by productId:{}, packageName:{}, isExactly:{}", productId, packageName, isExactly);
-        List<Package> packagesList = sbomService.queryPackageInfoByName(productId, packageName, isExactly);
+        logger.info("query sbom packages by productName:{}, packageName:{}, isExactly:{}", productName, packageName, isExactly);
+        List<Package> packagesList = sbomService.queryPackageInfoByName(productName, packageName, isExactly);
 
         logger.info("query sbom packages result:{}", packagesList);
         return ResponseEntity.status(HttpStatus.OK).body(packagesList);
@@ -245,7 +245,7 @@ public class SbomController {
 
 
     @PostMapping("/querySbomPackagesByBinary")
-    public @ResponseBody ResponseEntity queryPackageInfoByBinary(@RequestParam("productId") String productId,
+    public @ResponseBody ResponseEntity queryPackageInfoByBinary(@RequestParam("productName") String productName,
                                                                  @RequestParam("binaryType") String binaryType,
                                                                  @RequestParam("type") String type,
                                                                  @RequestParam(name = "namespace", required = false) String namespace,
@@ -253,7 +253,7 @@ public class SbomController {
                                                                  @RequestParam(name = "version", required = false) String version,
                                                                  @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
                                                                  @RequestParam(name = "size", required = false, defaultValue = "15") Integer size) {
-        logger.info("query package info by packageId:{}, binaryType:{}, type:{}, namespace:{}, name:{}, version:{}", productId,
+        logger.info("query package info by productName:{}, binaryType:{}, type:{}, namespace:{}, name:{}, version:{}", productName,
                 binaryType,
                 type,
                 namespace,
@@ -265,7 +265,7 @@ public class SbomController {
         PageVo<PackagePurlVo> queryResult = null;
 
         try {
-            queryResult = sbomService.queryPackageInfoByBinaryViaSpec(productId,
+            queryResult = sbomService.queryPackageInfoByBinaryViaSpec(productName,
                     binaryType,
                     purl,
                     pageable);

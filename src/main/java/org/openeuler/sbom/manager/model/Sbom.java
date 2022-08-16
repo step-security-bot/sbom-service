@@ -1,14 +1,19 @@
 package org.openeuler.sbom.manager.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Index;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.util.List;
 import java.util.Objects;
@@ -26,8 +31,8 @@ public class Sbom {
     public Sbom() {
     }
 
-    public Sbom(String productId) {
-        this.productId = productId;
+    public Sbom(Product product) {
+        this.product = product;
     }
 
     @Id
@@ -67,12 +72,10 @@ public class Sbom {
     @Column(columnDefinition = "TEXT", name = "license_list_version")
     private String licenseListVersion;
 
-    // @OneToOne(fetch = FetchType.LAZY, optional = false)
-    // @JoinColumn(name = "product_id", foreignKey = @ForeignKey(name = "product_id_fk"))
-    // @JsonIgnore
-    // private Product product;
-    @Column(columnDefinition = "TEXT", name = "product_id")
-    private String productId;
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "product_id", foreignKey = @ForeignKey(name = "product_id_fk"))
+    @JsonIgnore
+    private Product product;
 
     /**
      * Packages referred in a sbom document.
@@ -140,20 +143,12 @@ public class Sbom {
         this.licenseListVersion = licenseListVersion;
     }
 
-//    public Product getProduct() {
-//        return product;
-//    }
-//
-//    public void setProduct(Product product) {
-//        this.product = product;
-//    }
-
-    public String getProductId() {
-        return productId;
+    public Product getProduct() {
+        return product;
     }
 
-    public void setProductId(String productId) {
-        this.productId = productId;
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
     public List<Package> getPackages() {
