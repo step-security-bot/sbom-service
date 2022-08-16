@@ -25,7 +25,15 @@ public interface ExternalVulRefRepository extends JpaRepository<ExternalVulRef, 
             "select * from all_vul where source = 'CVE_MANAGER' and v_vul_id in (select v_vul_id from oss_index)" +
             ") " +
             "select * from all_vul where id not in (select id from cve_manager_dup)",
-            countProjection = "1",
+            countQuery = "with all_vul as (" +
+                    "select evf.*, v.vul_id v_vul_id, v.source from external_vul_ref evf join vulnerability v on evf.vul_id = v.id " +
+                    "where evf.pkg_id = :packageId" +
+                    "), oss_index as (" +
+                    "select * from all_vul where source = 'OSS_INDEX'" +
+                    "), cve_manager_dup as (" +
+                    "select * from all_vul where source = 'CVE_MANAGER' and v_vul_id in (select v_vul_id from oss_index)" +
+                    ") " +
+                    "select count(1) from all_vul where id not in (select id from cve_manager_dup)",
             nativeQuery = true)
     Page<ExternalVulRef> findByPackageId(@Param("packageId") UUID packageId, Pageable pageable);
 }
