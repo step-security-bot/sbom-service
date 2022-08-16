@@ -1,7 +1,7 @@
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
+package org.openeuler.sbom.manager.controller;
+
+
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.openeuler.sbom.manager.SbomApplicationContextHolder;
 import org.openeuler.sbom.manager.SbomManagerApplication;
 import org.openeuler.sbom.manager.TestConstants;
@@ -20,27 +20,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(classes = {SbomManagerApplication.class, SbomApplicationContextHolder.class})
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class SbomDataInitTest {
+public class UploadControllerTests {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Test
-    @Order(1)
-    public void uploadSbomFile() throws Exception {
+    public void uploadSbomFileFailed() throws Exception {
         ClassPathResource classPathResource = new ClassPathResource(TestConstants.SAMPLE_UPLOAD_FILE_NAME);
         MockMultipartFile file = new MockMultipartFile("uploadFileName", TestConstants.SAMPLE_UPLOAD_FILE_NAME
                 , "json", classPathResource.getInputStream());
 
         this.mockMvc
                 .perform(multipart("/sbom-api/uploadSbomFile").file(file)
-                        .param("productName", TestConstants.SAMPLE_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_PRODUCT_NAME + "ERROR")
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andDo(print())
-                .andExpect(status().isAccepted())
-                .andExpect(content().string("Success"));
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string("can't find mindsporeTestERROR's product metadata"));
     }
-
-    // TODO 新增openEuler everything镜像的SBOM导入（SBOM需裁剪，否则过大）
 }
+

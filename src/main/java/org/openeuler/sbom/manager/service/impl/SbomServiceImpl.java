@@ -78,16 +78,18 @@ public class SbomServiceImpl implements SbomService {
     private ProductRepository productRepository;
 
     @Override
-    // TODO 后续productID作为外键支持
-    public void readSbomFile(String productId, String fileName, byte[] fileContent) throws IOException {
+    public void readSbomFile(String productName, String fileName, byte[] fileContent) throws IOException {
         SbomFormat format = fileToExt(fileName);
         SbomSpecification specification = fileToSpec(format, fileContent);
+
+        Product product = productRepository.findByName(productName)
+                .orElseThrow(() -> new RuntimeException("can't find %s's product metadata".formatted(productName)));
 
         RawSbom rawSbom = new RawSbom();
         rawSbom.setSpec(specification.getSpecification().toLowerCase());
         rawSbom.setSpecVersion(specification.getVersion());
         rawSbom.setFormat(format.getFileExtName());
-        rawSbom.setProductId(productId);
+        rawSbom.setProduct(product);
         rawSbom.setValue(fileContent);
 
         RawSbom oldRawSbom = sbomFileRepository.queryRawSbom(rawSbom);
@@ -98,12 +100,14 @@ public class SbomServiceImpl implements SbomService {
         sbomFileRepository.save(rawSbom);
 
         SbomReader sbomReader = SbomApplicationContextHolder.getSbomReader(specification.getSpecification());
-        sbomReader.read(productId, format, fileContent);
+        sbomReader.read(productName, format, fileContent);
     }
 
     @Override
-    // TODO 后续productID作为外键支持
-    public RawSbom writeSbomFile(String productId, String spec, String specVersion, String format) {
+    public RawSbom writeSbomFile(String productName, String spec, String specVersion, String format) {
+        Product product = productRepository.findByName(productName)
+                .orElseThrow(() -> new RuntimeException("can't find %s's product metadata".formatted(productName)));
+
         format = StringUtils.lowerCase(format);
         spec = StringUtils.lowerCase(spec);
 
@@ -115,7 +119,7 @@ public class SbomServiceImpl implements SbomService {
         }
 
         RawSbom queryCondition = new RawSbom();
-        queryCondition.setProductId(productId);
+        queryCondition.setProduct(product);
         queryCondition.setSpec(spec);
         queryCondition.setSpecVersion(specVersion);
         queryCondition.setFormat(format);
@@ -124,7 +128,7 @@ public class SbomServiceImpl implements SbomService {
     }
 
     @Override
-    public byte[] writeSbom(String productId, String spec, String specVersion, String format) throws IOException {
+    public byte[] writeSbom(String productName, String spec, String specVersion, String format) throws IOException {
         format = StringUtils.lowerCase(format);
         spec = StringUtils.lowerCase(spec);
 
@@ -138,22 +142,22 @@ public class SbomServiceImpl implements SbomService {
         }
 
         SbomWriter sbomWriter = SbomApplicationContextHolder.getSbomWriter(sbomSpec.getSpecification());
-        return sbomWriter.write(productId, SbomFormat.EXT_TO_FORMAT.get(format));
+        return sbomWriter.write(productName, SbomFormat.EXT_TO_FORMAT.get(format));
     }
 
     @Override
-    public PageVo<Package> findPackagesPageable(String productId, int page, int size) {
-        Sbom sbom = sbomRepository.findByProductId(productId).orElseThrow(() -> new RuntimeException("can't find %s `s sbom metadata".formatted(productId)));
+    public PageVo<Package> findPackagesPageable(String productName, int page, int size) {
+        Sbom sbom = sbomRepository.findByProductName(productName).orElseThrow(() -> new RuntimeException("can't find %s `s sbom metadata".formatted(productName)));
 
         Pageable pageable = PageRequest.of(page, size).withSort(Sort.by(Sort.Order.by("name")));
         return new PageVo<>((PageImpl<Package>) packageRepository.findPackagesBySbomIdForPage(sbom.getId(), pageable));
     }
 
     @Override
-    public List<Package> queryPackageInfoByName(String productId, String packageName, boolean isExactly) {
+    public List<Package> queryPackageInfoByName(String productName, String packageName, boolean isExactly) {
         String equalPackageName = isExactly ? packageName : null;
 
-        return packageRepository.getPackageInfoByName(productId, equalPackageName, packageName, SbomConstants.MAX_QUERY_LINE);
+        return packageRepository.getPackageInfoByName(productName, equalPackageName, packageName, SbomConstants.MAX_QUERY_LINE);
     }
 
     @Override
@@ -162,11 +166,11 @@ public class SbomServiceImpl implements SbomService {
     }
 
     @Override
-    public PageVo<Package> getPackageInfoByNameForPage(String productId, String packageName, Boolean isExactly, int page, int size) {
+    public PageVo<Package> getPackageInfoByNameForPage(String productName, String packageName, Boolean isExactly, int page, int size) {
         String equalPackageName = BooleanUtils.isTrue(isExactly) ? packageName : null;
         Pageable pageable = PageRequest.of(page, size).withSort(Sort.by(Sort.Order.by("name")));
 
-        return new PageVo<>((PageImpl<Package>) packageRepository.getPackageInfoByNameForPage(productId, isExactly, equalPackageName, packageName, pageable));
+        return new PageVo<>((PageImpl<Package>) packageRepository.getPackageInfoByNameForPage(productName, isExactly, equalPackageName, packageName, pageable));
     }
 
     @Override
@@ -194,7 +198,7 @@ public class SbomServiceImpl implements SbomService {
 
     @Override
     @Deprecated
-    public PageVo<PackagePurlVo> queryPackageInfoByBinary(String productId,
+    public PageVo<PackagePurlVo> queryPackageInfoByBinary(String productName,
                                                           String binaryType,
                                                           PackageUrlVo purl,
                                                           Pageable pageable) throws Exception {
@@ -205,7 +209,7 @@ public class SbomServiceImpl implements SbomService {
 
         Pair<String, Boolean> purlQueryCondition = PurlUtil.generatePurlQueryCondition(purl);
 
-        Page<Map> result = packageRepository.queryPackageInfoByBinary(productId,
+        Page<Map> result = packageRepository.queryPackageInfoByBinary(productName,
                 binaryType,
                 purlQueryCondition.getSecond(),
                 purlQueryCondition.getFirst(),
@@ -216,7 +220,7 @@ public class SbomServiceImpl implements SbomService {
     }
 
     @Override
-    public PageVo<PackagePurlVo> queryPackageInfoByBinaryViaSpec(String productId,
+    public PageVo<PackagePurlVo> queryPackageInfoByBinaryViaSpec(String productName,
                                                                  String binaryType,
                                                                  PackageUrlVo purl,
                                                                  Pageable pageable) {
@@ -224,8 +228,8 @@ public class SbomServiceImpl implements SbomService {
         if (!ReferenceCategory.BINARY_TYPE.contains(referenceCategory)) {
             throw new RuntimeException("binary type: %s is not support".formatted(binaryType));
         }
-        Sbom sbom = sbomRepository.findByProductId(productId)
-                .orElseThrow(() -> new RuntimeException("can't find %s's sbom metadata".formatted(productId)));
+        Sbom sbom = sbomRepository.findByProductName(productName)
+                .orElseThrow(() -> new RuntimeException("can't find %s's sbom metadata".formatted(productName)));
 
         Map<String, Pair<String, Boolean>> purlComponents = PurlUtil.generatePurlQueryConditionMap(purl);
         Page<ExternalPurlRef> result = externalPurlRefRepository.findAll(

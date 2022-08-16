@@ -3,6 +3,7 @@ package org.openeuler.sbom.manager.service.reader.impl.spdx;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.openeuler.sbom.manager.constant.SbomConstants;
+import org.openeuler.sbom.manager.dao.ProductRepository;
 import org.openeuler.sbom.manager.dao.SbomRepository;
 import org.openeuler.sbom.manager.dao.VulnerabilityRepository;
 import org.openeuler.sbom.manager.model.Checksum;
@@ -44,6 +45,9 @@ import static org.openeuler.sbom.manager.utils.SbomMapperUtil.fileToExt;
 public class SpdxReader implements SbomReader {
 
     @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
     private SbomRepository sbomRepository;
 
     @Autowired
@@ -57,24 +61,26 @@ public class SpdxReader implements SbomReader {
     }
 
     @Override
-    public void read(String productId, File file) throws IOException {
+    public void read(String productName, File file) throws IOException {
         SbomFormat format = fileToExt(file.getName());
         FileInputStream fileInputStream = new FileInputStream(file);
         byte[] fileContent = fileInputStream.readAllBytes();
         fileInputStream.close();
 
-        read(productId, format, fileContent);
+        read(productName, format, fileContent);
     }
 
     @Override
-    public void read(String productId, SbomFormat format, byte[] fileContent) throws IOException {
+    public void read(String productName, SbomFormat format, byte[] fileContent) throws IOException {
         SpdxDocument document = SbomMapperUtil.readDocument(format, SbomSpecification.SPDX_2_2.getDocumentClass(), fileContent);
-        Sbom sbom = persistSbom(productId, document);
+        Sbom sbom = persistSbom(productName, document);
         vulServices.forEach(vulService -> vulService.persistExternalVulRefForSbom(sbom, true));
     }
 
-    private Sbom persistSbom(String productId, SpdxDocument document) {
-        Sbom sbom = sbomRepository.findByProductId(productId).orElse(new Sbom(productId));
+    private Sbom persistSbom(String productName, SpdxDocument document) {
+        Sbom sbom = sbomRepository.findByProductName(productName)
+                .orElse(new Sbom(productRepository.findByName(productName)
+                        .orElseThrow(() -> new RuntimeException("can't find %s's product metadata".formatted(productName)))));
         sbom.setCreated(document.getCreationInfo().created().toString());
         sbom.setDataLicense(document.getDataLicense());
         sbom.setLicenseListVersion(document.getCreationInfo().licenseListVersion());
