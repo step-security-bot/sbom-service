@@ -10,13 +10,13 @@ import org.openeuler.sbom.manager.model.vo.PackagePurlVo;
 import org.openeuler.sbom.manager.model.vo.PackageUrlVo;
 import org.openeuler.sbom.manager.model.vo.PageVo;
 import org.openeuler.sbom.manager.model.vo.ProductConfigVo;
+import org.openeuler.sbom.manager.model.vo.VulnerabilityVo;
 import org.openeuler.sbom.manager.service.SbomService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -40,6 +40,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Controller
 @RequestMapping(path = "/sbom-api")
@@ -341,6 +342,27 @@ public class SbomController {
             logger.error("query product info failed.", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("query product info failed.");
         }
+    }
+
+    @GetMapping("/queryPackageVulnerability/{packageId}")
+    public @ResponseBody ResponseEntity queryVulnerabilityByPackageId(@PathVariable("packageId") String packageId,
+                                                                      @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+                                                                      @RequestParam(name = "size", required = false, defaultValue = "15") Integer size) {
+        logger.info("query package vulnerability by packageId: {}", packageId);
+        PageVo<VulnerabilityVo> vulnerabilities;
+        Pageable pageable = PageRequest.of(page, size);
+        try {
+            vulnerabilities = sbomService.queryVulnerabilityByPackageId(packageId, pageable);
+        } catch (RuntimeException e) {
+            logger.error("query package vulnerability error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("query package vulnerability error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("query package vulnerability error");
+        }
+
+        logger.info("query package vulnerability result:{}", Objects.isNull(vulnerabilities) ? 0 : vulnerabilities.getTotalElements());
+        return ResponseEntity.status(HttpStatus.OK).body(vulnerabilities);
     }
 
 }

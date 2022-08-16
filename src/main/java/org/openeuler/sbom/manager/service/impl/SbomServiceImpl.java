@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.openeuler.sbom.manager.SbomApplicationContextHolder;
 import org.openeuler.sbom.manager.constant.SbomConstants;
 import org.openeuler.sbom.manager.dao.ExternalPurlRefRepository;
+import org.openeuler.sbom.manager.dao.ExternalVulRefRepository;
 import org.openeuler.sbom.manager.dao.PackageRepository;
 import org.openeuler.sbom.manager.dao.ProductConfigRepository;
 import org.openeuler.sbom.manager.dao.ProductRepository;
@@ -14,6 +15,7 @@ import org.openeuler.sbom.manager.dao.RawSbomRepository;
 import org.openeuler.sbom.manager.dao.SbomRepository;
 import org.openeuler.sbom.manager.dao.spec.ExternalPurlRefSpecs;
 import org.openeuler.sbom.manager.model.ExternalPurlRef;
+import org.openeuler.sbom.manager.model.ExternalVulRef;
 import org.openeuler.sbom.manager.model.Package;
 import org.openeuler.sbom.manager.model.Product;
 import org.openeuler.sbom.manager.model.ProductType;
@@ -25,6 +27,7 @@ import org.openeuler.sbom.manager.model.vo.PackagePurlVo;
 import org.openeuler.sbom.manager.model.vo.PackageUrlVo;
 import org.openeuler.sbom.manager.model.vo.PageVo;
 import org.openeuler.sbom.manager.model.vo.ProductConfigVo;
+import org.openeuler.sbom.manager.model.vo.VulnerabilityVo;
 import org.openeuler.sbom.manager.service.SbomService;
 import org.openeuler.sbom.manager.service.reader.SbomReader;
 import org.openeuler.sbom.manager.service.writer.SbomWriter;
@@ -76,6 +79,9 @@ public class SbomServiceImpl implements SbomService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private ExternalVulRefRepository externalVulRefRepository;
 
     @Override
     public void readSbomFile(String productName, String fileName, byte[] fileContent) throws IOException {
@@ -260,6 +266,14 @@ public class SbomServiceImpl implements SbomService {
     public Product queryProductByFullAttributes(Map<String, ?> attributes) throws JsonProcessingException {
         String attr = Mapper.objectMapper.writeValueAsString(attributes);
         return productRepository.queryProductByFullAttributes(attr);
+    }
+
+    @Override
+    public PageVo<VulnerabilityVo> queryVulnerabilityByPackageId(String packageId, Pageable pageable) {
+        Page<ExternalVulRef> result = externalVulRefRepository.findByPackageId(UUID.fromString(packageId), pageable);
+        return new PageVo<>(new PageImpl<>(result.stream().map(VulnerabilityVo::fromExternalVulRef).toList(),
+                result.getPageable(),
+                result.getTotalElements()));
     }
 
 }

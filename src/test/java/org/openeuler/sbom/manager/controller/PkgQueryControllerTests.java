@@ -1,11 +1,14 @@
 package org.openeuler.sbom.manager.controller;
 
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.openeuler.sbom.manager.SbomApplicationContextHolder;
 import org.openeuler.sbom.manager.SbomManagerApplication;
 import org.openeuler.sbom.manager.TestConstants;
+import org.openeuler.sbom.manager.dao.SbomRepository;
 import org.openeuler.sbom.manager.model.Package;
+import org.openeuler.sbom.manager.model.Sbom;
 import org.openeuler.sbom.manager.model.spdx.ReferenceCategory;
 import org.openeuler.sbom.manager.service.SbomService;
 import org.openeuler.sbom.utils.Mapper;
@@ -38,6 +41,9 @@ public class PkgQueryControllerTests {
 
     @Autowired
     private SbomService sbomService;
+
+    @Autowired
+    private SbomRepository sbomRepository;
 
     @Test
     public void queryPackagesListForPageable() throws Exception {
@@ -459,5 +465,31 @@ public class PkgQueryControllerTests {
                 .andExpect(status().isInternalServerError())
                 .andExpect(header().string("Content-Type", "application/json"))
                 .andExpect(content().string("product is not exist"));
+    }
+
+    @Test
+    public void queryVulnerabilityByPackageId() throws Exception {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+
+        this.mockMvc
+                .perform(get("/sbom-api/queryPackageVulnerability/%s".formatted(pkg.getId().toString()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.numberOfElements").value(3))
+                .andExpect(jsonPath("$.empty").value(false))
+                .andExpect(jsonPath("$.size").value(15))
+                .andExpect(jsonPath("$.first").value(true));
     }
 }
