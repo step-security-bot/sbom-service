@@ -9,6 +9,7 @@ import org.openeuler.sbom.manager.model.vo.PackagePurlVo;
 import org.openeuler.sbom.manager.model.vo.PackageUrlVo;
 import org.openeuler.sbom.manager.model.vo.PageVo;
 import org.openeuler.sbom.manager.model.vo.ProductConfigVo;
+import org.openeuler.sbom.manager.model.vo.VulnerabilityVo;
 import org.springframework.data.domain.Pageable;
 
 import java.io.IOException;
@@ -49,5 +50,7 @@ public interface SbomService {
     List<ProductConfigVo> queryProductConfigByProductType(String productType);
 
     Product queryProductByFullAttributes(Map<String, ?> attributes) throws JsonProcessingException;
+
+    PageVo<VulnerabilityVo> queryVulnerabilityByPackageId(String packageId, Pageable pageable);
 
 }

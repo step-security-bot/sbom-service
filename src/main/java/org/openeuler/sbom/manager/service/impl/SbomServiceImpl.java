@@ -12,6 +12,7 @@ import org.openeuler.sbom.manager.dao.ProductRepository;
 import org.openeuler.sbom.manager.dao.ProductTypeRepository;
 import org.openeuler.sbom.manager.dao.RawSbomRepository;
 import org.openeuler.sbom.manager.dao.SbomRepository;
+import org.openeuler.sbom.manager.dao.VulnerabilityRepository;
 import org.openeuler.sbom.manager.dao.spec.ExternalPurlRefSpecs;
 import org.openeuler.sbom.manager.model.ExternalPurlRef;
 import org.openeuler.sbom.manager.model.Package;
@@ -19,12 +20,14 @@ import org.openeuler.sbom.manager.model.Product;
 import org.openeuler.sbom.manager.model.ProductType;
 import org.openeuler.sbom.manager.model.RawSbom;
 import org.openeuler.sbom.manager.model.Sbom;
+import org.openeuler.sbom.manager.model.Vulnerability;
 import org.openeuler.sbom.manager.model.spdx.ReferenceCategory;
 import org.openeuler.sbom.manager.model.vo.BinaryManagementVo;
 import org.openeuler.sbom.manager.model.vo.PackagePurlVo;
 import org.openeuler.sbom.manager.model.vo.PackageUrlVo;
 import org.openeuler.sbom.manager.model.vo.PageVo;
 import org.openeuler.sbom.manager.model.vo.ProductConfigVo;
+import org.openeuler.sbom.manager.model.vo.VulnerabilityVo;
 import org.openeuler.sbom.manager.service.SbomService;
 import org.openeuler.sbom.manager.service.reader.SbomReader;
 import org.openeuler.sbom.manager.service.writer.SbomWriter;
@@ -76,6 +79,9 @@ public class SbomServiceImpl implements SbomService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private VulnerabilityRepository vulnerabilityRepository;
 
     @Override
     // TODO 后续productID作为外键支持
@@ -256,6 +262,14 @@ public class SbomServiceImpl implements SbomService {
     public Product queryProductByFullAttributes(Map<String, ?> attributes) throws JsonProcessingException {
         String attr = Mapper.objectMapper.writeValueAsString(attributes);
         return productRepository.queryProductByFullAttributes(attr);
+    }
+
+    @Override
+    public PageVo<VulnerabilityVo> queryVulnerabilityByPackageId(String packageId, Pageable pageable) {
+        Page<Vulnerability> result = vulnerabilityRepository.findByPackageId(UUID.fromString(packageId), pageable);
+        return new PageVo<>(new PageImpl<>(result.stream().map(VulnerabilityVo::fromVulnerability).toList(),
+                result.getPageable(),
+                result.getTotalElements()));
     }
 
 }
