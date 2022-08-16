@@ -26,20 +26,20 @@ public interface PackageRepository extends JpaRepository<Package, UUID> {
             nativeQuery = true)
     Page<Package> findPackagesBySbomIdForPage(@Param("sbomId") UUID sbomId, Pageable pageable);
 
-    @Query(value = "SELECT * FROM package WHERE sbom_id = ( SELECT id FROM sbom WHERE product_id = :productId) " +
+    @Query(value = "SELECT * FROM package WHERE sbom_id = ( SELECT id FROM sbom WHERE product_id = (SELECT id FROM product WHERE name = :productName)) " +
             "AND (:equalPackageName IS NULL OR name = :equalPackageName) AND (:likePackageName IS NULL OR (name LIKE %:likePackageName%)) limit :maxLine",
             nativeQuery = true)
-    List<Package> getPackageInfoByName(@Param("productId") String productId,
+    List<Package> getPackageInfoByName(@Param("productName") String productName,
                                        @Param("equalPackageName") String equalPackageName,
                                        @Param("likePackageName") String likePackageName,
                                        @Param("maxLine") Integer maxLine);
 
-    @Query(value = "SELECT * FROM package WHERE sbom_id = ( SELECT id FROM sbom WHERE product_id = :productId) " +
+    @Query(value = "SELECT * FROM package WHERE sbom_id = ( SELECT id FROM sbom WHERE product_id = (SELECT id FROM product WHERE name = :productName)) " +
             "AND (:isExactly IS NULL OR :isExactly = FALSE OR (name = :equalPackageName)) " +
             "AND (:isExactly IS NULL OR :isExactly = TRUE OR (name LIKE %:likePackageName%))",
             countProjection = "1",
             nativeQuery = true)
-    Page<Package> getPackageInfoByNameForPage(@Param("productId") String productId,
+    Page<Package> getPackageInfoByNameForPage(@Param("productName") String productName,
                                               @Param("isExactly") Boolean isExactly,
                                               @Param("equalPackageName") String equalPackageName,
                                               @Param("likePackageName") String likePackageName,
@@ -51,13 +51,13 @@ public interface PackageRepository extends JpaRepository<Package, UUID> {
             "    CAST(A.sbom_id as varchar) sbomId, B.purl" +
             "    FROM package A, external_purl_ref B" +
             "    WHERE A.id = B.pkg_id" +
-            "    AND A.sbom_id = ( SELECT id FROM sbom WHERE product_id = :productId)" +
+            "    AND A.sbom_id = ( SELECT id FROM sbom WHERE product_id = (SELECT id FROM product WHERE name = :productName))" +
             "    AND B.category = :binaryType" +
             "    AND (:isExactly = FALSE OR (B.purl = :equalQueryPurl))" +
             "    AND (:isExactly = TRUE OR (B.purl LIKE %:likeQueryPurl% ))",
             countProjection = "1",
             nativeQuery = true)
-    Page<Map> queryPackageInfoByBinary(@Param("productId") String productId,
+    Page<Map> queryPackageInfoByBinary(@Param("productName") String productName,
                                        @Param("binaryType") String binaryType,
                                        @Param("isExactly") Boolean isExactly,
                                        @Param("equalQueryPurl") String equalQueryPurl,

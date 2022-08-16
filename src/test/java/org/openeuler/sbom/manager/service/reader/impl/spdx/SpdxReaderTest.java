@@ -41,7 +41,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class SpdxReaderTest {
 
-    private static final String PRODUCT_ID = "SpdxReaderTest";
+    private static final String PRODUCT_NAME = "SpdxReaderTest";
 
     @Autowired
     @Qualifier(SbomConstants.SPDX_NAME + SbomConstants.READER_NAME)
@@ -98,7 +98,7 @@ class SpdxReaderTest {
     @Test
     @Order(4)
     public void deleteSbom() {
-        Sbom sbom = sbomRepository.findByProductId(PRODUCT_ID).orElse(null);
+        Sbom sbom = sbomRepository.findByProductName(PRODUCT_NAME).orElse(null);
         if (sbom == null) {
             return;
         }
@@ -115,7 +115,7 @@ class SpdxReaderTest {
 
         sbomRepository.delete(sbom);
 
-        assertThat(sbomRepository.findByProductId(PRODUCT_ID).orElse(null)).isNull();
+        assertThat(sbomRepository.findByProductName(PRODUCT_NAME).orElse(null)).isNull();
         assertThat(sbomCreatorRepository.count()).isLessThan(sbomCreatorSize);
         assertThat(sbomElementRelationshipRepository.count()).isLessThan(sbomElementRelationshipSize);
         assertThat(packageRepository.count()).isLessThan(packageSize);
@@ -128,7 +128,7 @@ class SpdxReaderTest {
     }
 
     private void cleanDb() {
-        Sbom sbom = sbomRepository.findByProductId(PRODUCT_ID).orElse(null);
+        Sbom sbom = sbomRepository.findByProductName(PRODUCT_NAME).orElse(null);
         if (sbom == null) {
             return;
         }
@@ -149,7 +149,7 @@ class SpdxReaderTest {
             vulnerabilityRepository.delete(vulnerability);
         }
 
-        assertThat(sbomRepository.findByProductId(PRODUCT_ID).orElse(null)).isNull();
+        assertThat(sbomRepository.findByProductName(PRODUCT_NAME).orElse(null)).isNull();
         assertThat(sbomCreatorRepository.count()).isLessThan(sbomCreatorSize);
         assertThat(sbomElementRelationshipRepository.count()).isLessThan(sbomElementRelationshipSize);
         assertThat(packageRepository.count()).isLessThan(packageSize);
@@ -169,15 +169,15 @@ class SpdxReaderTest {
         vulnerability.setSource("CVE_MANAGER");
         vulnerabilityRepository.save(vulnerability);
 
-        spdxReader.read(PRODUCT_ID, new ClassPathResource(TestConstants.SAMPLE_UPLOAD_FILE_NAME).getFile());
+        spdxReader.read(PRODUCT_NAME, new ClassPathResource(TestConstants.SAMPLE_UPLOAD_FILE_NAME).getFile());
 
-        Sbom sbom = sbomRepository.findByProductId(PRODUCT_ID).orElse(null);
+        Sbom sbom = sbomRepository.findByProductName(PRODUCT_NAME).orElse(null);
         assertThat(sbom).isNotNull();
-        assertThat(sbom.getProductId()).isEqualTo(PRODUCT_ID);
+        assertThat(sbom.getProduct().getName()).isEqualTo(PRODUCT_NAME);
 
         List<SbomCreator> sbomCreators = sbomCreatorRepository.findBySbomId(sbom.getId());
         assertThat(sbomCreators.size()).isEqualTo(1);
-        assertThat(sbomCreators.get(0).getSbom().getProductId()).isEqualTo(PRODUCT_ID);
+        assertThat(sbomCreators.get(0).getSbom().getProduct().getName()).isEqualTo(PRODUCT_NAME);
         assertThat(sbomCreators.get(0).getName()).isEqualTo("Tool: OSS Review Toolkit - e5b343ff71-dirty");
 
         List<SbomElementRelationship> sbomElementRelationships = sbomElementRelationshipRepository.findBySbomId(sbom.getId());

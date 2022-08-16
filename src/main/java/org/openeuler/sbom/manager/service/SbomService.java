@@ -18,29 +18,29 @@ import java.util.Map;
 
 public interface SbomService {
 
-    void readSbomFile(String productId, String fileName, byte[] fileContent) throws IOException;
+    void readSbomFile(String productName, String fileName, byte[] fileContent) throws IOException;
 
-    RawSbom writeSbomFile(String productId, String spec, String specVersion, String format);
+    RawSbom writeSbomFile(String productName, String spec, String specVersion, String format);
 
-    byte[] writeSbom(String productId, String spec, String specVersion, String format) throws IOException;
+    byte[] writeSbom(String productName, String spec, String specVersion, String format) throws IOException;
 
-    PageVo<Package> findPackagesPageable(String productId, int page, int size);
+    PageVo<Package> findPackagesPageable(String productName, int page, int size);
 
-    List<Package> queryPackageInfoByName(String productId, String packageName, boolean isExactly);
+    List<Package> queryPackageInfoByName(String productName, String packageName, boolean isExactly);
 
     Package queryPackageInfoById(String packageId);
 
-    PageVo<Package> getPackageInfoByNameForPage(String productId, String packageName, Boolean isEqual, int page, int size);
+    PageVo<Package> getPackageInfoByNameForPage(String productName, String packageName, Boolean isEqual, int page, int size);
 
     BinaryManagementVo queryPackageBinaryManagement(String packageId, String binaryType);
 
     @Deprecated
-    PageVo<PackagePurlVo> queryPackageInfoByBinary(String productId,
+    PageVo<PackagePurlVo> queryPackageInfoByBinary(String productName,
                                                    String binaryType,
                                                    PackageUrlVo purl,
                                                    Pageable pageable) throws Exception;
 
-    PageVo<PackagePurlVo> queryPackageInfoByBinaryViaSpec(String productId,
+    PageVo<PackagePurlVo> queryPackageInfoByBinaryViaSpec(String productName,
                                                           String binaryType,
                                                           PackageUrlVo purl,
                                                           Pageable pageable);

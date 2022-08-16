@@ -1,5 +1,6 @@
 package org.openeuler.sbom.manager.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
@@ -11,8 +12,7 @@ import java.util.UUID;
 
 @Entity
 @Table(indexes = {
-        // TODO 后续product功能完成后去除productId
-        @Index(name = "raw_sbom_uk", columnList = "spec, spec_version, format, productId", unique = true)
+        @Index(name = "raw_sbom_uk", columnList = "spec, spec_version, format, product_id", unique = true)
 })
 public class RawSbom {
     @Id
@@ -34,10 +34,10 @@ public class RawSbom {
     @Type(type = "org.hibernate.type.BinaryType")
     private byte[] value;
 
-    // @OneToOne(mappedBy = "rawSbom", fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL, orphanRemoval = true)
-    // private Product product;
-    // TODO 待后续product功能完成后，productId切换成product对象
-    private String productId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "product_id", foreignKey = @ForeignKey(name = "product_id_fk"))
+    @JsonIgnore
+    private Product product;
 
     @Column(name = "create_time")
     @CreationTimestamp
@@ -87,20 +87,12 @@ public class RawSbom {
         this.value = value;
     }
 
-//    public Product getProduct() {
-//        return product;
-//    }
-
-//    public void setProduct(Product product) {
-//        this.product = product;
-//    }
-
-    public String getProductId() {
-        return productId;
+    public Product getProduct() {
+        return product;
     }
 
-    public void setProductId(String productId) {
-        this.productId = productId;
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
     public Timestamp getCreateTime() {
