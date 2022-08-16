@@ -35,7 +35,7 @@ public class SbomDataInitTest {
 
         this.mockMvc
                 .perform(multipart("/sbom-api/uploadSbomFile").file(file)
-                        .param("productId", TestConstants.SAMPLE_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_PRODUCT_NAME)
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andDo(print())
                 .andExpect(status().isAccepted())

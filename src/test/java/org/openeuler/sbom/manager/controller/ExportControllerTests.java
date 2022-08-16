@@ -34,7 +34,7 @@ public class ExportControllerTests {
     public void downloadSbomFileFailedNoSbom() throws Exception {
         this.mockMvc
                 .perform(post("/sbom-api/exportSbomFile")
-                        .param("productId", TestConstants.SAMPLE_PRODUCT_NAME + ".iso")
+                        .param("productName", TestConstants.SAMPLE_PRODUCT_NAME + ".iso")
                         .param("spec", "spdx")
                         .param("specVersion", "2.2")
                         .param("format", "json")
@@ -42,14 +42,14 @@ public class ExportControllerTests {
                         .accept(MediaType.APPLICATION_OCTET_STREAM))
                 .andDo(print())
                 .andExpect(status().isInternalServerError())
-                .andExpect(content().string(containsString("can not find")));
+                .andExpect(content().string(containsString("can't find mindsporeTest.iso's product metadata")));
     }
 
     @Test
     public void downloadSbomFileFailedNoSpec() throws Exception {
         this.mockMvc
                 .perform(post("/sbom-api/exportSbomFile")
-                        .param("productId", TestConstants.SAMPLE_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_PRODUCT_NAME)
                         .param("spec", "spdx")
                         .param("specVersion", "2.3")
                         .param("format", "json")
@@ -64,7 +64,7 @@ public class ExportControllerTests {
     public void downloadSbomFileSuccess() throws Exception {
         this.mockMvc
                 .perform(post("/sbom-api/exportSbomFile")
-                        .param("productId", TestConstants.SAMPLE_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_PRODUCT_NAME)
                         .param("spec", "spdx")
                         .param("specVersion", "2.2")
                         .param("format", "json")
@@ -79,7 +79,7 @@ public class ExportControllerTests {
     public void exportSbomFailedNoSbom() throws Exception {
         this.mockMvc
                 .perform(post("/sbom-api/exportSbom")
-                        .param("productId", TestConstants.SAMPLE_PRODUCT_NAME + ".iso")
+                        .param("productName", TestConstants.SAMPLE_PRODUCT_NAME + ".iso")
                         .param("spec", "spdx")
                         .param("specVersion", "2.2")
                         .param("format", "json")
@@ -94,7 +94,7 @@ public class ExportControllerTests {
     public void exportSbomFailedNoSpec() throws Exception {
         this.mockMvc
                 .perform(post("/sbom-api/exportSbom")
-                        .param("productId", TestConstants.SAMPLE_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_PRODUCT_NAME)
                         .param("spec", "spdx")
                         .param("specVersion", "2.3")
                         .param("format", "json")
@@ -109,7 +109,7 @@ public class ExportControllerTests {
     public void exportSbomJsonSuccess() throws Exception {
         MvcResult mvcResult = this.mockMvc
                 .perform(post("/sbom-api/exportSbom")
-                        .param("productId", TestConstants.SAMPLE_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_PRODUCT_NAME)
                         .param("spec", "spdx")
                         .param("specVersion", "2.2")
                         .param("format", "json")
@@ -129,7 +129,7 @@ public class ExportControllerTests {
     public void exportSbomYamlSuccess() throws Exception {
         MvcResult mvcResult = this.mockMvc
                 .perform(post("/sbom-api/exportSbom")
-                        .param("productId", TestConstants.SAMPLE_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_PRODUCT_NAME)
                         .param("spec", "spdx")
                         .param("specVersion", "2.2")
                         .param("format", "yaml")
@@ -149,7 +149,7 @@ public class ExportControllerTests {
     public void exportSbomXmlSuccess() throws Exception {
         MvcResult mvcResult = this.mockMvc
                 .perform(post("/sbom-api/exportSbom")
-                        .param("productId", TestConstants.SAMPLE_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_PRODUCT_NAME)
                         .param("spec", "spdx")
                         .param("specVersion", "2.2")
                         .param("format", "xml")
