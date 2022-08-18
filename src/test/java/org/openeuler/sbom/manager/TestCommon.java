@@ -3,8 +3,10 @@ package org.openeuler.sbom.manager;
 import org.openeuler.sbom.manager.model.spdx.SpdxDocument;
 import org.openeuler.sbom.manager.model.spdx.SpdxPackage;
 import org.openeuler.sbom.manager.model.spdx.SpdxRelationship;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,8 +23,11 @@ public class TestCommon {
         assertThat(spdxDocument.getPackages().size()).isEqualTo(78);
         assertThat(spdxDocument.getRelationships().size()).isEqualTo(77);
 
-        SpdxPackage pkg = spdxDocument.getPackages().get(0);
-        assertThat(pkg.getSpdxId()).isEqualTo("SPDXRef-Package-github-abseil-cpp-20210324.2");
+        Optional<SpdxPackage> pkgOptional = spdxDocument.getPackages().stream()
+                .filter(tempPkg -> StringUtils.endsWithIgnoreCase("SPDXRef-Package-github-abseil-cpp-20210324.2", tempPkg.getSpdxId()))
+                .findFirst();
+        assertThat(pkgOptional.isPresent());
+        SpdxPackage pkg = pkgOptional.get();
         assertThat(pkg.getHomepage()).isEqualTo("https://abseil.io");
         assertThat(pkg.getLicenseDeclared()).isEqualTo("Apache-2.0");
         assertThat(pkg.getName()).isEqualTo("abseil-cpp");
