@@ -10,13 +10,20 @@ import org.openeuler.sbom.manager.model.vo.PackageUrlVo;
 import org.openeuler.sbom.manager.model.vo.PageVo;
 import org.openeuler.sbom.manager.model.vo.ProductConfigVo;
 import org.openeuler.sbom.manager.model.vo.VulnerabilityVo;
+import org.openeuler.sbom.manager.model.vo.request.PublishSbomRequest;
+import org.openeuler.sbom.manager.model.vo.response.PublishResultResponse;
 import org.springframework.data.domain.Pageable;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public interface SbomService {
+
+    UUID publishSbom(PublishSbomRequest publishSbomRequest) throws IOException;
+
+    PublishResultResponse getSbomPublishResult(UUID taskId);
 
     void readSbomFile(String productName, String fileName, byte[] fileContent) throws IOException;
 

@@ -28,11 +28,7 @@ public class SbomMapperUtil {
 
     public static SbomFormat fileToExt(String fileName) {
         String fileExtStr = fileToExtStr(fileName);
-        if (!SbomFormat.EXT_TO_FORMAT.containsKey(fileExtStr)) {
-            throw new RuntimeException("invalid sbom file: %s".formatted(fileName));
-        }
-
-        return SbomFormat.EXT_TO_FORMAT.get(fileExtStr);
+        return SbomFormat.findSbomFormat(fileExtStr);
     }
 
     public static String fileToExtStr(String fileName) {

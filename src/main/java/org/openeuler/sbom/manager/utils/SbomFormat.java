@@ -26,4 +26,13 @@ public enum SbomFormat {
             "rdf", SbomFormat.RDF,
             "rdf.xml", SbomFormat.RDF
     );
+
+
+    public static SbomFormat findSbomFormat(String fileExt) {
+        if (!SbomFormat.EXT_TO_FORMAT.containsKey(fileExt)) {
+            throw new RuntimeException("invalid sbom file: %s".formatted(fileExt));
+        }
+
+        return SbomFormat.EXT_TO_FORMAT.get(fileExt);
+    }
 }

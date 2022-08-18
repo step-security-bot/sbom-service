@@ -21,4 +21,14 @@ public class SbomConstants {
 
     public static final String PURL_RPM_TYPE_VALUE = "rpm";
 
+    public static final String TASK_STATUS_WAIT = "wait";
+
+    public static final String TASK_STATUS_RUNNING = "running";
+
+    public static final String TASK_STATUS_FINISH = "finish";
+
+    public static final String TASK_STATUS_NOT_EXISTS = "task not exists";
+
+    public static final String PACKAGE_LIST_PAGE_URL_PATTERN="%s/#/sbomPackages?productName=%s";
+
 }

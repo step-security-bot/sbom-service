@@ -28,6 +28,8 @@ import org.openeuler.sbom.manager.model.vo.PackageUrlVo;
 import org.openeuler.sbom.manager.model.vo.PageVo;
 import org.openeuler.sbom.manager.model.vo.ProductConfigVo;
 import org.openeuler.sbom.manager.model.vo.VulnerabilityVo;
+import org.openeuler.sbom.manager.model.vo.request.PublishSbomRequest;
+import org.openeuler.sbom.manager.model.vo.response.PublishResultResponse;
 import org.openeuler.sbom.manager.service.SbomService;
 import org.openeuler.sbom.manager.service.reader.SbomReader;
 import org.openeuler.sbom.manager.service.writer.SbomWriter;
@@ -35,8 +37,10 @@ import org.openeuler.sbom.manager.utils.EntityUtil;
 import org.openeuler.sbom.manager.utils.PurlUtil;
 import org.openeuler.sbom.manager.utils.SbomFormat;
 import org.openeuler.sbom.manager.utils.SbomSpecification;
+import org.openeuler.sbom.manager.utils.UrlUtil;
 import org.openeuler.sbom.utils.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -47,8 +51,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -82,6 +88,74 @@ public class SbomServiceImpl implements SbomService {
 
     @Autowired
     private ExternalVulRefRepository externalVulRefRepository;
+
+    @Value("${sbom.service.website.domain}")
+    private String sbomWebsiteDomain;
+
+    @Override
+    public UUID publishSbom(PublishSbomRequest publishSbomRequest) throws IOException {
+        if (!org.springframework.util.StringUtils.hasText(publishSbomRequest.getProductName())) {
+            throw new RuntimeException("product name is empty");
+        }
+        if (!org.springframework.util.StringUtils.hasText(publishSbomRequest.getSbomContent())) {
+            throw new RuntimeException("sbom content is empty");
+        }
+        Product product = productRepository.findByName(publishSbomRequest.getProductName())
+                .orElseThrow(() -> new RuntimeException("can't find %s's product metadata".formatted(publishSbomRequest.getProductName())));
+        SbomFormat format = SbomFormat.findSbomFormat(publishSbomRequest.getFormat());
+        SbomSpecification specification = SbomSpecification.findSpecification(publishSbomRequest.getSpec(), publishSbomRequest.getSpecVersion());
+
+        RawSbom rawSbom = new RawSbom();
+        rawSbom.setSpec(specification.getSpecification().toLowerCase());
+        rawSbom.setSpecVersion(specification.getVersion());
+        rawSbom.setFormat(format.getFileExtName());
+        rawSbom.setProduct(product);
+        rawSbom.setValue(publishSbomRequest.getSbomContent().getBytes(StandardCharsets.UTF_8));
+
+        rawSbom.setTaskStatus(SbomConstants.TASK_STATUS_WAIT);
+        rawSbom.setTaskId(UUID.randomUUID());
+
+        RawSbom oldRawSbom = sbomFileRepository.queryRawSbom(rawSbom);
+        if (oldRawSbom != null) {
+            rawSbom.setId(oldRawSbom.getId());
+            rawSbom.setCreateTime(oldRawSbom.getCreateTime());
+        }
+        sbomFileRepository.save(rawSbom);
+
+        // TODO 1. sbom发布逻辑需要异步处理，以下SBOM元数据解析和入库逻辑待拆分到异步定时任务中被调用
+        // TODO 2. rawSbom中的taskId是否可作为quartz任务的taskId? 这样可以用于后续排查僵死任务
+        // TODO 3. rawSbom中的taskStatus后续需要实现互斥和幂等逻辑；wait和running状态的任务，不允许二次发布；finish的进行清理+导入
+        SbomReader sbomReader = SbomApplicationContextHolder.getSbomReader(specification.getSpecification());
+        sbomReader.read(product.getName(), format, rawSbom.getValue());
+
+        return rawSbom.getTaskId();
+    }
+
+    @Override
+    public PublishResultResponse getSbomPublishResult(UUID taskId) {
+        Optional<RawSbom> rawSbomOptional = sbomFileRepository.findByTaskId(taskId);
+
+        return rawSbomOptional.map(rawSbom -> {
+            PublishResultResponse response = new PublishResultResponse();
+            response.setSuccess(Boolean.TRUE);
+            if (StringUtils.equalsIgnoreCase(rawSbom.getTaskStatus(), SbomConstants.TASK_STATUS_FINISH)) {
+                response.setFinish(Boolean.TRUE);
+                response.setSbomRef(UrlUtil.generateSbomUrl(sbomWebsiteDomain, rawSbom.getProduct().getName()));
+            } else {
+                response.setFinish(Boolean.TRUE);
+                response.setSbomRef(UrlUtil.generateSbomUrl(sbomWebsiteDomain, rawSbom.getProduct().getName()));
+
+                // TODO SBOM元数据解析和入库逻辑待拆分到异步定时任务中后，running和wait状态都返回Finish为false
+                // response.setFinish(Boolean.FALSE);
+            }
+            return response;
+        }).orElse(
+                new PublishResultResponse(Boolean.FALSE,
+                        Boolean.FALSE,
+                        SbomConstants.TASK_STATUS_NOT_EXISTS,
+                        null)
+        );
+    }
 
     @Override
     public void readSbomFile(String productName, String fileName, byte[] fileContent) throws IOException {
@@ -245,7 +319,7 @@ public class SbomServiceImpl implements SbomService {
                         .and(ExternalPurlRefSpecs.withSort("name")),
                 pageable);
 
-        return new PageVo<>(new PageImpl(result.stream().map(item -> PackagePurlVo.fromExternalPurlRef(item)).collect(Collectors.toList()),
+        return new PageVo<>(new PageImpl(result.stream().map(PackagePurlVo::fromExternalPurlRef).collect(Collectors.toList()),
                 result.getPageable(),
                 result.getTotalElements()));
     }
