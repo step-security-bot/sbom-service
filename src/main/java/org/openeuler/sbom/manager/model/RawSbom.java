@@ -47,6 +47,12 @@ public class RawSbom {
     @UpdateTimestamp
     private Timestamp updateTime;
 
+    @Column(columnDefinition = "TEXT", name = "task_status")
+    private String taskStatus;
+
+    @Column(columnDefinition = "UUID", name = "task_id")
+    private UUID taskId;
+
     public UUID getId() {
         return id;
     }
@@ -111,4 +117,19 @@ public class RawSbom {
         this.updateTime = updateTime;
     }
 
+    public String getTaskStatus() {
+        return taskStatus;
+    }
+
+    public void setTaskStatus(String taskStatus) {
+        this.taskStatus = taskStatus;
+    }
+
+    public UUID getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(UUID taskId) {
+        this.taskId = taskId;
+    }
 }

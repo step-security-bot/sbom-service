@@ -13,4 +13,6 @@ public class TestConstants {
     public static final String BINARY_TEST_PACKAGE_NAME = "hive";
 
     public static final String OPENEULER_PRODUCT_TYPE_NAME = "openEuler";
+
+    public static final String PUBLISH_SAMPLE_PRODUCT_NAME = "publishTest";
 }

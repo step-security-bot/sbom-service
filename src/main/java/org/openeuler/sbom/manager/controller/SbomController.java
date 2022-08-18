@@ -11,6 +11,9 @@ import org.openeuler.sbom.manager.model.vo.PackageUrlVo;
 import org.openeuler.sbom.manager.model.vo.PageVo;
 import org.openeuler.sbom.manager.model.vo.ProductConfigVo;
 import org.openeuler.sbom.manager.model.vo.VulnerabilityVo;
+import org.openeuler.sbom.manager.model.vo.request.PublishSbomRequest;
+import org.openeuler.sbom.manager.model.vo.response.PublishResultResponse;
+import org.openeuler.sbom.manager.model.vo.response.PublishSbomResponse;
 import org.openeuler.sbom.manager.service.SbomService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +44,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 @Controller
 @RequestMapping(path = "/sbom-api")
@@ -50,6 +54,50 @@ public class SbomController {
 
     @Autowired
     private SbomService sbomService;
+
+    @PostMapping("/publishSbomFile")
+    public @ResponseBody ResponseEntity publishSbomFile(@RequestBody PublishSbomRequest publishSbomRequest) {
+        logger.info("publish sbom file request:{}", publishSbomRequest);
+        PublishSbomResponse response = new PublishSbomResponse();
+
+        UUID taskId;
+        try {
+            taskId = sbomService.publishSbom(publishSbomRequest);
+        } catch (RuntimeException e) {
+            logger.error("publish sbom failed", e);
+            response.setSuccess(Boolean.FALSE);
+            response.setErrorInfo(e.getMessage());
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
+        } catch (Exception e) {
+            logger.error("publish sbom failed", e);
+            response.setSuccess(Boolean.FALSE);
+            response.setErrorInfo("publish sbom failed!");
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
+        }
+
+        response.setSuccess(Boolean.TRUE);
+        response.setTaskId(taskId);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
+    }
+
+    @GetMapping("/querySbomPublishResult/{taskId}")
+    public @ResponseBody ResponseEntity querySbomPublishResult(@PathVariable("taskId") String taskId) {
+        logger.info("query sbom publish result, taskId:{}", taskId);
+        UUID uuid;
+        try {
+            uuid = UUID.fromString(taskId);
+        } catch (IllegalArgumentException e) {
+            logger.error("String to UUID failed", e);
+            return ResponseEntity.status(HttpStatus.OK).body(new PublishResultResponse(Boolean.FALSE,
+                    Boolean.FALSE,
+                    e.getMessage(),
+                    null));
+        }
+
+        PublishResultResponse result = sbomService.getSbomPublishResult(uuid);
+        logger.info("query sbom publish resul:{}", result);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
 
     @PostMapping("/uploadSbomFile")
     public @ResponseBody ResponseEntity uploadSbomFile(HttpServletRequest request, @RequestParam String productName) throws IOException {//HttpServletRequest request
@@ -218,7 +266,7 @@ public class SbomController {
     @GetMapping("/querySbomPackage/{packageId}")
     public @ResponseBody ResponseEntity getPackageInfoById(@PathVariable("packageId") String packageId) {
         logger.info("query sbom package by packageId:{}", packageId);
-        Package packageInfo = null;
+        Package packageInfo;
         try {
             packageInfo = sbomService.queryPackageInfoById(packageId);
         } catch (RuntimeException e) {
@@ -263,7 +311,7 @@ public class SbomController {
 
         PackageUrlVo purl = new PackageUrlVo(type, namespace, name, version);
         Pageable pageable = PageRequest.of(page, size);
-        PageVo<PackagePurlVo> queryResult = null;
+        PageVo<PackagePurlVo> queryResult;
 
         try {
             queryResult = sbomService.queryPackageInfoByBinaryViaSpec(productName,
