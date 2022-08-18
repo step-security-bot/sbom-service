@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(classes = {SbomManagerApplication.class, SbomApplicationContextHolder.class})
 @AutoConfigureMockMvc
-public class UploadControllerTests {
+public class PublishControllerTests {
 
     @Autowired
     private MockMvc mockMvc;
