@@ -23,10 +23,12 @@ import org.openeuler.sbom.manager.model.vo.ProductConfigVo;
 import org.openeuler.sbom.manager.model.vo.VulnerabilityVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -287,5 +289,31 @@ class SbomServiceTest {
         assertThat(result.getContent().get(2).getReferences().get(1).getFirst()).isEqualTo("GITHUB");
         assertThat(result.getContent().get(2).getReferences().get(1).getSecond()).isEqualTo("https://github.com/xxx/xxx/security/advisories/xxx");
 
+    }
+
+    @Test
+    public void persistSbomFromTraceData() throws IOException {
+
+        sbomService.persistSbomFromTraceData(
+                TestConstants.SAMPLE_MINDSPORE_TRACER_PRODUCT_NAME,
+                TestConstants.SAMPLE_UPLOAD_TRACE_DATA_NAME,
+                new ClassPathResource(TestConstants.SAMPLE_UPLOAD_TRACE_DATA_NAME).getInputStream());
+
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_MINDSPORE_TRACER_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        assertThat(sbom.getName()).isEqualTo("mindsporeTracerTest");
+
+        List<Package> packages = sbom.getPackages();
+        assertThat(packages.size()).isEqualTo(2);
+
+        Package akg = packages.stream().filter(p -> StringUtils.equals(p.getName(), "akg")).findFirst().orElse(null);
+        assertThat(akg).isNotNull();
+        assertThat(akg.getSpdxId()).isEqualTo("SPDXRef-Package-gitee-mindspore-akg-1.7.0");
+        assertThat(akg.getVersion()).isEqualTo("1.7.0");
+
+        Package protobuf = packages.stream().filter(p -> StringUtils.equals(p.getName(), "protobuf")).findFirst().orElse(null);
+        assertThat(protobuf).isNotNull();
+        assertThat(protobuf.getSpdxId()).isEqualTo("SPDXRef-Package-github-protocolbuffers-protobuf-3.13.0");
+        assertThat(protobuf.getVersion()).isEqualTo("3.13.0");
     }
 }

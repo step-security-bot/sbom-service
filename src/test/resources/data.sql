@@ -82,3 +82,28 @@ VALUES('e686d5ba-cd30-41e7-b97a-a3481bb6e0a2', 'mindspore-1.8.0-cp37-cp37m-linux
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
 
+--Test
+INSERT INTO product(id, name, attribute)
+VALUES('11111111-1111-41e7-b97a-a3481bb6e111', 'mindsporeTest', '{"arg":"1"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('11111111-1111-41e7-b97a-a3481bb6e222', 'SpdxReaderTest', '{"arg":"2"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('11111111-1111-41e7-b97a-a3481bb6e333', 'SpdxWriterTest', '{"arg":"3"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('11111111-1111-41e7-b97a-a3481bb6e444', 'publishTest', '{"arg":"4"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('11111111-1111-41e7-b97a-a3481bb6e555', 'mindsporeTracerTest', '{"arg":"5"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;

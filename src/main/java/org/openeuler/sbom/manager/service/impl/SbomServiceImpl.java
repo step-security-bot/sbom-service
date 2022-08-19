@@ -3,6 +3,7 @@ package org.openeuler.sbom.manager.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.openeuler.sbom.analyzer.TraceDataAnalyzer;
 import org.openeuler.sbom.manager.SbomApplicationContextHolder;
 import org.openeuler.sbom.manager.constant.SbomConstants;
 import org.openeuler.sbom.manager.dao.ExternalPurlRefRepository;
@@ -51,6 +52,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +90,9 @@ public class SbomServiceImpl implements SbomService {
 
     @Autowired
     private ExternalVulRefRepository externalVulRefRepository;
+
+    @Autowired
+    private TraceDataAnalyzer traceDataAnalyzer;
 
     @Value("${sbom.service.website.domain}")
     private String sbomWebsiteDomain;
@@ -348,6 +353,12 @@ public class SbomServiceImpl implements SbomService {
         return new PageVo<>(new PageImpl<>(result.stream().map(VulnerabilityVo::fromExternalVulRef).toList(),
                 result.getPageable(),
                 result.getTotalElements()));
+    }
+
+    @Override
+    public void persistSbomFromTraceData(String productName, String fileName, InputStream inputStream) throws IOException {
+        byte[] sbomContent = traceDataAnalyzer.analyze(productName, fileName, inputStream);
+        readSbomFile(productName, productName + ".spdx.json", sbomContent);
     }
 
 }

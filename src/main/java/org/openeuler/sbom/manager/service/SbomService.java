@@ -15,6 +15,7 @@ import org.openeuler.sbom.manager.model.vo.response.PublishResultResponse;
 import org.springframework.data.domain.Pageable;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -60,4 +61,5 @@ public interface SbomService {
 
     PageVo<VulnerabilityVo> queryVulnerabilityByPackageId(String packageId, Pageable pageable);
 
+    void persistSbomFromTraceData(String productName, String fileName, InputStream inputStream) throws IOException;
 }

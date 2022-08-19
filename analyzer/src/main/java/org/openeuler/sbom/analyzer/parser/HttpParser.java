@@ -9,9 +9,12 @@ import org.openeuler.sbom.utils.Mapper;
 import org.ossreviewtoolkit.model.CuratedPackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
@@ -23,24 +26,21 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Component
 public class HttpParser implements Parser {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpParser.class);
 
-    protected final String logPath;
+    @Autowired
+    private PackageGenerator packageGenerator;
 
-    protected final List<ProcessIdentifier> allProcess;
-
-    public HttpParser(String logPath, List<ProcessIdentifier> allProcess) {
-        this.logPath = logPath;
-        this.allProcess = allProcess;
-    }
+    private static final String HTTP_SNIFF_LOG = "sslsniff.log";
 
     @Override
-    public Set<CuratedPackage> parse() {
+    public Set<CuratedPackage> parse(Path workspace, List<ProcessIdentifier> allProcess) {
         logger.info("start to parse HTTP");
         Set<CuratedPackage> packages;
-        try(Stream<String> stream = Files.lines(Paths.get(logPath))) {
+        try(Stream<String> stream = Files.lines(Paths.get(workspace.toString(), HTTP_SNIFF_LOG))) {
             packages = stream.map(line -> {
                         try {
                             return Mapper.jsonMapper.readValue(line.trim(), HttpSniffData.class);
@@ -79,7 +79,7 @@ public class HttpParser implements Parser {
                 String tag = matcher.group(3);
                 String version = matcher.group(4);
                 if (Stream.of(org, repo, tag, version).allMatch(StringUtils::isNotEmpty)) {
-                    return PackageGenerator.generatePackageFromVcs(host, org, repo, version, "", tag);
+                    return packageGenerator.generatePackageFromVcs(host, org, repo, version, "", tag);
                 }
             }
         }

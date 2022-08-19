@@ -8,9 +8,11 @@ import org.openeuler.sbom.utils.Mapper;
 import org.ossreviewtoolkit.model.CuratedPackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
@@ -19,19 +21,18 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Component
 public class Http2Parser extends HttpParser {
 
     private static final Logger logger = LoggerFactory.getLogger(Http2Parser.class);
 
-    public Http2Parser(String logPath, List<ProcessIdentifier> allProcess) {
-        super(logPath, allProcess);
-    }
+    private static final String HTTP2_SNIFF_LOG = "h2sniff.log";
 
     @Override
-    public Set<CuratedPackage> parse() {
+    public Set<CuratedPackage> parse(Path workspace, List<ProcessIdentifier> allProcess) {
         logger.info("start to parse HTTP/2");
         Set<CuratedPackage> packages;
-        try(Stream<String> stream = Files.lines(Paths.get(logPath))) {
+        try(Stream<String> stream = Files.lines(Paths.get(workspace.toString(), HTTP2_SNIFF_LOG))) {
             packages = stream.map(line -> {
                         try {
                             return Mapper.jsonMapper.readValue(line.trim(), Http2SniffData.class);

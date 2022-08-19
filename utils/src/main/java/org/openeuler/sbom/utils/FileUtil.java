@@ -11,6 +11,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -25,25 +26,40 @@ public class FileUtil {
              GzipCompressorInputStream gis = new GzipCompressorInputStream(bis);
              TarArchiveInputStream tar = new TarArchiveInputStream(gis)) {
 
-            TarArchiveEntry entry;
-            while ((entry = tar.getNextTarEntry()) != null) {
-                if (!tar.canReadEntryData(entry)) {
-                    logger.warn("can't read data from entry '{}'", entry);
-                    continue;
-                }
-                File f = Paths.get(targetDir, entry.getName()).toFile();
-                if (entry.isDirectory()) {
-                    ensureDirExists(f);
-                } else {
-                    File parent = f.getParentFile();
-                    ensureDirExists(parent);
-                    try (OutputStream os = Files.newOutputStream(f.toPath())) {
-                        IOUtils.copy(tar, os);
-                    }
+            extractTarArchiveInputStream(tar, targetDir);
+        }
+        logger.info("successfully extracted '{}' to '{}'", file, targetDir);
+    }
+
+    public static void extractTarGzipArchive(InputStream is, String targetDir) throws IOException {
+        logger.info("extract from input stream to '{}'", targetDir);
+        try (BufferedInputStream bis = new BufferedInputStream(is);
+             GzipCompressorInputStream gis = new GzipCompressorInputStream(bis);
+             TarArchiveInputStream tar = new TarArchiveInputStream(gis)) {
+
+            extractTarArchiveInputStream(tar, targetDir);
+        }
+        logger.info("successfully extract from input stream to '{}'", targetDir);
+    }
+
+    private static void extractTarArchiveInputStream(TarArchiveInputStream tar, String targetDir) throws IOException {
+        TarArchiveEntry entry;
+        while ((entry = tar.getNextTarEntry()) != null) {
+            if (!tar.canReadEntryData(entry)) {
+                logger.warn("can't read data from entry '{}'", entry);
+                continue;
+            }
+            File f = Paths.get(targetDir, entry.getName()).toFile();
+            if (entry.isDirectory()) {
+                ensureDirExists(f);
+            } else {
+                File parent = f.getParentFile();
+                ensureDirExists(parent);
+                try (OutputStream os = Files.newOutputStream(f.toPath())) {
+                    IOUtils.copy(tar, os);
                 }
             }
         }
-        logger.info("successfully extracted '{}' to '{}'", file, targetDir);
     }
 
     public static void ensureDirExists(String dir) throws IOException {
