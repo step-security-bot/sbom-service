@@ -413,4 +413,23 @@ public class SbomController {
         return ResponseEntity.status(HttpStatus.OK).body(vulnerabilities);
     }
 
+    @PostMapping("/uploadSbomTraceData")
+    public @ResponseBody ResponseEntity uploadSbomTraceData(HttpServletRequest request, @RequestParam String productName) throws IOException {//HttpServletRequest request
+        MultipartFile file = ((MultipartHttpServletRequest) request).getFile("uploadFileName");
+        if (file == null || file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("upload file is empty");
+        }
+        String fileName = file.getOriginalFilename();
+        logger.info("upload {}'s sbom trace data: {}, file length: {}", productName, file.getOriginalFilename(), file.getBytes().length);
+
+        try {
+            sbomService.persistSbomFromTraceData(productName, fileName, file.getInputStream());
+        } catch (Exception e) {
+            logger.error("failed to uploadSbomTraceData", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body("Success");
+    }
+
 }

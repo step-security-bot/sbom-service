@@ -3,6 +3,7 @@ plugins {
     id("io.spring.dependency-management")
     id("java")
     id("war")
+    id("org.jetbrains.kotlin.jvm")
 }
 
 group = "org.openeuler.sbom"
@@ -13,6 +14,28 @@ val commonsLang3Version: String by project
 val commonsCollections4Version: String by project
 val packageUrlJavaVersion: String by project
 val hibernateTypesVersion: String by project
+
+repositories {
+    exclusiveContent {
+        forRepository {
+            maven("https://repo.gradle.org/gradle/libs-releases/")
+        }
+
+        filter {
+            includeGroup("org.gradle")
+        }
+    }
+
+    exclusiveContent {
+        forRepository {
+            maven("https://repo.eclipse.org/content/repositories/sw360-releases/")
+        }
+
+        filter {
+            includeGroup("org.eclipse.sw360")
+        }
+    }
+}
 
 dependencies {
     implementation(project(":analyzer"))
@@ -48,6 +71,7 @@ allprojects {
     apply(plugin = "org.springframework.boot")
     apply(plugin = "io.spring.dependency-management")
     apply(plugin = "java")
+    apply(plugin = "org.jetbrains.kotlin.jvm")
 
     repositories {
         mavenCentral()

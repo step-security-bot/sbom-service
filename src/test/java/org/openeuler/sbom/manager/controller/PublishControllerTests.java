@@ -195,5 +195,19 @@ public class PublishControllerTests {
                 .andExpect(jsonPath("$.errorInfo").value("task not exists"))
                 .andExpect(jsonPath("$.sbomRef").isEmpty());
     }
+
+    @Test
+    public void uploadSbomTraceData() throws Exception {
+        ClassPathResource classPathResource = new ClassPathResource(TestConstants.SAMPLE_UPLOAD_TRACE_DATA_NAME);
+        MockMultipartFile file = new MockMultipartFile("uploadFileName", TestConstants.SAMPLE_UPLOAD_TRACE_DATA_NAME
+                , "json", classPathResource.getInputStream());
+
+        this.mockMvc
+                .perform(multipart("/sbom-api/uploadSbomTraceData").file(file)
+                        .param("productName", TestConstants.SAMPLE_MINDSPORE_TRACER_PRODUCT_NAME)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andDo(print())
+                .andExpect(status().isAccepted());
+    }
 }
 

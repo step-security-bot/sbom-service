@@ -12,6 +12,21 @@ if [ -f "${OSSINDEX_API_TOKEN_FILE}" ]; then
   export OSSINDEX_API_TOKEN
 fi
 
+if [ -f "${GITHUB_API_TOKEN_FILE}" ]; then
+  GITHUB_API_TOKEN=$(cat "${GITHUB_API_TOKEN_FILE}")
+  export GITHUB_API_TOKEN
+fi
+
+if [ -f "${GITEE_API_TOKEN_FILE}" ]; then
+  GITEE_API_TOKEN=$(cat "${GITEE_API_TOKEN_FILE}")
+  export GITEE_API_TOKEN
+fi
+
+if [ -f "${GITLAB_API_TOKEN_FILE}" ]; then
+  GITLAB_API_TOKEN=$(cat "${GITLAB_API_TOKEN_FILE}")
+  export GITLAB_API_TOKEN
+fi
+
 WORKSPACE=/opt/sbom-service
 
 cd ${WORKSPACE}
