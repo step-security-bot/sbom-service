@@ -22,7 +22,7 @@ ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, label = EXCLUDED.label, value_type = EXCLUDED.value_type, ord = EXCLUDED.ord, product_type = EXCLUDED.product_type;
 
 INSERT INTO product_config(id, name, label, value_type, ord, product_type)
-VALUES('7f959c6b-6651-4c56-be30-5e2cebb901cf', 'imageType', '镜像类型', 'enum([{"label":"everything","value":"everything"},{"label":"normal","value":"empty"}])', 3, 'openEuler')
+VALUES('7f959c6b-6651-4c56-be30-5e2cebb901cf', 'imageType', '镜像类型', 'enum([{"label":"everything","value":"everything"},{"label":"normal","value":"empty"},{"label":"update","value":"update"},{"label":"update-test","value":"update-test"}])', 3, 'openEuler')
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, label = EXCLUDED.label, value_type = EXCLUDED.value_type, ord = EXCLUDED.ord, product_type = EXCLUDED.product_type;
 
@@ -73,7 +73,32 @@ ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
 
 INSERT INTO product(id, name, attribute)
-VALUES('0810d78a-5404-45b1-93ba-dbcb17dfffe5', 'openEuler-22.03-LTS-netinst-aarch64-dvd.iso', '{"productType":"openEuler", "version":"22.03-LTS","imageFormat":"ISO","imageType":"netinst","arch":"aarch64"}'::jsonb)
+VALUES('a51b9584-e7af-47cb-9f96-fa112e234648', '/openEuler-22.03-LTS/update/x86_64', '{"productType":"openEuler", "version":"22.03-LTS","imageFormat":"ISO","imageType":"update","arch":"x86_64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('59348869-abe7-416b-a360-8bed32d815f3', '/opt/repo-data/openEuler-22.03-LTS/update/x86_64', '{"productType":"openEuler", "version":"22.03-LTS","imageFormat":"ISO","imageType":"update-test","arch":"x86_64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('7b114872-0518-436f-bf23-c21d5eaf3bbb', 'openEuler-22.03-LTS-aarch64-dvd.iso', '{"productType":"openEuler", "version":"22.03-LTS","imageFormat":"ISO","imageType":"empty","arch":"aarch64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('96d17128-644e-4019-bff1-40516d97ab31', 'openEuler-22.03-LTS-everything-aarch64-dvd.iso', '{"productType":"openEuler", "version":"22.03-LTS","imageFormat":"ISO","imageType":"everything","arch":"aarch64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('7f1cd2d8-f81f-4816-854d-20f2d85348eb', '/openEuler-22.03-LTS/update/aarch64', '{"productType":"openEuler", "version":"22.03-LTS","imageFormat":"ISO","imageType":"update","arch":"aarch64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('d81e9cf4-f793-4ca1-9602-91cb4d59b419', '/opt/repo-data/openEuler-22.03-LTS/update/aarch64', '{"productType":"openEuler", "version":"22.03-LTS","imageFormat":"ISO","imageType":"update-test","arch":"aarch64"}'::jsonb)
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
 
