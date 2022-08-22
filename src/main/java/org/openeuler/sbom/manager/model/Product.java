@@ -6,12 +6,17 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Index;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -38,6 +43,12 @@ public class Product {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String name;
 
+    @OneToOne(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Sbom sbom;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RawSbom> rawSboms;
+
     /**
      * Attributes of a product.
      */
@@ -59,6 +70,22 @@ public class Product {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Sbom getSbom() {
+        return sbom;
+    }
+
+    public void setSbom(Sbom sbom) {
+        this.sbom = sbom;
+    }
+
+    public List<RawSbom> getRawSboms() {
+        return rawSboms;
+    }
+
+    public void setRawSboms(List<RawSbom> rawSboms) {
+        this.rawSboms = rawSboms;
     }
 
     public Map<String, ?> getAttribute() {
