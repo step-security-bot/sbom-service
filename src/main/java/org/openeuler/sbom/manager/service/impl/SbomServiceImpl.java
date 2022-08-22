@@ -111,8 +111,8 @@ public class SbomServiceImpl implements SbomService {
         SbomSpecification specification = SbomSpecification.findSpecification(publishSbomRequest.getSpec(), publishSbomRequest.getSpecVersion());
 
         RawSbom rawSbom = new RawSbom();
-        rawSbom.setSpec(specification.getSpecification().toLowerCase());
-        rawSbom.setSpecVersion(specification.getVersion());
+        rawSbom.setSpec(specification != null ? specification.getSpecification().toLowerCase() : null);
+        rawSbom.setSpecVersion(specification != null ? specification.getVersion() : null);
         rawSbom.setFormat(format.getFileExtName());
         rawSbom.setProduct(product);
         rawSbom.setValue(publishSbomRequest.getSbomContent().getBytes(StandardCharsets.UTF_8));
@@ -130,7 +130,7 @@ public class SbomServiceImpl implements SbomService {
         // TODO 1. sbom发布逻辑需要异步处理，以下SBOM元数据解析和入库逻辑待拆分到异步定时任务中被调用
         // TODO 2. rawSbom中的taskId是否可作为quartz任务的taskId? 这样可以用于后续排查僵死任务
         // TODO 3. rawSbom中的taskStatus后续需要实现互斥和幂等逻辑；wait和running状态的任务，不允许二次发布；finish的进行清理+导入
-        SbomReader sbomReader = SbomApplicationContextHolder.getSbomReader(specification.getSpecification());
+        SbomReader sbomReader = SbomApplicationContextHolder.getSbomReader(specification != null ? specification.getSpecification() : null);
         sbomReader.read(product.getName(), format, rawSbom.getValue());
 
         return rawSbom.getTaskId();
