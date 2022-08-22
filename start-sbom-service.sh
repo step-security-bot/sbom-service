@@ -33,4 +33,4 @@ cd ${WORKSPACE}
 
 /bin/bash gradlew bootWar
 
-java -jar ${WORKSPACE}/build/libs/sbom-service-1.0-SNAPSHOT.war
+java -jar ${WORKSPACE}/build/libs/sbom-service-1.0-SNAPSHOT.war --spring.profiles.active=prod
