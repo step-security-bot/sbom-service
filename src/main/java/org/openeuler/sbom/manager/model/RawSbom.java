@@ -34,7 +34,7 @@ public class RawSbom {
     @Type(type = "org.hibernate.type.BinaryType")
     private byte[] value;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "product_id", foreignKey = @ForeignKey(name = "product_id_fk"))
     @JsonIgnore
     private Product product;

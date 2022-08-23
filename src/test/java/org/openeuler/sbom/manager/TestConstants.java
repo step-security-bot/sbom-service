@@ -19,4 +19,6 @@ public class TestConstants {
     public static final String OPENEULER_PRODUCT_TYPE_NAME = "openEuler";
 
     public static final String PUBLISH_SAMPLE_PRODUCT_NAME = "publishTest";
+
+    public static final String PUBLISH_SAMPLE_FOR_SERVICE_PRODUCT_NAME = "publishServiceTest";
 }

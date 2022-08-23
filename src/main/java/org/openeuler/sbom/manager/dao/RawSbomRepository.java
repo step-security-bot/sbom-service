@@ -18,4 +18,7 @@ public interface RawSbomRepository extends JpaRepository<RawSbom, UUID> {
 
     Optional<RawSbom> findByTaskIdAndTaskStatus(UUID taskId, String taskStatus);
 
+    @Query(value = "select * from raw_sbom where task_status = 'wait' for update skip locked limit 1", nativeQuery = true)
+    Optional<RawSbom> queryOneWaitingTask();
+
 }
