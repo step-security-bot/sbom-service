@@ -68,7 +68,7 @@ public class PkgQueryControllerTests {
     public void queryPackagesListByExactlyNameForPageable() throws Exception {
         this.mockMvc
                 .perform(post("/sbom-api/querySbomPackages")
-                        .param("productName", TestConstants.OPENEULER_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
                         .param("packageName", TestConstants.BINARY_TEST_PACKAGE_NAME)
                         .param("isExactly", Boolean.TRUE.toString())
                         .param("page", "0")
@@ -90,7 +90,7 @@ public class PkgQueryControllerTests {
     public void queryPackagesListByFuzzyNameForPageable() throws Exception {
         this.mockMvc
                 .perform(post("/sbom-api/querySbomPackages")
-                        .param("productName", TestConstants.OPENEULER_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
                         .param("packageName", TestConstants.BINARY_TEST_PACKAGE_NAME)
                         .param("isExactly", Boolean.FALSE.toString())
                         .param("page", "0")
@@ -100,22 +100,22 @@ public class PkgQueryControllerTests {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
-                .andExpect(jsonPath("$.last").value(false))
-                .andExpect(jsonPath("$.totalElements").value(28))
-                .andExpect(jsonPath("$.totalPages").value(2))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.totalPages").value(1))
                 .andExpect(jsonPath("$.number").value(0))
-                .andExpect(jsonPath("$.numberOfElements").value(15))
-                .andExpect(jsonPath("$.content.[0].name").value("autoconf-archive"))
-                .andExpect(jsonPath("$.content.[0].homepage").value("http://www.gnu.org/software/autoconf-archive/"))
-                .andExpect(jsonPath("$.content.[2].name").value("hive"))
-                .andExpect(jsonPath("$.content.[2].homepage").value("http://hive.apache.org/"));
+                .andExpect(jsonPath("$.numberOfElements").value(3))
+                .andExpect(jsonPath("$.content.[0].name").value("hive"))
+                .andExpect(jsonPath("$.content.[0].homepage").value("http://hive.apache.org/"))
+                .andExpect(jsonPath("$.content.[2].name").value("hivex-devel"))
+                .andExpect(jsonPath("$.content.[2].homepage").value("http://libguestfs.org/"));
     }
 
     @Test
     public void queryPackagesListByErrorNameForPageable() throws Exception {
         this.mockMvc
                 .perform(post("/sbom-api/querySbomPackages")
-                        .param("productName", TestConstants.OPENEULER_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
                         .param("packageName", "hive-XXXX")
                         .param("isExactly", Boolean.FALSE.toString())
                         .param("page", "0")
@@ -156,7 +156,7 @@ public class PkgQueryControllerTests {
             return;
         }
 
-        List<Package> packagesList = sbomService.queryPackageInfoByName(TestConstants.OPENEULER_PRODUCT_NAME, TestConstants.BINARY_TEST_PACKAGE_NAME, true);
+        List<Package> packagesList = sbomService.queryPackageInfoByName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME, TestConstants.BINARY_TEST_PACKAGE_NAME, true);
         assertThat(packagesList).isNotEmpty();
 
         PkgQueryControllerTests.packageId = packagesList.get(0).getId().toString();
@@ -264,7 +264,7 @@ public class PkgQueryControllerTests {
     public void queryPackageInfoByBinaryExactlyTest() throws Exception {
         this.mockMvc
                 .perform(post("/sbom-api/querySbomPackagesByBinary")
-                        .param("productName", TestConstants.OPENEULER_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
                         .param("binaryType", ReferenceCategory.EXTERNAL_MANAGER.name())
                         .param("type", "maven")
                         .param("namespace", "org.apache.zookeeper")
@@ -285,7 +285,7 @@ public class PkgQueryControllerTests {
     public void queryPackageInfoByBinaryWithoutVersionTest() throws Exception {
         this.mockMvc
                 .perform(post("/sbom-api/querySbomPackagesByBinary")
-                        .param("productName", TestConstants.OPENEULER_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
                         .param("binaryType", ReferenceCategory.EXTERNAL_MANAGER.name())
                         .param("type", "maven")
                         .param("namespace", "org.apache.zookeeper")
@@ -297,7 +297,7 @@ public class PkgQueryControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
                 .andExpect(jsonPath("$.last").value(true))
-                .andExpect(jsonPath("$.totalElements").value(10))
+                .andExpect(jsonPath("$.totalElements").value(7))
                 .andExpect(jsonPath("$.totalPages").value(1))
                 .andExpect(jsonPath("$.content.[4].name").value("hive"));
     }
@@ -306,7 +306,7 @@ public class PkgQueryControllerTests {
     public void queryPackageInfoByBinaryOnlyNameTest() throws Exception {
         this.mockMvc
                 .perform(post("/sbom-api/querySbomPackagesByBinary")
-                        .param("productName", TestConstants.OPENEULER_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
                         .param("binaryType", ReferenceCategory.EXTERNAL_MANAGER.name())
                         .param("type", "maven")
                         .param("namespace", "")
@@ -318,7 +318,7 @@ public class PkgQueryControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
                 .andExpect(jsonPath("$.last").value(true))
-                .andExpect(jsonPath("$.totalElements").value(12))
+                .andExpect(jsonPath("$.totalElements").value(9))
                 .andExpect(jsonPath("$.totalPages").value(1))
                 .andExpect(jsonPath("$.content.[5].name").value("hive"));
     }
@@ -327,7 +327,7 @@ public class PkgQueryControllerTests {
     public void queryPackageInfoByBinaryNoNameTest() throws Exception {
         this.mockMvc
                 .perform(post("/sbom-api/querySbomPackagesByBinary")
-                        .param("productName", TestConstants.OPENEULER_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
                         .param("binaryType", ReferenceCategory.EXTERNAL_MANAGER.name())
                         .param("type", "maven")
                         .param("namespace", "zookeeper")
@@ -345,7 +345,7 @@ public class PkgQueryControllerTests {
     public void queryPackageInfoByBinaryErrorTypeTest() throws Exception {
         this.mockMvc
                 .perform(post("/sbom-api/querySbomPackagesByBinary")
-                        .param("productName", TestConstants.OPENEULER_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
                         .param("binaryType", ReferenceCategory.EXTERNAL_MANAGER.name())
                         .param("type", "pip")
                         .param("namespace", "")
@@ -417,7 +417,7 @@ public class PkgQueryControllerTests {
         this.mockMvc
                 .perform(post("/sbom-api/queryProduct/%s".formatted(TestConstants.OPENEULER_PRODUCT_TYPE_NAME))
                         .content(Mapper.objectMapper.writeValueAsString(attributes))
-                        .param("productName", TestConstants.OPENEULER_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)// useless param
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -438,7 +438,7 @@ public class PkgQueryControllerTests {
         this.mockMvc
                 .perform(post("/sbom-api/queryProduct/%s".formatted(TestConstants.OPENEULER_PRODUCT_TYPE_NAME))
                         .content(Mapper.objectMapper.writeValueAsString(attributes))
-                        .param("productName", TestConstants.OPENEULER_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)// useless param
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -458,7 +458,7 @@ public class PkgQueryControllerTests {
         this.mockMvc
                 .perform(post("/sbom-api/queryProduct/%s".formatted(TestConstants.OPENEULER_PRODUCT_TYPE_NAME))
                         .content(Mapper.objectMapper.writeValueAsString(attributes))
-                        .param("productName", TestConstants.OPENEULER_PRODUCT_NAME)
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())

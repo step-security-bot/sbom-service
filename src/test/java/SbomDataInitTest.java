@@ -77,7 +77,7 @@ public class SbomDataInitTest {
 
     @Test
     @Order(2)
-    public void insertVulnerability() throws Exception {
+    public void insertVulnerability() {
         Vulnerability vul_1 = insertVulnerability("CVE-2022-00000-test", "CVE_MANAGER");
         insertVulScore(vul_1, VulScoringSystem.CVSS3.name(), 5.3, "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N");
 
@@ -149,5 +149,18 @@ public class SbomDataInitTest {
         externalVulRefRepository.save(externalVulRef);
     }
 
-    // TODO 新增openEuler everything镜像的SBOM导入（SBOM需裁剪，否则过大）
+    @Test
+    public void uploadOpenEulerSbomFile() throws Exception {
+        ClassPathResource classPathResource = new ClassPathResource(TestConstants.SAMPLE_REPODATA_SBOM_FILE_NAME);
+        MockMultipartFile file = new MockMultipartFile("uploadFileName", TestConstants.SAMPLE_REPODATA_SBOM_FILE_NAME
+                , "json", classPathResource.getInputStream());
+
+        this.mockMvc
+                .perform(multipart("/sbom-api/uploadSbomFile").file(file)
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andDo(print())
+                .andExpect(status().isAccepted())
+                .andExpect(content().string("Success"));
+    }
 }
