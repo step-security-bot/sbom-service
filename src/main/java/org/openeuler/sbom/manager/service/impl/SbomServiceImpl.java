@@ -23,6 +23,7 @@ import org.openeuler.sbom.manager.model.ProductType;
 import org.openeuler.sbom.manager.model.RawSbom;
 import org.openeuler.sbom.manager.model.Sbom;
 import org.openeuler.sbom.manager.model.spdx.ReferenceCategory;
+import org.openeuler.sbom.manager.model.spdx.ReferenceType;
 import org.openeuler.sbom.manager.model.vo.BinaryManagementVo;
 import org.openeuler.sbom.manager.model.vo.PackagePurlVo;
 import org.openeuler.sbom.manager.model.vo.PackageUrlVo;
@@ -268,15 +269,15 @@ public class SbomServiceImpl implements SbomService {
 
         BinaryManagementVo vo = new BinaryManagementVo();
         if (referenceCategory == null || referenceCategory == ReferenceCategory.PACKAGE_MANAGER) {
-            vo.setPackageList(externalPurlRefRepository.queryPackageRef(packageUUID, ReferenceCategory.PACKAGE_MANAGER.name()));
+            vo.setPackageList(externalPurlRefRepository.queryPackageRef(packageUUID, ReferenceCategory.PACKAGE_MANAGER.name(), ReferenceType.PURL.getType()));
         }
 
         if (referenceCategory == null || referenceCategory == ReferenceCategory.PROVIDE_MANAGER) {
-            vo.setProvideList(externalPurlRefRepository.queryPackageRef(packageUUID, ReferenceCategory.PROVIDE_MANAGER.name()));
+            vo.setProvideList(externalPurlRefRepository.queryPackageRef(packageUUID, ReferenceCategory.PROVIDE_MANAGER.name(), ReferenceType.PURL.getType()));
         }
 
         if (referenceCategory == null || referenceCategory == ReferenceCategory.EXTERNAL_MANAGER) {
-            vo.setExternalList(externalPurlRefRepository.queryPackageRef(packageUUID, ReferenceCategory.EXTERNAL_MANAGER.name()));
+            vo.setExternalList(externalPurlRefRepository.queryPackageRef(packageUUID, ReferenceCategory.EXTERNAL_MANAGER.name(), ReferenceType.PURL.getType()));
         }
         return vo;
     }
@@ -320,6 +321,7 @@ public class SbomServiceImpl implements SbomService {
         Page<ExternalPurlRef> result = externalPurlRefRepository.findAll(
                 ExternalPurlRefSpecs.hasSbomId(sbom.getId())
                         .and(ExternalPurlRefSpecs.hasCategory(binaryType))
+                        .and(ExternalPurlRefSpecs.hasType(ReferenceType.PURL.getType()))
                         .and(ExternalPurlRefSpecs.hasPurlComponent(purlComponents))
                         .and(ExternalPurlRefSpecs.withSort("name")),
                 pageable);

@@ -20,7 +20,9 @@ public enum ReferenceType {
 
     PURL("purl"),
 
-    SOFTWARE_HERITAGE("swh");
+    SOFTWARE_HERITAGE("swh"),
+
+    CHECKSUM("checksum");
 
     private final String type;
 
