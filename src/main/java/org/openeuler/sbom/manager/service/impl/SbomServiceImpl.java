@@ -123,16 +123,17 @@ public class SbomServiceImpl implements SbomService {
 
         RawSbom oldRawSbom = sbomFileRepository.queryRawSbom(rawSbom);
         if (oldRawSbom != null) {
+            if (!StringUtils.equals(oldRawSbom.getTaskStatus(), SbomConstants.TASK_STATUS_FINISH)) {
+                return oldRawSbom.getTaskId();
+            }
             rawSbom.setId(oldRawSbom.getId());
             rawSbom.setCreateTime(oldRawSbom.getCreateTime());
         }
         sbomFileRepository.save(rawSbom);
 
-        // TODO 1. sbom发布逻辑需要异步处理，以下SBOM元数据解析和入库逻辑待拆分到异步定时任务中被调用
+        // DONE 1. sbom发布逻辑需要异步处理，以下SBOM元数据解析和入库逻辑待拆分到异步定时任务中被调用
         // TODO 2. rawSbom中的taskId是否可作为quartz任务的taskId? 这样可以用于后续排查僵死任务
-        // TODO 3. rawSbom中的taskStatus后续需要实现互斥和幂等逻辑；wait和running状态的任务，不允许二次发布；finish的进行清理+导入
-        SbomReader sbomReader = SbomApplicationContextHolder.getSbomReader(specification != null ? specification.getSpecification() : null);
-        sbomReader.read(product.getName(), format, rawSbom.getValue());
+        // DONE 3. rawSbom中的taskStatus后续需要实现互斥和幂等逻辑；wait和running状态的任务，不允许二次发布；finish的进行清理+导入
 
         return rawSbom.getTaskId();
     }
@@ -144,15 +145,12 @@ public class SbomServiceImpl implements SbomService {
         return rawSbomOptional.map(rawSbom -> {
             PublishResultResponse response = new PublishResultResponse();
             response.setSuccess(Boolean.TRUE);
-            if (StringUtils.equalsIgnoreCase(rawSbom.getTaskStatus(), SbomConstants.TASK_STATUS_FINISH)) {
+            if (List.of(SbomConstants.TASK_STATUS_FINISH_PARSE, SbomConstants.TASK_STATUS_FINISH)
+                    .contains(rawSbom.getTaskStatus())) {
                 response.setFinish(Boolean.TRUE);
                 response.setSbomRef(UrlUtil.generateSbomUrl(sbomWebsiteDomain, rawSbom.getProduct().getName()));
             } else {
-                response.setFinish(Boolean.TRUE);
-                response.setSbomRef(UrlUtil.generateSbomUrl(sbomWebsiteDomain, rawSbom.getProduct().getName()));
-
-                // TODO SBOM元数据解析和入库逻辑待拆分到异步定时任务中后，running和wait状态都返回Finish为false
-                // response.setFinish(Boolean.FALSE);
+                response.setFinish(Boolean.FALSE);
             }
             return response;
         }).orElse(

@@ -49,6 +49,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springframework.boot:spring-boot-starter-quartz")
     implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("org.apache.commons:commons-lang3:$commonsLang3Version")
     implementation("org.apache.commons:commons-collections4:$commonsCollections4Version")

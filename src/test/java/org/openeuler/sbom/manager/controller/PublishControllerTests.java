@@ -115,25 +115,6 @@ public class PublishControllerTests {
     }
 
     @Test
-    public void publishSbomContentIsError() throws Exception {
-        PublishSbomRequest publishSbomRequest = new PublishSbomRequest();
-        publishSbomRequest.setProductName(TestConstants.PUBLISH_SAMPLE_PRODUCT_NAME);
-        publishSbomRequest.setSbomContent("{}");
-
-        this.mockMvc
-                .perform(post("/sbom-api/publishSbomFile")
-                        .content(Mapper.objectMapper.writeValueAsString(publishSbomRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isAccepted())
-                .andExpect(header().string("Content-Type", "application/json"))
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(content().string(containsString("\\\"org.openeuler.sbom.manager.model.spdx.SpdxDocument.getCreationInfo()\\\" is null")))
-                .andExpect(jsonPath("$.taskId").isEmpty());
-    }
-
-    @Test
     public void publishSbomContentSuccess() throws Exception {
         PublishSbomRequest publishSbomRequest = new PublishSbomRequest();
         publishSbomRequest.setProductName(TestConstants.PUBLISH_SAMPLE_PRODUCT_NAME);
@@ -175,9 +156,9 @@ public class PublishControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
                 .andExpect(jsonPath("$.success").value(Boolean.TRUE))
-                .andExpect(jsonPath("$.finish").value(Boolean.TRUE))
+                .andExpect(jsonPath("$.finish").value(Boolean.FALSE))
                 .andExpect(jsonPath("$.errorInfo").isEmpty())
-                .andExpect(jsonPath("$.sbomRef").value("https://sbom-service.test.osinfra.cn//#/sbomPackages?productName=publishTest"));
+                .andExpect(jsonPath("$.sbomRef").isEmpty());
     }
 
 

@@ -25,6 +25,8 @@ public class SbomConstants {
 
     public static final String TASK_STATUS_RUNNING = "running";
 
+    public static final String TASK_STATUS_FINISH_PARSE = "finish_parse";
+
     public static final String TASK_STATUS_FINISH = "finish";
 
     public static final String TASK_STATUS_NOT_EXISTS = "task not exists";
