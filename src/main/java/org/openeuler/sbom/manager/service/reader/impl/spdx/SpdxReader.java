@@ -5,7 +5,6 @@ import org.apache.commons.lang3.tuple.Triple;
 import org.openeuler.sbom.manager.constant.SbomConstants;
 import org.openeuler.sbom.manager.dao.ProductRepository;
 import org.openeuler.sbom.manager.dao.SbomRepository;
-import org.openeuler.sbom.manager.dao.VulnerabilityRepository;
 import org.openeuler.sbom.manager.model.Checksum;
 import org.openeuler.sbom.manager.model.ExternalPurlRef;
 import org.openeuler.sbom.manager.model.Package;
@@ -49,9 +48,6 @@ public class SpdxReader implements SbomReader {
 
     @Autowired
     private SbomRepository sbomRepository;
-
-    @Autowired
-    private VulnerabilityRepository vulnerabilityRepository;
 
     private final List<VulService> vulServices;
 
@@ -238,14 +234,14 @@ public class SpdxReader implements SbomReader {
         return checksums;
     }
 
-    private List<ExternalPurlRef> persistExternalRefs(SpdxPackage spdxPackage, Package pkg) {
+    private List<ExternalPurlRef> persistExternalRefs(SpdxPackage spdxPackage, Package existPkg) {
         if (Objects.isNull(spdxPackage.getExternalRefs())) {
             return new ArrayList<>();
         }
 
         List<ExternalPurlRef> externalPurlRefs = new ArrayList<>();
         Map<Triple<String, String, String>, ExternalPurlRef> existExternalPurlRefs = Optional
-                .ofNullable(pkg.getExternalPurlRefs())
+                .ofNullable(existPkg.getExternalPurlRefs())
                 .orElse(new ArrayList<>())
                 .stream()
                 .collect(Collectors.toMap(it -> Triple.of(it.getCategory(), it.getType(),
@@ -259,7 +255,17 @@ public class SpdxReader implements SbomReader {
                 externalPurlRef.setType(it.referenceType().getType());
                 externalPurlRef.setComment(it.comment());
                 externalPurlRef.setPurl(PurlUtil.strToPackageUrlVo(it.referenceLocator()));
-                externalPurlRef.setPkg(pkg);
+                externalPurlRef.setPkg(existPkg);
+                externalPurlRefs.add(externalPurlRef);
+            }else if (it.referenceType() == ReferenceType.CHECKSUM) {
+                ExternalPurlRef externalPurlRef = existExternalPurlRefs.getOrDefault(
+                        Triple.of(it.referenceCategory().name(), it.referenceType().getType(),
+                                PurlUtil.canonicalizePurl(it.referenceLocator())), new ExternalPurlRef());
+                externalPurlRef.setCategory(it.referenceCategory().name());
+                externalPurlRef.setType(it.referenceType().getType());
+                externalPurlRef.setComment(it.comment());
+                externalPurlRef.setPurl(PurlUtil.strToPackageUrlVo(it.referenceLocator()));
+                externalPurlRef.setPkg(existPkg);
                 externalPurlRefs.add(externalPurlRef);
             }
         });

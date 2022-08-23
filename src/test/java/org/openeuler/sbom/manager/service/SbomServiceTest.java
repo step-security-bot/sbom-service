@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.openeuler.sbom.manager.TestConstants;
 import org.openeuler.sbom.manager.constant.SbomConstants;
-import org.openeuler.sbom.manager.dao.ProductConfigRepository;
 import org.openeuler.sbom.manager.dao.ProductRepository;
 import org.openeuler.sbom.manager.dao.ProductTypeRepository;
 import org.openeuler.sbom.manager.dao.RawSbomRepository;
@@ -30,7 +29,6 @@ import org.openeuler.sbom.manager.model.vo.ProductConfigVo;
 import org.openeuler.sbom.manager.model.vo.VulnerabilityVo;
 import org.openeuler.sbom.manager.model.vo.request.PublishSbomRequest;
 import org.openeuler.sbom.manager.model.vo.response.PublishResultResponse;
-import org.openeuler.sbom.manager.utils.UrlUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
@@ -58,9 +56,6 @@ class SbomServiceTest {
     private ProductTypeRepository productTypeRepository;
 
     @Autowired
-    private ProductConfigRepository productConfigRepository;
-
-    @Autowired
     private ProductRepository productRepository;
 
     @Autowired
@@ -76,7 +71,7 @@ class SbomServiceTest {
             return;
         }
 
-        List<Package> packagesList = sbomService.queryPackageInfoByName(TestConstants.OPENEULER_PRODUCT_NAME, TestConstants.BINARY_TEST_PACKAGE_NAME, true);
+        List<Package> packagesList = sbomService.queryPackageInfoByName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME, TestConstants.BINARY_TEST_PACKAGE_NAME, true);
         assertThat(packagesList).isNotEmpty();
 
         SbomServiceTest.packageId = packagesList.get(0).getId().toString();
@@ -128,14 +123,14 @@ class SbomServiceTest {
 
 
     @Test
-    public void queryPackageInfoByBinaryExactlyTest() throws Exception {
+    public void queryPackageInfoByBinaryExactlyTest() {
         PackageUrlVo purl = new PackageUrlVo("maven",
                 "org.apache.zookeeper",
                 "zookeeper",
                 "3.4.6");
         Pageable pageable = PageRequest.of(0, 15);
 
-        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.OPENEULER_PRODUCT_NAME,
+        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
                 ReferenceCategory.EXTERNAL_MANAGER.name(),
                 purl,
                 pageable);
@@ -143,44 +138,76 @@ class SbomServiceTest {
     }
 
     @Test
-    public void queryPackageInfoByBinaryWithoutVersionTest() throws Exception {
+    public void queryPackageInfoByBinaryWithoutVersionTest() {
         PackageUrlVo purl = new PackageUrlVo("maven",
                 "org.apache.zookeeper",
                 "zookeeper",
                 "");
         Pageable pageable = PageRequest.of(0, 15);
 
-        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.OPENEULER_PRODUCT_NAME,
+        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
                 ReferenceCategory.EXTERNAL_MANAGER.name(),
                 purl,
                 pageable);
-        assertThat(result.getTotalElements()).isEqualTo(10);
+        assertThat(result.getTotalElements()).isEqualTo(7);
     }
 
     @Test
-    public void queryPackageInfoByBinaryOnlyNameTest() throws Exception {
+    public void queryPackageInfoByBinaryOnlyNameTest() {
         PackageUrlVo purl = new PackageUrlVo("maven",
                 "",
                 "zookeeper",
                 "");
         Pageable pageable = PageRequest.of(0, 15);
 
-        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.OPENEULER_PRODUCT_NAME,
+        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
                 ReferenceCategory.EXTERNAL_MANAGER.name(),
                 purl,
                 pageable);
-        assertThat(result.getTotalElements()).isEqualTo(12);
+        assertThat(result.getTotalElements()).isEqualTo(9);
+    }
+
+    @Test
+    public void queryPackageInfoByBinaryChecksumTest() {
+        PackageUrlVo purl = new PackageUrlVo("maven",
+                "sqlline",
+                "sqlline",
+                "1.3.0");
+        // use checksum type, to:pkg:maven/sha1/2a2d713f56de83f4e84fab07a7edfbfcebf403af@1.0.0
+        Pageable pageable = PageRequest.of(0, 15);
+
+        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
+                ReferenceCategory.EXTERNAL_MANAGER.name(),
+                purl,
+                pageable);
+        assertThat(result.getTotalElements()).isEqualTo(0);
+    }
+
+    @Test
+    public void queryPackageInfoByBinaryChecksumTest1() {
+        // actual purl value: pkg:maven/sqlline/sqlline@1.3.0
+        PackageUrlVo purl = new PackageUrlVo("maven",
+                "sha1",
+                "2a2d713f56de83f4e84fab07a7edfbfcebf403af",
+                "1.0.0");
+        Pageable pageable = PageRequest.of(0, 15);
+
+        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
+                ReferenceCategory.EXTERNAL_MANAGER.name(),
+                purl,
+                pageable);
+        assertThat(result.getTotalElements()).isEqualTo(0);
     }
 
     @Test
     public void queryPackageInfoByBinaryViaSpecFullComponent() {
         PageVo<PackagePurlVo> refs = sbomService.queryPackageInfoByBinaryViaSpec(
-                TestConstants.MINDSPORE_PRODUCT_NAME,
+                TestConstants.SAMPLE_PRODUCT_NAME,
                 ReferenceCategory.PACKAGE_MANAGER.name(),
                 new PackageUrlVo("gitee",
-                        "ascend",
-                        "metadef",
-                        "1.9.0"),
+                        "mindspore",
+                        "akg",
+                        "1.7.0"),
                 PageRequest.of(0, 15));
         assertThat(refs.getTotalElements()).isEqualTo(1);
     }
@@ -188,12 +215,12 @@ class SbomServiceTest {
     @Test
     public void queryPackageInfoByBinaryViaSpecNotExists() {
         PageVo<PackagePurlVo> refs = sbomService.queryPackageInfoByBinaryViaSpec(
-                TestConstants.MINDSPORE_PRODUCT_NAME,
+                TestConstants.SAMPLE_PRODUCT_NAME,
                 ReferenceCategory.PACKAGE_MANAGER.name(),
                 new PackageUrlVo("gitee",
-                        "ascend",
-                        "metadef",
-                        "x.9.0"),
+                        "mindspore",
+                        "akg",
+                        "x.7.0"),
                 PageRequest.of(0, 15));
         assertThat(refs.getTotalElements()).isEqualTo(0);
     }
@@ -401,7 +428,7 @@ class SbomServiceTest {
 
     @Test
     @Order(3)
-    public void getSbomPublishResultNotExist() throws IOException {
+    public void getSbomPublishResultNotExist() {
         PublishResultResponse response = sbomService.getSbomPublishResult(UUID.fromString("12341234-1234-1234-1234-123412341234"));
         assertThat(response.getSbomRef()).isNull();
         assertThat(response.getFinish()).isFalse();

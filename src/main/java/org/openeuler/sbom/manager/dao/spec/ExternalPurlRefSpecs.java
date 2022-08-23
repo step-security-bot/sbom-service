@@ -33,6 +33,10 @@ public final class ExternalPurlRefSpecs {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("category"), category);
     }
 
+    public static Specification<ExternalPurlRef> hasType(String type) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("type"), type);
+    }
+
     public static Specification<ExternalPurlRef> hasPurlComponent(Map<String, Pair<String, Boolean>> purlComponents) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
