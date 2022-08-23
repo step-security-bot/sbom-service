@@ -99,7 +99,7 @@ public class SbomServiceImpl implements SbomService {
     private String sbomWebsiteDomain;
 
     @Override
-    public UUID publishSbom(PublishSbomRequest publishSbomRequest) throws IOException {
+    public UUID publishSbom(PublishSbomRequest publishSbomRequest) {
         if (!org.springframework.util.StringUtils.hasText(publishSbomRequest.getProductName())) {
             throw new RuntimeException("product name is empty");
         }

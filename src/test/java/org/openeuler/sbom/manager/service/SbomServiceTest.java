@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.openeuler.sbom.manager.TestConstants;
 import org.openeuler.sbom.manager.constant.SbomConstants;
-import org.openeuler.sbom.manager.dao.ProductConfigRepository;
 import org.openeuler.sbom.manager.dao.ProductRepository;
 import org.openeuler.sbom.manager.dao.ProductTypeRepository;
 import org.openeuler.sbom.manager.dao.RawSbomRepository;
@@ -30,7 +29,6 @@ import org.openeuler.sbom.manager.model.vo.ProductConfigVo;
 import org.openeuler.sbom.manager.model.vo.VulnerabilityVo;
 import org.openeuler.sbom.manager.model.vo.request.PublishSbomRequest;
 import org.openeuler.sbom.manager.model.vo.response.PublishResultResponse;
-import org.openeuler.sbom.manager.utils.UrlUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
@@ -56,9 +54,6 @@ class SbomServiceTest {
 
     @Autowired
     private ProductTypeRepository productTypeRepository;
-
-    @Autowired
-    private ProductConfigRepository productConfigRepository;
 
     @Autowired
     private ProductRepository productRepository;
@@ -433,7 +428,7 @@ class SbomServiceTest {
 
     @Test
     @Order(3)
-    public void getSbomPublishResultNotExist() throws IOException {
+    public void getSbomPublishResultNotExist() {
         PublishResultResponse response = sbomService.getSbomPublishResult(UUID.fromString("12341234-1234-1234-1234-123412341234"));
         assertThat(response.getSbomRef()).isNull();
         assertThat(response.getFinish()).isFalse();

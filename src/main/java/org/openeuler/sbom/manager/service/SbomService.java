@@ -22,7 +22,7 @@ import java.util.UUID;
 
 public interface SbomService {
 
-    UUID publishSbom(PublishSbomRequest publishSbomRequest) throws IOException;
+    UUID publishSbom(PublishSbomRequest publishSbomRequest);
 
     PublishResultResponse getSbomPublishResult(UUID taskId);
 
