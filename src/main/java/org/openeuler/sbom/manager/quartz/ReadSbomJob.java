@@ -7,18 +7,22 @@ import org.openeuler.sbom.manager.model.RawSbom;
 import org.openeuler.sbom.manager.service.reader.SbomReader;
 import org.openeuler.sbom.manager.utils.SbomFormat;
 import org.openeuler.sbom.manager.utils.SbomSpecification;
+import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.MutablePropertyValues;
+import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.Objects;
 
-public class ReadSbomJob extends QuartzJobBean {
+public class ReadSbomJob implements Job {
 
     private static final Logger logger = LoggerFactory.getLogger(ReadSbomJob.class);
 
@@ -27,6 +31,20 @@ public class ReadSbomJob extends QuartzJobBean {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+        try {
+            BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(this);
+            MutablePropertyValues pvs = new MutablePropertyValues();
+            pvs.addPropertyValues(context.getScheduler().getContext());
+            pvs.addPropertyValues(context.getMergedJobDataMap());
+            bw.setPropertyValues(pvs, true);
+        }
+        catch (SchedulerException ex) {
+            throw new JobExecutionException(ex);
+        }
+        executeInternal(context);
+    }
+
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
         logger.info("quartz job: try to find a waiting raw sbom");
 
