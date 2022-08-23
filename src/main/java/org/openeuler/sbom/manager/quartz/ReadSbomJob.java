@@ -30,7 +30,7 @@ public class ReadSbomJob extends QuartzJobBean {
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
         logger.info("quartz job: try to find a waiting raw sbom");
 
-        RawSbom rawSbom = rawSbomRepository.queryOneWaitingTask().orElse(null);
+        RawSbom rawSbom = rawSbomRepository.queryOneWaitingTaskWithLock().orElse(null);
         if (Objects.isNull(rawSbom)) {
             return;
         }
@@ -41,6 +41,7 @@ public class ReadSbomJob extends QuartzJobBean {
         logger.info("quartz job: find a waiting raw sbom with id [{}], product name [{}]", rawSbom.getId(), rawSbom.getProduct().getName());
         SbomSpecification specification = SbomSpecification.findSpecification(rawSbom.getSpec(), rawSbom.getSpecVersion());
         SbomReader sbomReader = SbomApplicationContextHolder.getSbomReader(specification != null ? specification.getSpecification() : null);
+        // TODO: move the following logic to spring-batch, and separately set task status to 'finish_parse' and 'finish'
         try {
             sbomReader.read(rawSbom.getProduct().getName(), SbomFormat.findSbomFormat(rawSbom.getFormat()), rawSbom.getValue());
         } catch (IOException e) {
