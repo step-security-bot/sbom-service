@@ -2,17 +2,24 @@ package org.openeuler.sbom.manager.service;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.openeuler.sbom.manager.TestConstants;
+import org.openeuler.sbom.manager.constant.SbomConstants;
 import org.openeuler.sbom.manager.dao.ProductConfigRepository;
 import org.openeuler.sbom.manager.dao.ProductRepository;
 import org.openeuler.sbom.manager.dao.ProductTypeRepository;
+import org.openeuler.sbom.manager.dao.RawSbomRepository;
 import org.openeuler.sbom.manager.dao.SbomRepository;
 import org.openeuler.sbom.manager.model.Package;
 import org.openeuler.sbom.manager.model.Product;
 import org.openeuler.sbom.manager.model.ProductConfig;
 import org.openeuler.sbom.manager.model.ProductType;
+import org.openeuler.sbom.manager.model.RawSbom;
 import org.openeuler.sbom.manager.model.Sbom;
 import org.openeuler.sbom.manager.model.spdx.ReferenceCategory;
 import org.openeuler.sbom.manager.model.vo.BinaryManagementVo;
@@ -21,6 +28,9 @@ import org.openeuler.sbom.manager.model.vo.PackageUrlVo;
 import org.openeuler.sbom.manager.model.vo.PageVo;
 import org.openeuler.sbom.manager.model.vo.ProductConfigVo;
 import org.openeuler.sbom.manager.model.vo.VulnerabilityVo;
+import org.openeuler.sbom.manager.model.vo.request.PublishSbomRequest;
+import org.openeuler.sbom.manager.model.vo.response.PublishResultResponse;
+import org.openeuler.sbom.manager.utils.UrlUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
@@ -29,12 +39,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class SbomServiceTest {
 
     @Autowired
@@ -51,6 +65,9 @@ class SbomServiceTest {
 
     @Autowired
     private SbomRepository sbomRepository;
+
+    @Autowired
+    private RawSbomRepository rawSbomRepository;
 
     private static String packageId = null;
 
@@ -315,5 +332,80 @@ class SbomServiceTest {
         assertThat(protobuf).isNotNull();
         assertThat(protobuf.getSpdxId()).isEqualTo("SPDXRef-Package-github-protocolbuffers-protobuf-3.13.0");
         assertThat(protobuf.getVersion()).isEqualTo("3.13.0");
+    }
+
+    @Test
+    @Order(1)
+    public void republishWaitingSbom() throws IOException {
+        PublishSbomRequest request = new PublishSbomRequest();
+        request.setProductName(TestConstants.PUBLISH_SAMPLE_FOR_SERVICE_PRODUCT_NAME);
+        request.setSbomContent(IOUtils.toString(new ClassPathResource(TestConstants.SAMPLE_UPLOAD_FILE_NAME).getInputStream(), Charset.defaultCharset()));
+
+        UUID taskId = sbomService.publishSbom(request);
+        PublishResultResponse response = sbomService.getSbomPublishResult(taskId);
+        assertThat(response.getSbomRef()).isNull();
+        assertThat(response.getFinish()).isFalse();
+        assertThat(response.getErrorInfo()).isNull();
+        assertThat(response.getSuccess()).isTrue();
+
+        UUID taskIdRepublish = sbomService.publishSbom(request);
+        assertThat(taskId).isEqualTo(taskIdRepublish);
+        response = sbomService.getSbomPublishResult(taskId);
+        assertThat(response.getSbomRef()).isNull();
+        assertThat(response.getFinish()).isFalse();
+        assertThat(response.getErrorInfo()).isNull();
+        assertThat(response.getSuccess()).isTrue();
+
+        RawSbom rawSbom = rawSbomRepository.findByTaskId(taskId).orElse(null);
+        if (Objects.nonNull(rawSbom)) {
+            rawSbomRepository.delete(rawSbom);
+        }
+    }
+
+    @Test
+    @Order(2)
+    public void republishFinishedSbom() throws IOException {
+        PublishSbomRequest request = new PublishSbomRequest();
+        request.setProductName(TestConstants.PUBLISH_SAMPLE_FOR_SERVICE_PRODUCT_NAME);
+        request.setSbomContent(IOUtils.toString(new ClassPathResource(TestConstants.SAMPLE_UPLOAD_FILE_NAME).getInputStream(), Charset.defaultCharset()));
+
+        UUID taskId = sbomService.publishSbom(request);
+        PublishResultResponse response = sbomService.getSbomPublishResult(taskId);
+        assertThat(response.getSbomRef()).isNull();
+        assertThat(response.getFinish()).isFalse();
+        assertThat(response.getErrorInfo()).isNull();
+        assertThat(response.getSuccess()).isTrue();
+
+        RawSbom rawSbom = rawSbomRepository.findByTaskId(taskId).orElseThrow(() -> new RuntimeException(""));
+        rawSbom.setTaskStatus(SbomConstants.TASK_STATUS_FINISH);
+        rawSbomRepository.save(rawSbom);
+        response = sbomService.getSbomPublishResult(taskId);
+        assertThat(response.getSbomRef()).contains(TestConstants.PUBLISH_SAMPLE_FOR_SERVICE_PRODUCT_NAME);
+        assertThat(response.getFinish()).isTrue();
+        assertThat(response.getErrorInfo()).isNull();
+        assertThat(response.getSuccess()).isTrue();
+
+        UUID taskIdRepublish = sbomService.publishSbom(request);
+        assertThat(taskId).isNotEqualTo(taskIdRepublish);
+        response = sbomService.getSbomPublishResult(taskIdRepublish);
+        assertThat(response.getSbomRef()).isNull();
+        assertThat(response.getFinish()).isFalse();
+        assertThat(response.getErrorInfo()).isNull();
+        assertThat(response.getSuccess()).isTrue();
+
+        RawSbom rawSbomDelete = rawSbomRepository.findByTaskId(taskIdRepublish).orElse(null);
+        if (Objects.nonNull(rawSbomDelete)) {
+            rawSbomRepository.delete(rawSbomDelete);
+        }
+    }
+
+    @Test
+    @Order(3)
+    public void getSbomPublishResultNotExist() throws IOException {
+        PublishResultResponse response = sbomService.getSbomPublishResult(UUID.fromString("12341234-1234-1234-1234-123412341234"));
+        assertThat(response.getSbomRef()).isNull();
+        assertThat(response.getFinish()).isFalse();
+        assertThat(response.getErrorInfo()).isEqualTo(SbomConstants.TASK_STATUS_NOT_EXISTS);
+        assertThat(response.getSuccess()).isFalse();
     }
 }
