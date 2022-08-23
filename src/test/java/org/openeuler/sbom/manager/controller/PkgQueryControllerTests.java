@@ -223,7 +223,7 @@ public class PkgQueryControllerTests {
                 .andExpect(header().string("Content-Type", "application/json"))
                 .andExpect(jsonPath("$.packageList.*", hasSize(1)))
                 .andExpect(jsonPath("$.provideList.*", hasSize(36)))
-                .andExpect(jsonPath("$.externalList.*", hasSize(217)));
+                .andExpect(jsonPath("$.externalList.*", hasSize(216)));
     }
 
     @Test
@@ -257,7 +257,7 @@ public class PkgQueryControllerTests {
                 .andExpect(header().string("Content-Type", "application/json"))
                 .andExpect(jsonPath("$.packageList.*", hasSize(0)))
                 .andExpect(jsonPath("$.provideList.*", hasSize(0)))
-                .andExpect(jsonPath("$.externalList.*", hasSize(217)));
+                .andExpect(jsonPath("$.externalList.*", hasSize(216)));
     }
 
     @Test
@@ -357,6 +357,46 @@ public class PkgQueryControllerTests {
                 .andExpect(status().isInternalServerError())
                 .andExpect(header().string("Content-Type", "application/json"))
                 .andExpect(content().string("purl query condition not support type: pip"));
+    }
+
+    @Test
+    public void queryPackageInfoByBinaryChecksumTest() throws Exception {
+        this.mockMvc
+                .perform(post("/sbom-api/querySbomPackagesByBinary")
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
+                        .param("binaryType", ReferenceCategory.EXTERNAL_MANAGER.name())
+                        .param("type", "maven")
+                        .param("namespace", "sqlline")
+                        .param("name", "sqlline")
+                        .param("version", "1.3.0")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.totalElements").value(0))
+                .andExpect(jsonPath("$.totalPages").value(0));
+    }
+
+    @Test
+    public void queryPackageInfoByBinaryChecksumTest1() throws Exception {
+        this.mockMvc
+                .perform(post("/sbom-api/querySbomPackagesByBinary")
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
+                        .param("binaryType", ReferenceCategory.EXTERNAL_MANAGER.name())
+                        .param("type", "maven")
+                        .param("namespace", "sha1")
+                        .param("name", "2a2d713f56de83f4e84fab07a7edfbfcebf403af")
+                        .param("version", "1.0.0")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.totalElements").value(0))
+                .andExpect(jsonPath("$.totalPages").value(0));
     }
 
     @Test

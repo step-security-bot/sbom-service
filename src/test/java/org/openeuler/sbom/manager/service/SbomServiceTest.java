@@ -152,6 +152,38 @@ class SbomServiceTest {
     }
 
     @Test
+    public void queryPackageInfoByBinaryChecksumTest() {
+        PackageUrlVo purl = new PackageUrlVo("maven",
+                "sqlline",
+                "sqlline",
+                "1.3.0");
+        // use checksum type, to:pkg:maven/sha1/2a2d713f56de83f4e84fab07a7edfbfcebf403af@1.0.0
+        Pageable pageable = PageRequest.of(0, 15);
+
+        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
+                ReferenceCategory.EXTERNAL_MANAGER.name(),
+                purl,
+                pageable);
+        assertThat(result.getTotalElements()).isEqualTo(0);
+    }
+
+    @Test
+    public void queryPackageInfoByBinaryChecksumTest1() {
+        // actual purl value: pkg:maven/sqlline/sqlline@1.3.0
+        PackageUrlVo purl = new PackageUrlVo("maven",
+                "sha1",
+                "2a2d713f56de83f4e84fab07a7edfbfcebf403af",
+                "1.0.0");
+        Pageable pageable = PageRequest.of(0, 15);
+
+        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
+                ReferenceCategory.EXTERNAL_MANAGER.name(),
+                purl,
+                pageable);
+        assertThat(result.getTotalElements()).isEqualTo(0);
+    }
+
+    @Test
     public void queryPackageInfoByBinaryViaSpecFullComponent() {
         PageVo<PackagePurlVo> refs = sbomService.queryPackageInfoByBinaryViaSpec(
                 TestConstants.SAMPLE_PRODUCT_NAME,

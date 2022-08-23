@@ -125,4 +125,38 @@ public class PurlQueryConditionTest {
         assertThat(result.get("version").getSecond()).isFalse();
     }
 
+    @Test
+    public void mavenCheckSumTest1() {
+        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(new PackageUrlVo("maven", "checksum", "b314c7ebb7d599944981908b7f3ed33a30e78f3a", "1.0.0"));
+
+        assertThat(result.get("type").getFirst()).isEqualTo("maven");
+        assertThat(result.get("type").getSecond()).isTrue();
+
+        assertThat(result.get("namespace").getFirst()).isEqualTo("checksum");
+        assertThat(result.get("namespace").getSecond()).isTrue();
+
+        assertThat(result.get("name").getFirst()).isEqualTo("b314c7ebb7d599944981908b7f3ed33a30e78f3a");
+        assertThat(result.get("name").getSecond()).isTrue();
+
+        assertThat(result.get("version").getFirst()).isEqualTo("1.0.0");
+        assertThat(result.get("version").getSecond()).isTrue();
+    }
+
+    @Test
+    public void mavenCheckSumTest2() {
+        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(new PackageUrlVo("maven", "sha1", "b314c7ebb7d599944981908b7f3ed33a30e78f3a", "1.0.0"));
+
+        assertThat(result.get("type").getFirst()).isEqualTo("maven");
+        assertThat(result.get("type").getSecond()).isTrue();
+
+        assertThat(result.get("namespace").getFirst()).isEqualTo("sha1");
+        assertThat(result.get("namespace").getSecond()).isTrue();
+
+        assertThat(result.get("name").getFirst()).isEqualTo("b314c7ebb7d599944981908b7f3ed33a30e78f3a");
+        assertThat(result.get("name").getSecond()).isTrue();
+
+        assertThat(result.get("version").getFirst()).isEqualTo("1.0.0");
+        assertThat(result.get("version").getSecond()).isTrue();
+    }
+
 }
