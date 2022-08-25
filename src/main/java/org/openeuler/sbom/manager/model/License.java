@@ -2,6 +2,7 @@ package org.openeuler.sbom.manager.model;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -44,7 +45,7 @@ public class License {
     @Column(columnDefinition = "TEXT")
     private String url;
 
-    @ManyToMany(mappedBy = "licenses")
+    @ManyToMany(mappedBy = "licenses",cascade = {CascadeType.MERGE,CascadeType.PERSIST})
     private Set<Package> packages;
 
     public UUID getId() {

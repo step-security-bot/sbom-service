@@ -16,6 +16,7 @@ import org.openeuler.sbom.manager.model.SbomElementRelationship;
 import org.openeuler.sbom.manager.model.spdx.ReferenceType;
 import org.openeuler.sbom.manager.model.spdx.SpdxDocument;
 import org.openeuler.sbom.manager.model.spdx.SpdxPackage;
+import org.openeuler.sbom.manager.service.license.LicenseService;
 import org.openeuler.sbom.manager.service.reader.SbomReader;
 import org.openeuler.sbom.manager.service.vul.VulService;
 import org.openeuler.sbom.manager.utils.PurlUtil;
@@ -51,9 +52,12 @@ public class SpdxReader implements SbomReader {
 
     private final List<VulService> vulServices;
 
+    private final LicenseService licenseServices;
+
     @Autowired
-    public SpdxReader(List<VulService> vulServices) {
+    public SpdxReader(List<VulService> vulServices, LicenseService licenseServices) {
         this.vulServices = vulServices;
+        this.licenseServices = licenseServices;
     }
 
     @Override
@@ -71,6 +75,7 @@ public class SpdxReader implements SbomReader {
         SpdxDocument document = SbomMapperUtil.readDocument(format, SbomSpecification.SPDX_2_2.getDocumentClass(), fileContent);
         Sbom sbom = persistSbom(productName, document);
         vulServices.forEach(vulService -> vulService.persistExternalVulRefForSbom(sbom, true));
+        licenseServices.persistLicenseForSbom(sbom,true);
     }
 
     private Sbom persistSbom(String productName, SpdxDocument document) {
@@ -257,7 +262,7 @@ public class SpdxReader implements SbomReader {
                 externalPurlRef.setPurl(PurlUtil.strToPackageUrlVo(it.referenceLocator()));
                 externalPurlRef.setPkg(existPkg);
                 externalPurlRefs.add(externalPurlRef);
-            }else if (it.referenceType() == ReferenceType.CHECKSUM) {
+            } else if (it.referenceType() == ReferenceType.CHECKSUM) {
                 ExternalPurlRef externalPurlRef = existExternalPurlRefs.getOrDefault(
                         Triple.of(it.referenceCategory().name(), it.referenceType().getType(),
                                 PurlUtil.canonicalizePurl(it.referenceLocator())), new ExternalPurlRef());
