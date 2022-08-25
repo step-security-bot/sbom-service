@@ -9,7 +9,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@SpringBootApplication(scanBasePackages = {"org.openeuler.sbom"})
+@SpringBootApplication(scanBasePackages = {"org.openeuler.sbom", "org.opensourceway.sbom"})
 @EnableTransactionManagement
 @EnableAsync
 public class SbomManagerApplication extends SpringBootServletInitializer {

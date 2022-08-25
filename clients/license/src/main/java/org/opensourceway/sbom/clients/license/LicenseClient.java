@@ -1,6 +1,6 @@
-package org.openeuler.sbom.clients.license;
+package org.opensourceway.sbom.clients.license;
 
-import org.openeuler.sbom.clients.license.model.ComponentReport;
+import org.opensourceway.sbom.clients.license.model.ComponentReport;
 import reactor.core.publisher.Mono;
 
 import java.util.List;

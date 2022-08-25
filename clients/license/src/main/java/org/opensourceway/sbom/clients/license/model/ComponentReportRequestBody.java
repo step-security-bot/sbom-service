@@ -1,4 +1,4 @@
-package org.openeuler.sbom.clients.license.model;
+package org.opensourceway.sbom.clients.license.model;
 
 import java.io.Serializable;
 import java.util.List;

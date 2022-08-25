@@ -1,8 +1,8 @@
-package org.openeuler.sbom.clients.license.impl;
+package org.opensourceway.sbom.clients.license.impl;
 
-import org.openeuler.sbom.clients.license.LicenseClient;
-import org.openeuler.sbom.clients.license.model.ComponentReport;
-import org.openeuler.sbom.clients.license.model.ComponentReportRequestBody;
+import org.opensourceway.sbom.clients.license.LicenseClient;
+import org.opensourceway.sbom.clients.license.model.ComponentReport;
+import org.opensourceway.sbom.clients.license.model.ComponentReportRequestBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,8 +28,6 @@ public class LicenseClientImpl implements LicenseClient {
         return WebClient.create(defaultBaseUrl);
     }
 
-//    @Value("${license.api.token}")
-//    private String token;
 
     @Override
     public boolean needRequest() {
@@ -43,7 +41,7 @@ public class LicenseClientImpl implements LicenseClient {
         return client.post()
                 .uri(uriBuilder -> uriBuilder
                         .path("/lic")
-                        .queryParam("purl",body.coordinates().toString())
+                        .queryParam("purl", body.coordinates().toString())
                         .build()
                 )
 
