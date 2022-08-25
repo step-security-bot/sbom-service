@@ -2,8 +2,6 @@ package org.openeuler.sbom.manager.service.license.impl;
 
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.opensourceway.sbom.clients.license.LicenseClient;
-import org.opensourceway.sbom.clients.license.model.ComponentReport;
 import org.openeuler.sbom.manager.dao.LicenseRepository;
 import org.openeuler.sbom.manager.dao.PackageRepository;
 import org.openeuler.sbom.manager.model.ExternalPurlRef;
@@ -12,6 +10,8 @@ import org.openeuler.sbom.manager.model.Package;
 import org.openeuler.sbom.manager.model.Sbom;
 import org.openeuler.sbom.manager.service.license.LicenseService;
 import org.openeuler.sbom.manager.utils.PurlUtil;
+import org.opensourceway.sbom.clients.license.LicenseClient;
+import org.opensourceway.sbom.clients.license.model.ComponentReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,7 +104,7 @@ public class LicenseServiceImpl implements LicenseService {
                             if (pkg.getLicenses() == null) {
                                 pkg.setLicenses(new HashSet<License>());
                             }
-                            if(!isContainLicense(pkg,license)){
+                            if (!isContainLicense(pkg, license)) {
                                 pkg.getLicenses().add(license);
                                 license.getPackages().add(pkg);
                             }
@@ -115,18 +115,10 @@ public class LicenseServiceImpl implements LicenseService {
 
     }
 
-//    private Boolean isContainLicense(Package pkg, License license){
-//        for(License lic:pkg.getLicenses()){
-//            if(lic.getName().equals(license.getName())){
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
 
-    private Boolean isContainLicense(Package pkg, License license){
-        for(Package pkgs:license.getPackages()){
-            if(pkgs.getName().equals(pkg.getName())){
+    private Boolean isContainLicense(Package pkg, License license) {
+        for (Package pkgs : license.getPackages()) {
+            if (pkgs.getName().equals(pkg.getName())) {
                 return true;
             }
         }
