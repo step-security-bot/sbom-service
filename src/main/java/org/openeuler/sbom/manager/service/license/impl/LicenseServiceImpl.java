@@ -2,8 +2,8 @@ package org.openeuler.sbom.manager.service.license.impl;
 
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.openeuler.sbom.clients.license.LicenseClient;
-import org.openeuler.sbom.clients.license.model.ComponentReport;
+import org.opensourceway.sbom.clients.license.LicenseClient;
+import org.opensourceway.sbom.clients.license.model.ComponentReport;
 import org.openeuler.sbom.manager.dao.LicenseRepository;
 import org.openeuler.sbom.manager.dao.PackageRepository;
 import org.openeuler.sbom.manager.model.ExternalPurlRef;
@@ -104,13 +104,33 @@ public class LicenseServiceImpl implements LicenseService {
                             if (pkg.getLicenses() == null) {
                                 pkg.setLicenses(new HashSet<License>());
                             }
-                            pkg.getLicenses().add(license);
-                            license.getPackages().add(pkg);
+                            if(!isContainLicense(pkg,license)){
+                                pkg.getLicenses().add(license);
+                                license.getPackages().add(pkg);
+                            }
                             licenseRepository.save(license);
                         });
                     }
                 }));
 
+    }
+
+//    private Boolean isContainLicense(Package pkg, License license){
+//        for(License lic:pkg.getLicenses()){
+//            if(lic.getName().equals(license.getName())){
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
+
+    private Boolean isContainLicense(Package pkg, License license){
+        for(Package pkgs:license.getPackages()){
+            if(pkgs.getName().equals(pkg.getName())){
+                return true;
+            }
+        }
+        return false;
     }
 
 
