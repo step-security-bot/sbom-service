@@ -7,11 +7,14 @@ import org.openeuler.sbom.manager.SbomApplicationContextHolder;
 import org.openeuler.sbom.manager.SbomManagerApplication;
 import org.openeuler.sbom.manager.TestConstants;
 import org.openeuler.sbom.manager.dao.ExternalVulRefRepository;
+import org.openeuler.sbom.manager.dao.LicenseRepository;
+import org.openeuler.sbom.manager.dao.PackageRepository;
 import org.openeuler.sbom.manager.dao.SbomRepository;
 import org.openeuler.sbom.manager.dao.VulReferenceRepository;
 import org.openeuler.sbom.manager.dao.VulScoreRepository;
 import org.openeuler.sbom.manager.dao.VulnerabilityRepository;
 import org.openeuler.sbom.manager.model.ExternalVulRef;
+import org.openeuler.sbom.manager.model.License;
 import org.openeuler.sbom.manager.model.Package;
 import org.openeuler.sbom.manager.model.Sbom;
 import org.openeuler.sbom.manager.model.VulRefSource;
@@ -28,6 +31,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.HashSet;
 import java.util.Objects;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -58,6 +62,12 @@ public class SbomDataInitTest {
 
     @Autowired
     private ExternalVulRefRepository externalVulRefRepository;
+
+    @Autowired
+    private LicenseRepository licenseRepository;
+
+    @Autowired
+    private PackageRepository packageRepository;
 
     @Test
     @Order(1)
@@ -147,6 +157,47 @@ public class SbomDataInitTest {
         externalVulRef.setType("cve");
         externalVulRef.setPurl(PurlUtil.strToPackageUrlVo(purl));
         externalVulRefRepository.save(externalVulRef);
+    }
+
+    @Test
+    @Order(3)
+    public void insertLicense() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getName(), "akg"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+        insertLicense("Apache-2.0", pkg);
+    }
+
+    private void insertLicense(String lic, Package pkg) {
+        License license = licenseRepository.findByName(lic);
+        if (license == null) {
+            license = new License();
+            license.setName(lic);
+        }
+        if (license.getPackages() == null) {
+            license.setPackages(new HashSet<Package>());
+        }
+        if (pkg.getLicenses() == null) {
+            pkg.setLicenses(new HashSet<License>());
+        }
+        if(!isContainLicense(pkg,license)){
+            pkg.getLicenses().add(license);
+            license.getPackages().add(pkg);
+        }
+
+        licenseRepository.save(license);
+    }
+
+    private Boolean isContainLicense(Package pkg, License license){
+        for(Package pkgs:license.getPackages()){
+            if(pkgs.getName().equals(pkg.getName())){
+                return true;
+            }
+        }
+        return false;
     }
 
     @Test
