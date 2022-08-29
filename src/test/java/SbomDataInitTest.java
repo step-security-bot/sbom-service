@@ -165,35 +165,35 @@ public class SbomDataInitTest {
         Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
         assertThat(sbom).isNotNull();
         Package pkg = sbom.getPackages().stream()
-                .filter(it -> StringUtils.equals(it.getName(), "akg"))
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
                 .findFirst().orElse(null);
         assertThat(pkg).isNotNull();
-        insertLicense("Apache-2.0", pkg);
+        insertLicense("License-test", pkg);
     }
 
     private void insertLicense(String lic, Package pkg) {
-        License license = licenseRepository.findByName(lic);
-        if (license == null) {
-            license = new License();
-            license.setName(lic);
-        }
+        License license = licenseRepository.findByName(lic).orElse(new License());
+        license.setName(lic);
         if (license.getPackages() == null) {
-            license.setPackages(new HashSet<Package>());
+            license.setPackages(new HashSet<>());
         }
         if (pkg.getLicenses() == null) {
-            pkg.setLicenses(new HashSet<License>());
+            pkg.setLicenses(new HashSet<>());
         }
-        if(!isContainLicense(pkg,license)){
+        if (!isContainLicense(pkg, license)) {
             pkg.getLicenses().add(license);
             license.getPackages().add(pkg);
         }
-
-        licenseRepository.save(license);
+        license.setSpdxLicenseId("License for test");
+        license.setUrl("https://xxx/licenses/License-test");
+        license.setIsLegal(false);
+        License licenseRet = licenseRepository.save(license);
+        assertThat(licenseRet.getPackages().size()).isEqualTo(1);
     }
 
-    private Boolean isContainLicense(Package pkg, License license){
-        for(Package pkgs:license.getPackages()){
-            if(pkgs.getName().equals(pkg.getName())){
+    private Boolean isContainLicense(Package pkg, License license) {
+        for (Package pkgs : license.getPackages()) {
+            if (pkgs.getName().equals(pkg.getName())) {
                 return true;
             }
         }
