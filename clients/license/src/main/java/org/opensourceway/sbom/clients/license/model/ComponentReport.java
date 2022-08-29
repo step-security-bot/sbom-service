@@ -3,8 +3,6 @@ package org.opensourceway.sbom.clients.license.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ComponentReport implements Serializable {

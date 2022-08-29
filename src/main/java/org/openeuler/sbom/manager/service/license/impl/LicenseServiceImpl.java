@@ -119,9 +119,6 @@ public class LicenseServiceImpl implements LicenseService {
             if (element.getResult().getRepoLicenseLegal().getPass().equals("true")) {
                 List<String> illegalLicenseList = getIllegalLicenseList(element.getResult().getRepoLicenseLegal().getIsLegal().getDetail());
                 element.getResult().getRepoLicenseLegal().getIsLegal().getLicense().forEach(lic -> {
-//                    if (element.getResult().getRepoLicenseLegal().getIsLegal().getPass().equals("false")) {
-//
-//                    }
                     License license = licenseRepository.findByName(lic).orElse(new License());
                     license.setName(lic);
                     getLicenseIdAndUrl(license, licenseInfoMap, lic);
