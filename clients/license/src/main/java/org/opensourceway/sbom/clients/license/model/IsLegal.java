@@ -11,6 +11,8 @@ public class IsLegal implements Serializable {
 
     private List<String>license;
 
+    private Detail detail;
+
     public String getPass() {
         return pass;
     }
@@ -25,5 +27,13 @@ public class IsLegal implements Serializable {
 
     public void setLicense(List<String> license) {
         this.license = license;
+    }
+
+    public Detail getDetail() {
+        return detail;
+    }
+
+    public void setDetail(Detail detail) {
+        this.detail = detail;
     }
 }

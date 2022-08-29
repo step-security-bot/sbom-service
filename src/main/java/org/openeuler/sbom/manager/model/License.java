@@ -45,7 +45,10 @@ public class License {
     @Column(columnDefinition = "TEXT")
     private String url;
 
-    @ManyToMany(mappedBy = "licenses",cascade = {CascadeType.MERGE,CascadeType.PERSIST})
+    @Column( name = "is_legal")
+    private Boolean isLegal;
+
+    @ManyToMany(mappedBy = "licenses",cascade = {CascadeType.MERGE})
     private Set<Package> packages;
 
     public UUID getId() {
@@ -79,6 +82,10 @@ public class License {
     public void setUrl(String url) {
         this.url = url;
     }
+
+    public Boolean getIsLegal(){ return isLegal; }
+
+    public void setIsLegal(Boolean isLegal) { this.isLegal = isLegal; }
 
     public Set<Package> getPackages() {
         return packages;

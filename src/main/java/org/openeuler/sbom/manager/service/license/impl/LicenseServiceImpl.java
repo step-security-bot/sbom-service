@@ -13,6 +13,7 @@ import org.openeuler.sbom.manager.service.license.LicenseService;
 import org.openeuler.sbom.manager.utils.PurlUtil;
 import org.opensourceway.sbom.clients.license.LicenseClient;
 import org.opensourceway.sbom.clients.license.model.ComponentReport;
+import org.opensourceway.sbom.clients.license.model.Detail;
 import org.opensourceway.sbom.clients.license.model.LicenseInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,15 +117,13 @@ public class LicenseServiceImpl implements LicenseService {
 
         externalPurlRefs.forEach(ref -> Arrays.stream(reports).filter(element -> StringUtils.equals(getPurlsForLicense(PurlUtil.PackageUrlVoToPackageURL(ref.getPurl()).canonicalize(), false, product), element.getPurl())).forEach(element -> {
             if (element.getResult().getRepoLicenseLegal().getPass().equals("true")) {
+                List<String> illegalLicenseList = getIllegalLicenseList(element.getResult().getRepoLicenseLegal().getIsLegal().getDetail());
                 element.getResult().getRepoLicenseLegal().getIsLegal().getLicense().forEach(lic -> {
-                    if (element.getResult().getRepoLicenseLegal().getIsLegal().getPass().equals("false")) {
-                        logger.error("license {} for {} is not legal", lic, ref.getPkg().getName());
-                    }
-                    License license = licenseRepository.findByName(lic);
-                    if (license == null) {
-                        license = new License();
-                        license.setName(lic);
-                    }
+//                    if (element.getResult().getRepoLicenseLegal().getIsLegal().getPass().equals("false")) {
+//
+//                    }
+                    License license = licenseRepository.findByName(lic).orElse(new License());
+                    license.setName(lic);
                     getLicenseIdAndUrl(license, licenseInfoMap, lic);
                     if (license.getPackages() == null) {
                         license.setPackages(new HashSet<>());
@@ -137,6 +136,12 @@ public class LicenseServiceImpl implements LicenseService {
                         pkg.getLicenses().add(license);
                         license.getPackages().add(pkg);
                     }
+                    if (illegalLicenseList.size()!=0 && illegalLicenseList.contains(lic)) {
+                        license.setIsLegal(false);
+                        logger.error("license {} for {} is not legal", lic, ref.getPkg().getName());
+                    } else {
+                        license.setIsLegal(true);
+                    }
                     licenseRepository.save(license);
                 });
             } else {
@@ -145,6 +150,20 @@ public class LicenseServiceImpl implements LicenseService {
             }
         }));
 
+    }
+
+    private List<String> getIllegalLicenseList(Detail detail) {
+        List<String> illegalLicenseList = new ArrayList<>();
+        if (detail.getIsStandard().getPass().equals("false") && detail.getIsStandard().getRisks().size() != 0) {
+            illegalLicenseList.addAll(detail.getIsStandard().getRisks());
+        }
+        if (detail.getIsWhite().getPass().equals("false") && detail.getIsWhite().getRisks().size() != 0) {
+            illegalLicenseList.addAll(detail.getIsWhite().getRisks());
+        }
+        if (detail.getIsReview().getPass().equals("false") && detail.getIsReview().getRisks().size() != 0) {
+            illegalLicenseList.addAll(detail.getIsReview().getRisks());
+        }
+        return illegalLicenseList;
     }
 
     private void scanLicense(ComponentReport element) {
