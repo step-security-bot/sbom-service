@@ -10,10 +10,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.openeuler.sbom.manager.TestConstants;
 import org.openeuler.sbom.manager.constant.SbomConstants;
+import org.openeuler.sbom.manager.dao.LicenseRepository;
 import org.openeuler.sbom.manager.dao.ProductRepository;
 import org.openeuler.sbom.manager.dao.ProductTypeRepository;
 import org.openeuler.sbom.manager.dao.RawSbomRepository;
 import org.openeuler.sbom.manager.dao.SbomRepository;
+import org.openeuler.sbom.manager.model.License;
 import org.openeuler.sbom.manager.model.Package;
 import org.openeuler.sbom.manager.model.Product;
 import org.openeuler.sbom.manager.model.ProductConfig;
@@ -63,6 +65,9 @@ class SbomServiceTest {
 
     @Autowired
     private RawSbomRepository rawSbomRepository;
+
+    @Autowired
+    private LicenseRepository licenseRepository;
 
     private static String packageId = null;
 
@@ -333,6 +338,22 @@ class SbomServiceTest {
         assertThat(result.getContent().get(2).getReferences().get(1).getFirst()).isEqualTo("GITHUB");
         assertThat(result.getContent().get(2).getReferences().get(1).getSecond()).isEqualTo("https://github.com/xxx/xxx/security/advisories/xxx");
 
+    }
+
+    @Test
+    public void queryLicenseByPackageId(){
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+        List<License> licenses= licenseRepository.findByPkgId(pkg.getId());
+        assertThat(licenses.size()).isEqualTo(1);
+        assertThat(licenses.get(0).getName()).isEqualTo("License-test");
+        assertThat(licenses.get(0).getSpdxLicenseId()).isEqualTo("License for test");
+        assertThat(licenses.get(0).getUrl()).isEqualTo("https://xxx/licenses/License-test");
+        assertThat(licenses.get(0).getIsLegal()).isEqualTo(false);
     }
 
     @Test
