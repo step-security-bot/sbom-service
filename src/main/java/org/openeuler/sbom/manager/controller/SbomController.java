@@ -1,7 +1,7 @@
 package org.openeuler.sbom.manager.controller;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.openeuler.sbom.manager.constant.SbomConstants;
+import org.opensourceway.sbom.constants.SbomConstants;
 import org.openeuler.sbom.manager.model.Package;
 import org.openeuler.sbom.manager.model.Product;
 import org.openeuler.sbom.manager.model.RawSbom;
@@ -46,11 +46,24 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.openeuler.sbom.manager.batch.job.JobConfiguration;
+
 @Controller
 @RequestMapping(path = "/sbom-api")
 public class SbomController {
 
     private static final Logger logger = LoggerFactory.getLogger(SbomController.class);
+
+    @Autowired
+    private JobConfiguration jobConfiguration;
+
+    @GetMapping("/testBatch")
+    public @ResponseBody ResponseEntity testBatch() throws Exception {
+        logger.info("---------testBatch----------");
+        jobConfiguration.launchJob();
+        return ResponseEntity.status(HttpStatus.OK).body("ddddddddddddd");
+    }
+
 
     @Autowired
     private SbomService sbomService;

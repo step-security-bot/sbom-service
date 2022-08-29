@@ -5,7 +5,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openeuler.sbom.analyzer.TraceDataAnalyzer;
 import org.openeuler.sbom.manager.SbomApplicationContextHolder;
-import org.openeuler.sbom.manager.constant.SbomConstants;
+import org.opensourceway.sbom.constants.SbomConstants;
 import org.openeuler.sbom.manager.dao.ExternalPurlRefRepository;
 import org.openeuler.sbom.manager.dao.ExternalVulRefRepository;
 import org.openeuler.sbom.manager.dao.PackageRepository;

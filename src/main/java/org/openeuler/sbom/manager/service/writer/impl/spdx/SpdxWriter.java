@@ -1,6 +1,6 @@
 package org.openeuler.sbom.manager.service.writer.impl.spdx;
 
-import org.openeuler.sbom.manager.constant.SbomConstants;
+import org.opensourceway.sbom.constants.SbomConstants;
 import org.openeuler.sbom.manager.dao.SbomRepository;
 import org.openeuler.sbom.manager.model.Checksum;
 import org.openeuler.sbom.manager.model.ExternalPurlRef;

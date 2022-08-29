@@ -1,6 +1,6 @@
 package org.openeuler.sbom.manager.service.reader.impl.cyclonedx;
 
-import org.openeuler.sbom.manager.constant.SbomConstants;
+import org.opensourceway.sbom.constants.SbomConstants;
 import org.openeuler.sbom.manager.service.reader.SbomReader;
 import org.openeuler.sbom.manager.utils.SbomFormat;
 import org.springframework.stereotype.Service;

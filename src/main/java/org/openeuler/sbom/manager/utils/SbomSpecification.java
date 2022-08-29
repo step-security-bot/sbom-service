@@ -1,7 +1,7 @@
 package org.openeuler.sbom.manager.utils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.openeuler.sbom.manager.constant.SbomConstants;
+import org.opensourceway.sbom.constants.SbomConstants;
 import org.openeuler.sbom.manager.model.spdx.SpdxDocument;
 
 public enum SbomSpecification {

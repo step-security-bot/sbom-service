@@ -1,4 +1,4 @@
-package org.openeuler.sbom.manager.constant;
+package org.opensourceway.sbom.constants;
 
 import java.util.Arrays;
 import java.util.List;

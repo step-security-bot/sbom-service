@@ -1,6 +1,6 @@
 package org.openeuler.sbom.manager;
 
-import org.openeuler.sbom.manager.constant.SbomConstants;
+import org.opensourceway.sbom.constants.SbomConstants;
 import org.openeuler.sbom.manager.service.reader.SbomReader;
 import org.openeuler.sbom.manager.service.writer.SbomWriter;
 import org.springframework.beans.BeansException;

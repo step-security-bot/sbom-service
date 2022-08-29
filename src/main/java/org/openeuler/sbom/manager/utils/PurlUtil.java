@@ -3,7 +3,7 @@ package org.openeuler.sbom.manager.utils;
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import org.apache.commons.lang3.StringUtils;
-import org.openeuler.sbom.manager.constant.SbomConstants;
+import org.opensourceway.sbom.constants.SbomConstants;
 import org.openeuler.sbom.manager.model.vo.PackageUrlVo;
 import org.springframework.data.util.Pair;
 import org.springframework.util.CollectionUtils;
