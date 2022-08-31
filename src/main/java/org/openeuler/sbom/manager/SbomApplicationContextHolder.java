@@ -1,5 +1,6 @@
 package org.openeuler.sbom.manager;
 
+import org.jetbrains.annotations.NotNull;
 import org.openeuler.sbom.manager.service.reader.SbomReader;
 import org.openeuler.sbom.manager.service.writer.SbomWriter;
 import org.opensourceway.sbom.constants.SbomConstants;
@@ -13,7 +14,7 @@ public class SbomApplicationContextHolder implements ApplicationContextAware {
     private static ApplicationContext applicationContext;
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext(@NotNull ApplicationContext applicationContext) throws BeansException {
         SbomApplicationContextHolder.applicationContext = applicationContext;
     }
 
