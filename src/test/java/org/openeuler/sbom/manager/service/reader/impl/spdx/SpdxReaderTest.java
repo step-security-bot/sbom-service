@@ -132,7 +132,7 @@ class SpdxReaderTest {
         if (sbom == null) {
             return;
         }
-        Vulnerability vulnerability = vulnerabilityRepository.findById("cve-2022-00000").orElse(null);
+        Vulnerability vulnerability = vulnerabilityRepository.findByVulIdAndSource("cve-2022-00000", "CVE_MANAGER").orElse(null);
 
         long sbomCreatorSize = sbomCreatorRepository.count();
         long sbomElementRelationshipSize = sbomElementRelationshipRepository.count();
