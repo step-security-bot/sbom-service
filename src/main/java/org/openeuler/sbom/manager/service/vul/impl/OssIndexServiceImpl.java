@@ -7,6 +7,7 @@ import org.openeuler.sbom.clients.ossindex.OssIndexClient;
 import org.openeuler.sbom.clients.ossindex.model.ComponentReportElement;
 import org.openeuler.sbom.clients.ossindex.model.OssIndexVulnerability;
 import org.openeuler.sbom.manager.dao.ExternalVulRefRepository;
+import org.openeuler.sbom.manager.dao.PackageRepository;
 import org.openeuler.sbom.manager.dao.VulnerabilityRepository;
 import org.openeuler.sbom.manager.model.ExternalPurlRef;
 import org.openeuler.sbom.manager.model.ExternalVulRef;
@@ -33,7 +34,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +45,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
-@Qualifier("OssIndexServiceImpl")
+@Qualifier("ossIndexServiceImpl")
 @Transactional(rollbackFor = Exception.class)
 public class OssIndexServiceImpl extends AbstractVulService {
 
@@ -68,6 +68,9 @@ public class OssIndexServiceImpl extends AbstractVulService {
     @Autowired
     private ExternalVulRefRepository externalVulRefRepository;
 
+    @Autowired
+    private PackageRepository packageRepository;
+
     @Override
     public void persistExternalVulRefForSbom(Sbom sbom, Boolean blocking) {
         logger.info("Start to persistExternalVulRefForSbom from OssIndex for sbom {}", sbom.getId());
@@ -81,7 +84,7 @@ public class OssIndexServiceImpl extends AbstractVulService {
                 .flatMap(List::stream)
                 .toList();
 
-        List<List<ExternalPurlRef>> chunks = ListUtils.partition(externalPurlRefs, BULK_REQUEST_SIZE);
+        List<List<ExternalPurlRef>> chunks = ListUtils.partition(externalPurlRefs, getBulkRequestSize());
         for (int i = 0; i < chunks.size(); i++) {
             logger.info("fetch vulnerabilities from OssIndex for purl chunk {}, total {}", i + 1, chunks.size());
             List<ExternalPurlRef> chunk = chunks.get(i);
@@ -91,7 +94,7 @@ public class OssIndexServiceImpl extends AbstractVulService {
                     .flatMap(List::stream)
                     .collect(Collectors.toSet())
                     .stream().toList();
-            ListUtils.partition(purls, BULK_REQUEST_SIZE).forEach(chunkPurl -> {
+            ListUtils.partition(purls, getBulkRequestSize()).forEach(chunkPurl -> {
                 try {
                     Mono<ComponentReportElement[]> mono = ossIndexClient.getComponentReport(chunkPurl);
                     if (blocking) {
@@ -114,7 +117,9 @@ public class OssIndexServiceImpl extends AbstractVulService {
         if (ReferenceCategory.PACKAGE_MANAGER.equals(ReferenceCategory.findReferenceCategory(ref.getCategory()))
                 && TYPE_CONVERT_MAP.containsKey(ref.getPurl().getType())) {
             return TYPE_CONVERT_MAP.get(ref.getPurl().getType()).stream()
-                    .map(type -> PurlUtil.convertPackageType(ref.getPurl(), type)).toList();
+                    .filter(type -> !(StringUtils.equalsIgnoreCase(type, "maven") && StringUtils.isEmpty(ref.getPurl().getNamespace())))
+                    .map(type -> PurlUtil.convertPackageType(ref.getPurl(), type))
+                    .toList();
         }
         return List.of(PurlUtil.PackageUrlVoToPackageURL(ref.getPurl()).canonicalize());
     }
@@ -226,4 +231,89 @@ public class OssIndexServiceImpl extends AbstractVulService {
         return vulScores;
     }
 
+    @Override
+    public Integer getBulkRequestSize() {
+        return BULK_REQUEST_SIZE;
+    }
+
+    @Override
+    public boolean needRequest() {
+        return ossIndexClient.needRequest();
+    }
+
+    @Override
+    public Set<Pair<ExternalPurlRef, Object>> extractVulForPurlRefChunk(UUID sbomId, List<ExternalPurlRef> externalPurlChunk) {
+        logger.info("Start to extract vulnerability from OssIndex for sbom {}, chunk size:{}", sbomId, externalPurlChunk.size());
+        Set<Pair<ExternalPurlRef, Object>> resultSet = new HashSet<>();
+
+        Map<ExternalPurlRef, List<String>> purlRefWithMultiTypePurls = externalPurlChunk.stream()
+                .collect(Collectors.toMap(Function.identity(), OssIndexServiceImpl::convertPackageType));
+        List<String> requestPurls = purlRefWithMultiTypePurls.values().stream()
+                .flatMap(List::stream)
+                .collect(Collectors.toSet())
+                .stream().toList();
+
+        ListUtils.partition(requestPurls, getBulkRequestSize()).forEach(requestPurlsChunk -> {
+            try {
+                ComponentReportElement[] responses = ossIndexClient.getComponentReport(requestPurlsChunk).block();
+                if (Objects.isNull(responses) || responses.length == 0) {
+                    return;
+                }
+
+                purlRefWithMultiTypePurls.forEach((purlRef, multiTypePurls) -> Arrays.stream(responses)
+                        .filter(response -> multiTypePurls.contains(response.getCoordinates()))
+                        .map(ComponentReportElement::getVulnerabilities)
+                        .flatMap(List::stream)
+                        .forEach(responseVul -> {
+                            if (StringUtils.isEmpty(responseVul.getCve())) {
+                                return;
+                            }
+                            resultSet.add(Pair.of(purlRef, responseVul));
+                        }));
+            } catch (Exception e) {
+                logger.error("failed to extract vulnerabilities from OssIndex for sbom {}", sbomId);
+                reportVulFetchFailure(sbomId);
+                throw e;
+            }
+        });
+
+        logger.info("End to extract vulnerability from OssIndex for sbom {}", sbomId);
+        return resultSet;
+    }
+
+    @Override
+    public void persistExternalVulRefChunk(Set<Pair<ExternalPurlRef, Object>> externalVulRefSet) {
+        Set<Pair<UUID, String>> externalVulRefExistence = new HashSet<>();
+
+        for (Pair<ExternalPurlRef, Object> externalVulRefPair : externalVulRefSet) {
+            ExternalPurlRef purlRef = externalVulRefPair.getLeft();
+            Package purlOwnerPackage = packageRepository.findById(purlRef.getPkg().getId())
+                    .orElseThrow(() -> new RuntimeException("package id: %s not found".formatted(purlRef.getPkg().getId())));
+
+            OssIndexVulnerability vul = (OssIndexVulnerability) externalVulRefPair.getRight();
+
+            Vulnerability vulnerability = vulnerabilityRepository.saveAndFlush(persistVulnerability(vul));
+            if (externalVulRefExistence.contains(Pair.of(vulnerability.getId(), PurlUtil.PackageUrlVoToPackageURL(purlRef.getPurl()).canonicalize()))) {
+                continue;
+            }
+
+            Map<Pair<UUID, String>, ExternalVulRef> existExternalVulRefs = Optional
+                    .ofNullable(purlOwnerPackage.getExternalVulRefs())
+                    .orElse(new ArrayList<>())
+                    .stream()
+                    .collect(Collectors.toMap(it ->
+                                    Pair.of(it.getVulnerability().getId(), PurlUtil.PackageUrlVoToPackageURL(it.getPurl()).canonicalize()),
+                            Function.identity()));
+            ExternalVulRef externalVulRef = existExternalVulRefs.getOrDefault(Pair.of(
+                    vulnerability.getId(), PurlUtil.PackageUrlVoToPackageURL(purlRef.getPurl()).canonicalize()), new ExternalVulRef());
+            externalVulRef.setCategory(ReferenceCategory.SECURITY.name());
+            externalVulRef.setType(ReferenceType.CVE.getType());
+            externalVulRef.setStatus(Optional.ofNullable(externalVulRef.getStatus()).orElse(VulStatus.AFFECTED.name()));
+            externalVulRef.setPurl(PurlUtil.strToPackageUrlVo(PurlUtil.PackageUrlVoToPackageURL(purlRef.getPurl()).canonicalize()));
+            externalVulRef.setVulnerability(vulnerability);
+            externalVulRef.setPkg(purlOwnerPackage);
+            externalVulRefRepository.saveAndFlush(externalVulRef);
+            externalVulRefExistence.add(Pair.of(vulnerability.getId(), PurlUtil.PackageUrlVoToPackageURL(purlRef.getPurl()).canonicalize()));
+        }
+    }
 }
