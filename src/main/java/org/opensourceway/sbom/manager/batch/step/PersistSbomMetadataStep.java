@@ -1,13 +1,13 @@
 package org.opensourceway.sbom.manager.batch.step;
 
 import org.jetbrains.annotations.NotNull;
-import org.openeuler.sbom.manager.SbomApplicationContextHolder;
-import org.openeuler.sbom.manager.dao.RawSbomRepository;
-import org.openeuler.sbom.manager.dao.SbomRepository;
-import org.openeuler.sbom.manager.model.Sbom;
-import org.openeuler.sbom.manager.model.sbom.SbomDocument;
-import org.openeuler.sbom.manager.service.reader.SbomReader;
-import org.openeuler.sbom.manager.utils.SbomSpecification;
+import org.opensourceway.sbom.manager.SbomApplicationContextHolder;
+import org.opensourceway.sbom.manager.dao.RawSbomRepository;
+import org.opensourceway.sbom.manager.dao.SbomRepository;
+import org.opensourceway.sbom.manager.model.Sbom;
+import org.opensourceway.sbom.manager.model.sbom.SbomDocument;
+import org.opensourceway.sbom.manager.service.reader.SbomReader;
+import org.opensourceway.sbom.manager.utils.SbomSpecification;
 import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.batch.ExecutionContextUtils;
