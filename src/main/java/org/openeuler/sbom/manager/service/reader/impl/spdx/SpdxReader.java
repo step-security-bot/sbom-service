@@ -2,7 +2,8 @@ package org.openeuler.sbom.manager.service.reader.impl.spdx;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
-import org.openeuler.sbom.manager.constant.SbomConstants;
+import org.openeuler.sbom.manager.model.sbom.SbomDocument;
+import org.opensourceway.sbom.constants.SbomConstants;
 import org.openeuler.sbom.manager.dao.ProductRepository;
 import org.openeuler.sbom.manager.dao.SbomRepository;
 import org.openeuler.sbom.manager.model.Checksum;
@@ -73,20 +74,28 @@ public class SpdxReader implements SbomReader {
         vulServices.forEach(vulService -> vulService.persistExternalVulRefForSbom(sbom, true));
     }
 
-    private Sbom persistSbom(String productName, SpdxDocument document) {
+    @Override
+    public SbomDocument readToDocument(String productName, SbomFormat format, byte[] fileContent) throws IOException {
+        return SbomMapperUtil.readDocument(format, SbomSpecification.SPDX_2_2.getDocumentClass(), fileContent);
+    }
+
+    @Override
+    public Sbom persistSbom(String productName, SbomDocument sbomDocument) {
+        SpdxDocument spdxDocument = (SpdxDocument) sbomDocument;
+
         Sbom sbom = sbomRepository.findByProductName(productName)
                 .orElse(new Sbom(productRepository.findByName(productName)
                         .orElseThrow(() -> new RuntimeException("can't find %s's product metadata".formatted(productName)))));
-        sbom.setCreated(document.getCreationInfo().created().toString());
-        sbom.setDataLicense(document.getDataLicense());
-        sbom.setLicenseListVersion(document.getCreationInfo().licenseListVersion());
-        sbom.setName(document.getName());
-        sbom.setNamespace(document.getDocumentNamespace());
-        List<SbomCreator> sbomCreators = persistSbomCreators(document, sbom);
+        sbom.setCreated(spdxDocument.getCreationInfo().created());
+        sbom.setDataLicense(spdxDocument.getDataLicense());
+        sbom.setLicenseListVersion(spdxDocument.getCreationInfo().licenseListVersion());
+        sbom.setName(spdxDocument.getName());
+        sbom.setNamespace(spdxDocument.getDocumentNamespace());
+        List<SbomCreator> sbomCreators = persistSbomCreators(spdxDocument, sbom);
         sbom.setSbomCreators(sbomCreators);
-        List<SbomElementRelationship> sbomElementRelationships = persistSbomElementRelationship(document, sbom);
+        List<SbomElementRelationship> sbomElementRelationships = persistSbomElementRelationship(spdxDocument, sbom);
         sbom.setSbomElementRelationships(sbomElementRelationships);
-        List<Package> packages = persistPackages(document, sbom);
+        List<Package> packages = persistPackages(spdxDocument, sbom);
         sbom.setPackages(packages);
         return sbomRepository.saveAndFlush(sbom);
     }
@@ -257,7 +266,7 @@ public class SpdxReader implements SbomReader {
                 externalPurlRef.setPurl(PurlUtil.strToPackageUrlVo(it.referenceLocator()));
                 externalPurlRef.setPkg(existPkg);
                 externalPurlRefs.add(externalPurlRef);
-            }else if (it.referenceType() == ReferenceType.CHECKSUM) {
+            } else if (it.referenceType() == ReferenceType.CHECKSUM) {
                 ExternalPurlRef externalPurlRef = existExternalPurlRefs.getOrDefault(
                         Triple.of(it.referenceCategory().name(), it.referenceType().getType(),
                                 PurlUtil.canonicalizePurl(it.referenceLocator())), new ExternalPurlRef());

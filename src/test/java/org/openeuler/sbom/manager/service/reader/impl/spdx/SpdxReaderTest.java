@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.openeuler.sbom.manager.TestConstants;
-import org.openeuler.sbom.manager.constant.SbomConstants;
+import org.opensourceway.sbom.constants.SbomConstants;
 import org.openeuler.sbom.manager.dao.ChecksumRepository;
 import org.openeuler.sbom.manager.dao.ExternalPurlRefRepository;
 import org.openeuler.sbom.manager.dao.ExternalVulRefRepository;
@@ -132,7 +132,7 @@ class SpdxReaderTest {
         if (sbom == null) {
             return;
         }
-        Vulnerability vulnerability = vulnerabilityRepository.findById("cve-2022-00000").orElse(null);
+        Vulnerability vulnerability = vulnerabilityRepository.findByVulIdAndSource("cve-2022-00000", "CVE_MANAGER").orElse(null);
 
         long sbomCreatorSize = sbomCreatorRepository.count();
         long sbomElementRelationshipSize = sbomElementRelationshipRepository.count();

@@ -2,12 +2,13 @@ package org.openeuler.sbom.manager.model.spdx;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.openeuler.sbom.manager.model.sbom.SbomDocument;
 
 import java.io.Serializable;
 import java.util.List;
 
 
-public class SpdxDocument implements Serializable {
+public class SpdxDocument implements SbomDocument, Serializable {
 
     public SpdxDocument(String spdxId) {
         this.spdxId = spdxId;

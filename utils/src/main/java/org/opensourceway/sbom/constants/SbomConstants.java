@@ -1,4 +1,4 @@
-package org.openeuler.sbom.manager.constant;
+package org.opensourceway.sbom.constants;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,6 +31,12 @@ public class SbomConstants {
 
     public static final String TASK_STATUS_NOT_EXISTS = "task not exists";
 
-    public static final String PACKAGE_LIST_PAGE_URL_PATTERN="%s/#/sbomPackages?productName=%s";
+    public static final String PACKAGE_LIST_PAGE_URL_PATTERN = "%s/#/sbomPackages?productName=%s";
+
+    public static final String PRODUCT_OPENEULER_NAME = "openEuler";
+
+    public static final String PRODUCT_MINDSPORE_NAME = "MindSpore";
+
+    public static final String PRODUCT_OPENGAUSS_NAME = "openGauss";
 
 }

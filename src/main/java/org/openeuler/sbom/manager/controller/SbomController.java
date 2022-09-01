@@ -1,7 +1,7 @@
 package org.openeuler.sbom.manager.controller;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.openeuler.sbom.manager.constant.SbomConstants;
+import org.opensourceway.sbom.constants.SbomConstants;
 import org.openeuler.sbom.manager.model.Package;
 import org.openeuler.sbom.manager.model.Product;
 import org.openeuler.sbom.manager.model.RawSbom;
