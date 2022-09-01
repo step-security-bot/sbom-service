@@ -2,8 +2,6 @@ package org.openeuler.sbom.manager.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -158,7 +156,6 @@ public class Package {
      * Verification code of a package.
      */
     @OneToOne(mappedBy = "pkg", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @NotFound(action = NotFoundAction.IGNORE)
     private PkgVerfCode pkgVerfCode;
 
     public UUID getId() {

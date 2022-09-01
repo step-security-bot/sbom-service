@@ -3,6 +3,7 @@ package org.openeuler.sbom.manager.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
+import org.openeuler.sbom.manager.JsonContainsMatcher;
 import org.openeuler.sbom.manager.SbomApplicationContextHolder;
 import org.openeuler.sbom.manager.SbomManagerApplication;
 import org.openeuler.sbom.manager.TestConstants;
@@ -299,7 +300,7 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.last").value(true))
                 .andExpect(jsonPath("$.totalElements").value(7))
                 .andExpect(jsonPath("$.totalPages").value(1))
-                .andExpect(jsonPath("$.content.[4].name").value("hive"));
+                .andExpect(jsonPath("$.content").value(new JsonContainsMatcher("\"name\":\"hive\"")));
     }
 
     @Test
@@ -320,7 +321,7 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.last").value(true))
                 .andExpect(jsonPath("$.totalElements").value(9))
                 .andExpect(jsonPath("$.totalPages").value(1))
-                .andExpect(jsonPath("$.content.[5].name").value("hive"));
+                .andExpect(jsonPath("$.content").value(new JsonContainsMatcher("\"name\":\"hive\"")));
     }
 
     @Test

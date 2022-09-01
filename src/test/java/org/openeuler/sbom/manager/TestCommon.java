@@ -5,7 +5,6 @@ import org.openeuler.sbom.manager.model.spdx.SpdxPackage;
 import org.openeuler.sbom.manager.model.spdx.SpdxRelationship;
 import org.springframework.util.StringUtils;
 
-import java.time.Instant;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,7 +17,7 @@ public class TestCommon {
         assertThat(spdxDocument.getCreationInfo().creators().size()).isEqualTo(1);
         assertThat(spdxDocument.getCreationInfo().creators().get(0)).isEqualTo("Tool: OSS Review Toolkit - e5b343ff71-dirty");
         assertThat(spdxDocument.getCreationInfo().licenseListVersion()).isEqualTo("3.16");
-        assertThat(spdxDocument.getCreationInfo().created()).isEqualTo(Instant.parse("2022-06-27T08:05:09Z"));
+        assertThat(spdxDocument.getCreationInfo().created()).isEqualTo("2022-06-27T08:05:09Z");
         assertThat(spdxDocument.getDocumentNamespace()).isEqualTo("spdx://57eaa8d8-9572-44ff-ace4-d4ac38292265");
         assertThat(spdxDocument.getPackages().size()).isEqualTo(78);
         assertThat(spdxDocument.getRelationships().size()).isEqualTo(77);

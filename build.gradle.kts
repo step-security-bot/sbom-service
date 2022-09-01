@@ -59,6 +59,7 @@ dependencies {
     implementation("com.vladmihalcea:hibernate-types-55:$hibernateTypesVersion")
     testImplementation("org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16")
     implementation("org.postgresql:postgresql")
+    implementation("org.springframework.boot:spring-boot-starter-batch")
 
     providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
 

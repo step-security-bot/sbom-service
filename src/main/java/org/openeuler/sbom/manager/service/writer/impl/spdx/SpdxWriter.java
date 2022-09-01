@@ -1,6 +1,5 @@
 package org.openeuler.sbom.manager.service.writer.impl.spdx;
 
-import org.openeuler.sbom.manager.constant.SbomConstants;
 import org.openeuler.sbom.manager.dao.SbomRepository;
 import org.openeuler.sbom.manager.model.Checksum;
 import org.openeuler.sbom.manager.model.ExternalPurlRef;
@@ -26,12 +25,12 @@ import org.openeuler.sbom.manager.service.writer.SbomWriter;
 import org.openeuler.sbom.manager.utils.PurlUtil;
 import org.openeuler.sbom.manager.utils.SbomFormat;
 import org.openeuler.sbom.manager.utils.SbomMapperUtil;
+import org.opensourceway.sbom.constants.SbomConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -69,7 +68,7 @@ public class SpdxWriter implements SbomWriter {
 
     private void setCreationInfo(Sbom sbom, SpdxDocument document) {
         List<String> creators = sbom.getSbomCreators().stream().map(SbomCreator::getName).collect(Collectors.toList());
-        SpdxCreationInfo creationInfo = new SpdxCreationInfo(null, Instant.parse(sbom.getCreated()), creators, sbom.getLicenseListVersion());
+        SpdxCreationInfo creationInfo = new SpdxCreationInfo(null, sbom.getCreated(), creators, sbom.getLicenseListVersion());
         document.setCreationInfo(creationInfo);
     }
 

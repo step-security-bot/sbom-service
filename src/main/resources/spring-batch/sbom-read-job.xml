@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch https://www.springframework.org/schema/batch/spring-batch.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <job id="readSbomJob" xmlns="http://www.springframework.org/schema/batch">
+        <step id="selectWaitRawSbomTask">
+            <tasklet ref="selectWaitRawSbomStep"/>
+            <next on="*" to="skipAnalyzeTraceDataDecision"/>
+            <end on="STOPPED"/>
+            <!-- <fail on="FAILED" exit-code="FAILED" /> -->
+        </step>
+
+        <decision id="skipAnalyzeTraceDataDecision" decider="skipAnalyzeTraceDataDecider">
+            <next on="INORDER" to="traceDataAnalyzerTask"/>
+            <next on="*" to="parseSbomMetadataTask"/>
+        </decision>
+
+        <step id="traceDataAnalyzerTask" next="parseSbomMetadataTask">
+            <tasklet ref="traceDataAnalyzerStep"/>
+        </step>
+
+        <step id="parseSbomMetadataTask" next="persistSbomMetadataTask">
+            <tasklet ref="parseSbomMetadataStep"/>
+        </step>
+
+        <step id="persistSbomMetadataTask" next="resolveMavenDepTask">
+            <tasklet ref="persistSbomMetadataStep"/>
+        </step>
+
+        <step id="resolveMavenDepTask" next="sbomConsumers">
+            <tasklet ref="resolveMavenDepStep"/>
+        </step>
+
+        <split id="sbomConsumers" task-executor="taskExecutor" next="readSbomEndTask">
+            <flow>
+                <step id="extractOssIndex">
+                    <tasklet>
+                        <chunk reader="extractOssIndexReader"
+                               processor="extractOssIndexProcessor"
+                               writer="extractOssIndexWriter"
+                               commit-interval="2"/>
+                    </tasklet>
+                </step>
+            </flow>
+            <flow>
+                <step id="extractCveManger">
+                    <tasklet>
+                        <chunk reader="extractCveManagerReader"
+                               processor="extractCveManagerProcessor"
+                               writer="extractCveManagerWriter"
+                               commit-interval="2"/>
+                    </tasklet>
+                </step>
+            </flow>
+        </split>
+
+        <step id="readSbomEndTask">
+            <tasklet ref="readSbomEndStep"/>
+            <end on="*"/>
+        </step>
+    </job>
+
+    <bean id="selectWaitRawSbomStep"
+          class="org.opensourceway.sbom.manager.batch.step.SelectWaitRawSbomStep"/>
+
+    <bean id="skipAnalyzeTraceDataDecider"
+          class="org.opensourceway.sbom.manager.batch.decider.SkipAnalyzeTraceDataDecider"/>
+
+    <bean id="traceDataAnalyzerStep"
+          class="org.opensourceway.sbom.manager.batch.step.TraceDataAnalyzerStep"/>
+
+    <bean id="parseSbomMetadataStep"
+          class="org.opensourceway.sbom.manager.batch.step.ParseSbomMetadataStep"/>
+
+    <bean id="persistSbomMetadataStep"
+          class="org.opensourceway.sbom.manager.batch.step.PersistSbomMetadataStep"/>
+
+    <bean id="resolveMavenDepStep"
+          class="org.opensourceway.sbom.manager.batch.step.ResolveMavenDepStep"/>
+
+    <bean id="taskExecutor" class="org.springframework.core.task.SimpleAsyncTaskExecutor"/>
+
+    <!-- OssIndex CVE Service -->
+    <bean id="extractOssIndexReader"
+          class="org.opensourceway.sbom.manager.batch.reader.vul.ExternalPurlRefListReader">
+        <constructor-arg ref="ossIndexServiceImpl"/>
+    </bean>
+    <bean id="extractOssIndexProcessor"
+          class="org.opensourceway.sbom.manager.batch.processor.vul.ExtractOssIndexProcessor"/>
+    <bean id="extractOssIndexWriter"
+          class="org.opensourceway.sbom.manager.batch.writer.vul.ExternalPurlRefListWriter">
+        <constructor-arg ref="ossIndexServiceImpl"/>
+    </bean>
+    <!-- OssIndex CVE Service -->
+
+    <!-- CVE Manager CVE Service -->
+    <bean id="extractCveManagerReader"
+          class="org.opensourceway.sbom.manager.batch.reader.vul.ExternalPurlRefListReader">
+        <constructor-arg ref="cveManagerServiceImpl"/>
+    </bean>
+    <bean id="extractCveManagerProcessor"
+          class="org.opensourceway.sbom.manager.batch.processor.vul.ExtractCveManagerProcessor"/>
+    <bean id="extractCveManagerWriter"
+          class="org.opensourceway.sbom.manager.batch.writer.vul.ExternalPurlRefListWriter">
+        <constructor-arg ref="cveManagerServiceImpl"/>
+    </bean>
+    <!-- CVE Manager CVE Service -->
+
+    <bean id="readSbomEndStep"
+          class="org.opensourceway.sbom.manager.batch.step.ReadSbomEndStep"/>
+
+</beans>
