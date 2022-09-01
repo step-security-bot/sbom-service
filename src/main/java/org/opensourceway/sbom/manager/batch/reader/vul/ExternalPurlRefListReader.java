@@ -2,11 +2,11 @@ package org.opensourceway.sbom.manager.batch.reader.vul;
 
 import org.apache.commons.collections4.ListUtils;
 import org.jetbrains.annotations.NotNull;
-import org.openeuler.sbom.manager.dao.SbomRepository;
-import org.openeuler.sbom.manager.model.ExternalPurlRef;
-import org.openeuler.sbom.manager.model.Package;
-import org.openeuler.sbom.manager.model.Sbom;
-import org.openeuler.sbom.manager.service.vul.VulService;
+import org.opensourceway.sbom.manager.dao.SbomRepository;
+import org.opensourceway.sbom.manager.model.ExternalPurlRef;
+import org.opensourceway.sbom.manager.model.Package;
+import org.opensourceway.sbom.manager.model.Sbom;
+import org.opensourceway.sbom.manager.service.vul.VulService;
 import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

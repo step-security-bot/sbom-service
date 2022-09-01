@@ -1,8 +1,8 @@
 package org.opensourceway.sbom.manager.batch.writer.vul;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.openeuler.sbom.manager.model.ExternalPurlRef;
-import org.openeuler.sbom.manager.service.vul.VulService;
+import org.opensourceway.sbom.manager.model.ExternalPurlRef;
+import org.opensourceway.sbom.manager.service.vul.VulService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemWriter;

@@ -1,7 +1,7 @@
 package org.opensourceway.sbom.manager.batch.step;
 
 import org.jetbrains.annotations.NotNull;
-import org.openeuler.sbom.manager.dao.RawSbomRepository;
+import org.opensourceway.sbom.manager.dao.RawSbomRepository;
 import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.batch.ExecutionContextUtils;

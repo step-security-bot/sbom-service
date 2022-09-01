@@ -1,11 +1,11 @@
 package org.opensourceway.sbom.manager.batch.step;
 
 import org.jetbrains.annotations.NotNull;
-import org.openeuler.sbom.manager.SbomApplicationContextHolder;
-import org.openeuler.sbom.manager.model.sbom.SbomDocument;
-import org.openeuler.sbom.manager.service.reader.SbomReader;
-import org.openeuler.sbom.manager.utils.SbomFormat;
-import org.openeuler.sbom.manager.utils.SbomSpecification;
+import org.opensourceway.sbom.manager.SbomApplicationContextHolder;
+import org.opensourceway.sbom.manager.model.sbom.SbomDocument;
+import org.opensourceway.sbom.manager.service.reader.SbomReader;
+import org.opensourceway.sbom.manager.utils.SbomFormat;
+import org.opensourceway.sbom.manager.utils.SbomSpecification;
 import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.manager.batch.ExecutionContextUtils;
 import org.slf4j.Logger;
