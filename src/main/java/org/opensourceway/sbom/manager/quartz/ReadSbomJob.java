@@ -11,7 +11,6 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 public class ReadSbomJob implements Job {
 
@@ -21,7 +20,6 @@ public class ReadSbomJob implements Job {
     private JobConfiguration batchJobConfiguration;
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
             BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(this);
