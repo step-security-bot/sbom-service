@@ -1,9 +1,9 @@
 package org.opensourceway.sbom.manager.batch.step;
 
 import org.jetbrains.annotations.NotNull;
-import org.openeuler.sbom.analyzer.TraceDataAnalyzer;
-import org.openeuler.sbom.manager.utils.SbomFormat;
-import org.openeuler.sbom.manager.utils.SbomSpecification;
+import org.opensourceway.sbom.analyzer.TraceDataAnalyzer;
+import org.opensourceway.sbom.manager.utils.SbomFormat;
+import org.opensourceway.sbom.manager.utils.SbomSpecification;
 import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.manager.batch.ExecutionContextUtils;
 import org.slf4j.Logger;

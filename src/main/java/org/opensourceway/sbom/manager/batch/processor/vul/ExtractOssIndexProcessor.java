@@ -2,8 +2,8 @@ package org.opensourceway.sbom.manager.batch.processor.vul;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
-import org.openeuler.sbom.manager.model.ExternalPurlRef;
-import org.openeuler.sbom.manager.service.vul.VulService;
+import org.opensourceway.sbom.manager.model.ExternalPurlRef;
+import org.opensourceway.sbom.manager.service.vul.VulService;
 import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

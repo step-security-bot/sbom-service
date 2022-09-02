@@ -6,7 +6,7 @@ plugins {
     id("org.jetbrains.kotlin.jvm")
 }
 
-group = "org.openeuler.sbom"
+group = "org.opensourceway.sbom"
 version = "1.0-SNAPSHOT"
 
 val commonsIoVersion: String by project
@@ -67,7 +67,7 @@ dependencies {
 }
 
 springBoot {
-    mainClass.set("org.openeuler.sbom.manager.SbomManagerApplication")
+    mainClass.set("org.opensourceway.sbom.manager.SbomManagerApplication")
 }
 
 allprojects {

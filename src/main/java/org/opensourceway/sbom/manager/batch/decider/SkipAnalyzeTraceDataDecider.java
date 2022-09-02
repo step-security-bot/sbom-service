@@ -2,8 +2,8 @@ package org.opensourceway.sbom.manager.batch.decider;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.openeuler.sbom.manager.dao.ProductRepository;
-import org.openeuler.sbom.manager.model.Product;
+import org.opensourceway.sbom.manager.dao.ProductRepository;
+import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.constants.BatchFlowExecConstants;
 import org.opensourceway.sbom.constants.SbomConstants;
