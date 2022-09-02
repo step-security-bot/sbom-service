@@ -1,39 +1,21 @@
 package org.opensourceway.sbom.manager.quartz;
 
+import org.jetbrains.annotations.NotNull;
 import org.opensourceway.sbom.manager.batch.job.JobConfiguration;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.MutablePropertyValues;
-import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.quartz.QuartzJobBean;
 
-public class ReadSbomJob implements Job {
+public class ReadSbomJob extends QuartzJobBean {
 
     private static final Logger logger = LoggerFactory.getLogger(ReadSbomJob.class);
 
     @Autowired
     private JobConfiguration batchJobConfiguration;
 
-    @Override
-    public void execute(JobExecutionContext context) throws JobExecutionException {
-        try {
-            BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(this);
-            MutablePropertyValues pvs = new MutablePropertyValues();
-            pvs.addPropertyValues(context.getScheduler().getContext());
-            pvs.addPropertyValues(context.getMergedJobDataMap());
-            bw.setPropertyValues(pvs, true);
-        } catch (SchedulerException ex) {
-            throw new JobExecutionException(ex);
-        }
-        executeInternal(context);
-    }
-
-    protected void executeInternal(JobExecutionContext quartzJobContext) {
+    protected void executeInternal(@NotNull JobExecutionContext quartzJobContext) {
         logger.info("start launch sbom read job");
         try {
             batchJobConfiguration.launchSbomReadJob();
