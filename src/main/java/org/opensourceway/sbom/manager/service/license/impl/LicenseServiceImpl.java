@@ -58,6 +58,22 @@ public class LicenseServiceImpl extends AbstractLicenseService {
     @Autowired
     private ProductRepository productRepository;
 
+    public static Map<String, Map<String, String>> FormatLicenseInfos(LicenseInfo[] licenseInfos) {
+        Map<String, Map<String, String>> licenseInfoMap = new HashMap<>();
+        Arrays.stream(licenseInfos).forEach(licenseInfo -> {
+            Map<String, String> tmpInfo = new HashMap<>();
+            tmpInfo.put("name", licenseInfo.getName());
+            if (licenseInfo.getText().size() == 0) {
+                tmpInfo.put("url", null);
+            } else {
+                tmpInfo.put("url", licenseInfo.getText().get(0).getUrl());
+            }
+
+            licenseInfoMap.put(licenseInfo.getId(), tmpInfo);
+        });
+        return licenseInfoMap;
+    }
+
     @Override
     public void persistLicenseForSbom(Sbom sbom, Boolean blocking) {
         logger.info("Start to persistLicenseRefForSbom for sbom {}", sbom.getId());
@@ -100,23 +116,6 @@ public class LicenseServiceImpl extends AbstractLicenseService {
 
         logger.info("End to persistLicenseRefForSbom  for sbom {}", sbom.getId());
     }
-
-    public static Map<String, Map<String, String>> FormatLicenseInfos(LicenseInfo[] licenseInfos) {
-        Map<String, Map<String, String>> licenseInfoMap = new HashMap<>();
-        Arrays.stream(licenseInfos).forEach(licenseInfo -> {
-            Map<String, String> tmpInfo = new HashMap<>();
-            tmpInfo.put("name", licenseInfo.getName());
-            if (licenseInfo.getText().size() == 0) {
-                tmpInfo.put("url", null);
-            } else {
-                tmpInfo.put("url", licenseInfo.getText().get(0).getUrl());
-            }
-
-            licenseInfoMap.put(licenseInfo.getId(), tmpInfo);
-        });
-        return licenseInfoMap;
-    }
-
 
     private void persistLicense(ComponentReport[] reports, Map<String, Map<String, String>> licenseInfoMap, List<ExternalPurlRef> externalPurlRefs, Product product) {
         if (Objects.isNull(reports) || reports.length == 0) {
@@ -278,7 +277,8 @@ public class LicenseServiceImpl extends AbstractLicenseService {
                     return;
                 }
                 externalPurlChunk.forEach(ref -> Arrays.stream(response).filter(element -> StringUtils
-                                .equals(getPurlsForLicense(PurlUtil.PackageUrlVoToPackageURL(ref.getPurl()).canonicalize(), false, product), element.getPurl()))
+                                .equals(getPurlsForLicense(PurlUtil.PackageUrlVoToPackageURL(ref.getPurl()).canonicalize(), false, product), element.getPurl()) &&
+                                ref.getCategory().equals("PACKAGE_MANAGER"))
                         .forEach(element -> resultSet.add(Pair.of(ref, element))));
             } catch (Exception e) {
                 logger.error("failed to extract License for sbom {}", sbomId);
@@ -297,32 +297,36 @@ public class LicenseServiceImpl extends AbstractLicenseService {
         for (Pair<ExternalPurlRef, Object> externalLicenseRefPair : externalLicenseRefSet) {
             ExternalPurlRef purlRef = externalLicenseRefPair.getLeft();
             ComponentReport response = (ComponentReport) externalLicenseRefPair.getRight();
-
-            List<String> illegalLicenseList =
-                    getIllegalLicenseList(response.getResult().getRepoLicenseLegal().getIsLegal().getDetail());
-            response.getResult().getRepoLicenseLegal().getIsLegal().getLicense().forEach(lic -> {
-                License license = licenseRepository.findByName(lic).orElse(new License());
-                license.setName(lic);
-                getLicenseIdAndUrl(license, licenseInfoMap, lic);
-                if (license.getPackages() == null) {
-                    license.setPackages(new HashSet<>());
-                }
-                Package pkg = packageRepository.findById(purlRef.getPkg().getId()).orElseThrow();
-                if (pkg.getLicenses() == null) {
-                    pkg.setLicenses(new HashSet<>());
-                }
-                if (!isContainLicense(pkg, license)) {
-                    pkg.getLicenses().add(license);
-                    license.getPackages().add(pkg);
-                }
-                if (illegalLicenseList.size() != 0 && illegalLicenseList.contains(lic)) {
-                    license.setIsLegal(false);
-                    logger.error("license {} for {} is not legal", lic, purlRef.getPkg().getName());
-                } else {
-                    license.setIsLegal(true);
-                }
-                licenseRepository.save(license);
-            });
+            if (response.getResult().getRepoLicenseLegal().getPass().equals("true")) {
+                List<String> illegalLicenseList =
+                        getIllegalLicenseList(response.getResult().getRepoLicenseLegal().getIsLegal().getDetail());
+                response.getResult().getRepoLicenseLegal().getIsLegal().getLicense().forEach(lic -> {
+                    License license = licenseRepository.findByName(lic).orElse(new License());
+                    license.setName(lic);
+                    getLicenseIdAndUrl(license, licenseInfoMap, lic);
+                    if (license.getPackages() == null) {
+                        license.setPackages(new HashSet<>());
+                    }
+                    Package pkg = packageRepository.findById(purlRef.getPkg().getId()).orElseThrow();
+                    if (pkg.getLicenses() == null) {
+                        pkg.setLicenses(new HashSet<>());
+                    }
+                    if (!isContainLicense(pkg, license)) {
+                        pkg.getLicenses().add(license);
+                        license.getPackages().add(pkg);
+                    }
+                    if (illegalLicenseList.size() != 0 && illegalLicenseList.contains(lic)) {
+                        license.setIsLegal(false);
+                        logger.error("license {} for {} is not legal", lic, purlRef.getPkg().getName());
+                    } else {
+                        license.setIsLegal(true);
+                    }
+                    licenseRepository.save(license);
+                });
+            } else {
+                if (response.getPurl().startsWith("pkg:gitee"))
+                    scanLicense(response);
+            }
 
 
 //            License license = licenseRepository.saveAndFlush(persistLicense(lic);

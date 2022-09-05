@@ -85,6 +85,7 @@ public class ExternalPurlRefListReader implements ItemReader<List<ExternalPurlRe
         try {
             licInfoMono = licenseClient.getLicenseInfo();
             licenseInfoMap = LicenseServiceImpl.FormatLicenseInfos(licInfoMono.block());
+            this.stepExecution.getExecutionContext().put("licenseInfoMap", licenseInfoMap);
         } catch (Exception e) {
             logger.error("failed to fetch license info for sbom.");
             throw e;
