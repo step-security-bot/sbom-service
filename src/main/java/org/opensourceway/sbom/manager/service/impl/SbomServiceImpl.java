@@ -58,6 +58,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -121,17 +122,14 @@ public class SbomServiceImpl implements SbomService {
 
         RawSbom oldRawSbom = sbomFileRepository.queryRawSbom(rawSbom);
         if (oldRawSbom != null) {
-            if (!StringUtils.equals(oldRawSbom.getTaskStatus(), SbomConstants.TASK_STATUS_FINISH)) {
+            if (Objects.nonNull(oldRawSbom.getTaskStatus()) &&
+                    !StringUtils.equals(oldRawSbom.getTaskStatus(), SbomConstants.TASK_STATUS_FINISH)) {
                 return oldRawSbom.getTaskId();
             }
             rawSbom.setId(oldRawSbom.getId());
             rawSbom.setCreateTime(oldRawSbom.getCreateTime());
         }
         sbomFileRepository.save(rawSbom);
-
-        // DONE 1. sbom发布逻辑需要异步处理，以下SBOM元数据解析和入库逻辑待拆分到异步定时任务中被调用
-        // TODO 2. rawSbom中的taskId是否可作为quartz任务的taskId? 这样可以用于后续排查僵死任务
-        // DONE 3. rawSbom中的taskStatus后续需要实现互斥和幂等逻辑；wait和running状态的任务，不允许二次发布；finish的进行清理+导入
 
         return rawSbom.getTaskId();
     }
