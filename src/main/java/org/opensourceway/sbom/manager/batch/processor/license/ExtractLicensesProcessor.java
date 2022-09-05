@@ -23,20 +23,11 @@ import java.util.UUID;
 public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurlRef>, Set<Pair<ExternalPurlRef, Object>>>, StepExecutionListener {
 
     private static final Logger logger = LoggerFactory.getLogger(ExtractLicensesProcessor.class);
-
-
-    private StepExecution stepExecution;
-    private ExecutionContext jobContext;
-
     @Autowired
     @Qualifier("licenseServiceImpl")
     LicenseService licenseService;
-
-//    @Nullable
-//    @Override
-//    public ExternalPurlRef process(@NotNull ExternalPurlRef item) {
-//        return null;
-//    }
+    private StepExecution stepExecution;
+    private ExecutionContext jobContext;
 
     @Nullable
     @Override

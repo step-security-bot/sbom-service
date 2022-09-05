@@ -327,24 +327,6 @@ public class LicenseServiceImpl extends AbstractLicenseService {
                 if (response.getPurl().startsWith("pkg:gitee"))
                     scanLicense(response);
             }
-
-
-//            License license = licenseRepository.saveAndFlush(persistLicense(lic);
-//            Map<Pair<UUID, String>, License> existLicense =
-//                    Optional.ofNullable(purlRef.getPkg().getLicenses())
-//                            .orElse(new ArrayList<>())
-//                            .stream()
-//                            .collect(Collectors.toMap(it ->
-//                                            Pair.of(it.getVulnerability().getId(), PurlUtil.PackageUrlVoToPackageURL(it.getPurl()).canonicalize()),
-//                                    Function.identity()));
-//            ExternalVulRef externalVulRef = existExternalVulRefs.getOrDefault(Pair.of(vulnerability.getId(), vul.getPurl()), new ExternalVulRef());
-//            externalVulRef.setCategory(ReferenceCategory.SECURITY.name());
-//            externalVulRef.setType(ReferenceType.CVE.getType());
-//            externalVulRef.setStatus(Optional.ofNullable(externalVulRef.getStatus()).orElse(VulStatus.AFFECTED.name()));
-//            externalVulRef.setPurl(PurlUtil.strToPackageUrlVo(vul.getPurl()));
-//            externalVulRef.setVulnerability(vulnerability);
-//            externalVulRef.setPkg(purlRef.getPkg());
-//            externalVulRefRepository.saveAndFlush(externalVulRef);
         }
     }
 }
