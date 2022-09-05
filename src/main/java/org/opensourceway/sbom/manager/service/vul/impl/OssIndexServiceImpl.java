@@ -3,6 +3,7 @@ package org.opensourceway.sbom.manager.service.vul.impl;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.opensourceway.sbom.clients.ossindex.OssIndexClient;
 import org.opensourceway.sbom.clients.ossindex.model.ComponentReportElement;
 import org.opensourceway.sbom.clients.ossindex.model.OssIndexVulnerability;
@@ -283,7 +284,7 @@ public class OssIndexServiceImpl extends AbstractVulService {
 
     @Override
     public void persistExternalVulRefChunk(Set<Pair<ExternalPurlRef, Object>> externalVulRefSet) {
-        Set<Pair<UUID, String>> externalVulRefExistence = new HashSet<>();
+        Set<Triple<UUID, UUID, String>> externalVulRefExistence = new HashSet<>();
 
         for (Pair<ExternalPurlRef, Object> externalVulRefPair : externalVulRefSet) {
             ExternalPurlRef purlRef = externalVulRefPair.getLeft();
@@ -293,7 +294,8 @@ public class OssIndexServiceImpl extends AbstractVulService {
             OssIndexVulnerability vul = (OssIndexVulnerability) externalVulRefPair.getRight();
 
             Vulnerability vulnerability = vulnerabilityRepository.saveAndFlush(persistVulnerability(vul));
-            if (externalVulRefExistence.contains(Pair.of(vulnerability.getId(), PurlUtil.PackageUrlVoToPackageURL(purlRef.getPurl()).canonicalize()))) {
+            if (externalVulRefExistence.contains(Triple.of(purlOwnerPackage.getId(), vulnerability.getId(),
+                    PurlUtil.PackageUrlVoToPackageURL(purlRef.getPurl()).canonicalize()))) {
                 continue;
             }
 
@@ -313,7 +315,8 @@ public class OssIndexServiceImpl extends AbstractVulService {
             externalVulRef.setVulnerability(vulnerability);
             externalVulRef.setPkg(purlOwnerPackage);
             externalVulRefRepository.saveAndFlush(externalVulRef);
-            externalVulRefExistence.add(Pair.of(vulnerability.getId(), PurlUtil.PackageUrlVoToPackageURL(purlRef.getPurl()).canonicalize()));
+            externalVulRefExistence.add(Triple.of(purlOwnerPackage.getId(), vulnerability.getId(),
+                    PurlUtil.PackageUrlVoToPackageURL(purlRef.getPurl()).canonicalize()));
         }
     }
 }
