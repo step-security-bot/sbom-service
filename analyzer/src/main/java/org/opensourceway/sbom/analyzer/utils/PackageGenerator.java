@@ -5,6 +5,7 @@ import org.opensourceway.sbom.analyzer.model.RepoInfo;
 import org.opensourceway.sbom.analyzer.vcs.VcsService;
 import org.opensourceway.sbom.clients.vcs.VcsEnum;
 import org.ossreviewtoolkit.model.CuratedPackage;
+import org.ossreviewtoolkit.model.Hash;
 import org.ossreviewtoolkit.model.Identifier;
 import org.ossreviewtoolkit.model.Package;
 import org.ossreviewtoolkit.model.RemoteArtifact;
@@ -42,7 +43,7 @@ public class PackageGenerator {
     }
 
     public CuratedPackage generatePackageFromVcs(String host, String org, String repo, String version,
-                                                 String commitId, String tag) {
+                                                 String commitId, String tag, String url) {
         logger.info("start to generate package from vcs for [host: '{}', org: '{}', repo: '{}']", host, org, repo);
 
         VcsEnum vcsEnum = VcsEnum.findVcsEnumByHost(host);
@@ -51,15 +52,29 @@ public class PackageGenerator {
             return null;
         }
 
-        RepoInfo repoInfo = vcsServices.get(vcsEnum).getRepoInfo(org, repo);
+        VcsService vcsService = vcsServices.get(vcsEnum);
+        RepoInfo repoInfo = vcsService.getRepoInfo(org, repo);
+        String sourceUrl = getSourceUrl(org, repo, commitId, tag, url, vcsService);
         String revision = StringUtils.isEmpty(tag) ? commitId : tag;
         Identifier identifier = new Identifier(vcsEnum.name().toLowerCase(), org, repo, version);
         VcsInfo vcsInfo = new VcsInfo(VcsType.Companion.getGIT(), repoInfo.repoUrl(), revision, "");
         Package vcsPackage = new Package(identifier, ExtensionsKt.toPurl(identifier), "", repoInfo.authors(),
                 repoInfo.licenses(), ProcessedDeclaredLicense.EMPTY, null, repoInfo.description(),
-                repoInfo.homepageUrl(), RemoteArtifact.EMPTY, RemoteArtifact.EMPTY, vcsInfo, vcsInfo.normalize(),
-                false, false);
+                repoInfo.homepageUrl(), RemoteArtifact.EMPTY, new RemoteArtifact(sourceUrl, Hash.Companion.getNONE()),
+                vcsInfo, vcsInfo.normalize(), false, false);
         logger.info("successfully generated package from vcs for [host: '{}', org: '{}', repo: '{}']", host, org, repo);
         return new CuratedPackage(vcsPackage, new ArrayList<>());
+    }
+
+    private String getSourceUrl(String org, String repo, String commitId, String tag, String url, VcsService vcsService) {
+        if (StringUtils.isNotEmpty(url)) {
+            return url;
+        }
+
+        if (StringUtils.isNotEmpty(tag)) {
+            return vcsService.getTagDownloadUrl(org, repo, tag);
+        }
+
+        return vcsService.getCommitUrl(org, repo, commitId);
     }
 }
