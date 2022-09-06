@@ -13,8 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,25 +52,25 @@ public class GitSubmoduleHandler implements Handler {
         String repo = matcher.group(3);
 
         String versionString = data.versionString().trim();
-        String[] versionStringSplit = versionString.split("/");
-        if (versionStringSplit.length > 1) {
-            versionString = versionStringSplit[versionStringSplit.length - 1];
+        if (Pattern.compile("[\\da-z]*").matcher(versionString).matches()) {
+            logger.warn("get a commit id instead of a tag");
+        }
+        if (versionString.contains("/")) {
+            logger.warn("get a branch id instead of a tag");
         }
 
-        List<String> patterns = Arrays.asList(
-                "\\D*([.+\\-\\da-z]*)-.*-.*",
-                "\\D*([.+\\-\\da-z]*)-.*",
-                "\\D*([.+\\-\\da-z]*)\\)"
-        );
-        for (String pattern : patterns) {
-            Matcher m = Pattern.compile(pattern).matcher(versionString);
-            if (m.matches()) {
-                String version = m.group(1);
-                return packageGenerator.generatePackageFromVcs(host, org, repo, version, data.commitId().trim(), "");
-            }
+        String commitId = data.commitId().trim();
+        Matcher m = Pattern.compile("\\((\\D*([.+\\-\\da-z]*))-.*-.*\\)").matcher(versionString);
+        if (m.matches()) {
+            String tag = m.group(1);
+            String version = m.group(2);
+            return packageGenerator.generatePackageFromVcs(host, org, repo, version, commitId, tag, null);
         }
 
-        logger.warn("invalid record '{}'", recordJson);
-        return null;
+        if (StringUtils.isEmpty(commitId)) {
+            logger.warn("empty commit id");
+            return null;
+        }
+        return packageGenerator.generatePackageFromVcs(host, org, repo, commitId, commitId, null, null);
     }
 }
