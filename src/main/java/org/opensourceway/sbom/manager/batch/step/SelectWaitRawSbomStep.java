@@ -32,13 +32,14 @@ public class SelectWaitRawSbomStep implements Tasklet {
         logger.info("start SelectWaitRawSbomStep, try to find a waiting raw sbom");
         ExecutionContext jobContext = ExecutionContextUtils.getJobContext(contribution);
 
-        RawSbom rawSbom = rawSbomRepository.queryOneWaitingTaskWithLock().orElse(null);
+        RawSbom rawSbom = rawSbomRepository.queryOneTaskByTaskStatusWithLock(SbomConstants.TASK_STATUS_WAIT).orElse(null);
         if (Objects.isNull(rawSbom)) {
             logger.info("not find waiting raw sbom");
             contribution.setExitStatus(ExitStatus.STOPPED);
         } else {
-            logger.info("find a waiting raw sbom, id:{}",rawSbom.getId());
+            logger.info("find a waiting raw sbom, id:{}", rawSbom.getId());
             rawSbom.setTaskStatus(SbomConstants.TASK_STATUS_RUNNING);
+            rawSbom.setJobExecutionId(ExecutionContextUtils.getJobExecution(contribution).getId());
             rawSbomRepository.save(rawSbom);
 
             jobContext.put(BatchContextConstants.BATCH_RAW_SBOM_ID_KEY, rawSbom.getId());
@@ -50,9 +51,6 @@ public class SelectWaitRawSbomStep implements Tasklet {
 
             SbomFormat format = SbomFormat.findSbomFormat(rawSbom.getFormat());
             jobContext.put(BatchContextConstants.BATCH_SBOM_FORMAT_KEY, format);
-
-            contribution.getStepExecution().getJobExecution().getExecutionContext().putString(
-                    BatchContextConstants.BATCH_SBOM_PRODUCT_NAME_KEY, rawSbom.getProduct().getName());
 
             contribution.setExitStatus(ExitStatus.COMPLETED);
         }

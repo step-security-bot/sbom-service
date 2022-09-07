@@ -134,18 +134,33 @@ public class SbomServiceImpl implements SbomService {
         return rawSbom.getTaskId();
     }
 
+    /**
+     * taskStatus and response status mappings
+     * <p>
+     * Success[true], finish[false]: WAIT，RUNNING，FAILED, others
+     * <p>
+     * Success[true], finish[true]: FINISH_PARSE，FINISH
+     * <p>
+     * Success[false], finish[false]: FAILED_FINISH
+     */
     @Override
     public PublishResultResponse getSbomPublishResult(UUID taskId) {
         Optional<RawSbom> rawSbomOptional = sbomFileRepository.findByTaskId(taskId);
 
         return rawSbomOptional.map(rawSbom -> {
             PublishResultResponse response = new PublishResultResponse();
-            response.setSuccess(Boolean.TRUE);
-            if (List.of(SbomConstants.TASK_STATUS_FINISH_PARSE, SbomConstants.TASK_STATUS_FINISH)
+            if (List.of(SbomConstants.TASK_STATUS_FINISH_PARSE,
+                            SbomConstants.TASK_STATUS_FINISH)
                     .contains(rawSbom.getTaskStatus())) {
+                response.setSuccess(Boolean.TRUE);
                 response.setFinish(Boolean.TRUE);
                 response.setSbomRef(UrlUtil.generateSbomUrl(sbomWebsiteDomain, rawSbom.getProduct().getName()));
+            } else if (List.of(SbomConstants.TASK_STATUS_FAILED)
+                    .contains(rawSbom.getTaskStatus())) {
+                response.setSuccess(Boolean.FALSE);
+                response.setFinish(Boolean.FALSE);
             } else {
+                response.setSuccess(Boolean.TRUE);
                 response.setFinish(Boolean.FALSE);
             }
             return response;

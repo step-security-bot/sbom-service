@@ -21,13 +21,23 @@ public class SbomConstants {
 
     public static final String PURL_RPM_TYPE_VALUE = "rpm";
 
-    public static final String TASK_STATUS_WAIT = "wait";
+    // task status of wait to run
+    public static final String TASK_STATUS_WAIT = "WAIT";
 
-    public static final String TASK_STATUS_RUNNING = "running";
+    // task status of running
+    public static final String TASK_STATUS_RUNNING = "RUNNING";
 
-    public static final String TASK_STATUS_FINISH_PARSE = "finish_parse";
+    // task status of finish parse sbom metadata, goto extract consume info
+    public static final String TASK_STATUS_FINISH_PARSE = "FINISH_PARSE";
 
-    public static final String TASK_STATUS_FINISH = "finish";
+    // task status of finish all import sbom steps
+    public static final String TASK_STATUS_FINISH = "FINISH";
+
+    // task status of import sbom failed, and wait to restart
+    public static final String TASK_STATUS_FAILED = "FAILED";
+
+    // task status of import sbom failed finally
+    public static final String TASK_STATUS_FAILED_FINISH = "FAILED_FINISH";
 
     public static final String TASK_STATUS_NOT_EXISTS = "task not exists";
 
@@ -38,5 +48,8 @@ public class SbomConstants {
     public static final String PRODUCT_MINDSPORE_NAME = "MindSpore";
 
     public static final String PRODUCT_OPENGAUSS_NAME = "openGauss";
+
+    public static final Integer BATCH_JOB_RESTART_MAX_TIMES = 3;
+
 
 }
