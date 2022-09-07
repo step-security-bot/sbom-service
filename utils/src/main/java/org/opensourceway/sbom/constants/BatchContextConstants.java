@@ -16,6 +16,8 @@ public class BatchContextConstants {
 
     public final static String BATCH_SBOM_DOCUMENT_KEY = "BATCH_SBOM_DOCUMENT";
 
+    public final static String BATCH_JOB_RESTART_COUNTER_KEY = "BATCH_JOB_RESTART_COUNTER";
+
     public final static String BATCH_PRODUCT_TYPE_KEY = "productType";
 
 }

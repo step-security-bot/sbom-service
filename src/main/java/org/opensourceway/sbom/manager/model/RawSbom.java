@@ -53,6 +53,9 @@ public class RawSbom {
     @Column(columnDefinition = "UUID", name = "task_id")
     private UUID taskId;
 
+    @Column(name = "job_execution_id")
+    private Long jobExecutionId;
+
     public UUID getId() {
         return id;
     }
@@ -132,4 +135,13 @@ public class RawSbom {
     public void setTaskId(UUID taskId) {
         this.taskId = taskId;
     }
+
+    public Long getJobExecutionId() {
+        return jobExecutionId;
+    }
+
+    public void setJobExecutionId(Long jobExecutionId) {
+        this.jobExecutionId = jobExecutionId;
+    }
+
 }
