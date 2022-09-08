@@ -29,6 +29,7 @@
             <tasklet ref="persistSbomMetadataStep"/>
         </step>
 
+        <!-- In org.opensourceway.sbom.manager.batch.job.JobConfiguration.restartSbomReadJob, use this step id decide rawSbom record's new taskStatus -->
         <step id="resolveMavenDepTask" next="sbomConsumers">
             <tasklet ref="resolveMavenDepStep"/>
         </step>
@@ -60,6 +61,10 @@
             <tasklet ref="readSbomEndStep"/>
             <end on="*"/>
         </step>
+
+        <listeners>
+            <listener ref="allStepsListener"/>
+        </listeners>
     </job>
 
     <bean id="selectWaitRawSbomStep"
@@ -110,5 +115,8 @@
 
     <bean id="readSbomEndStep"
           class="org.opensourceway.sbom.manager.batch.step.ReadSbomEndStep"/>
+
+    <bean id="allStepsListener"
+          class="org.opensourceway.sbom.manager.batch.listener.AllStepsListener"/>
 
 </beans>

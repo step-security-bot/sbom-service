@@ -11,6 +11,7 @@ import org.opensourceway.sbom.manager.dao.RawSbomRepository;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.RawSbom;
 import org.opensourceway.sbom.manager.model.vo.request.PublishSbomRequest;
+import org.opensourceway.sbom.manager.utils.TestCommon;
 import org.opensourceway.sbom.utils.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -43,6 +44,9 @@ public class PublishControllerTests {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private TestCommon testCommon;
 
     @Test
     public void uploadSbomFileFailed() throws Exception {
@@ -115,6 +119,8 @@ public class PublishControllerTests {
 
     @Test
     public void publishSbomContentSuccess() throws Exception {
+        testCommon.cleanPublishRawSbomData(TestConstants.PUBLISH_SAMPLE_PRODUCT_NAME);
+
         PublishSbomRequest publishSbomRequest = new PublishSbomRequest();
         publishSbomRequest.setProductName(TestConstants.PUBLISH_SAMPLE_PRODUCT_NAME);
 

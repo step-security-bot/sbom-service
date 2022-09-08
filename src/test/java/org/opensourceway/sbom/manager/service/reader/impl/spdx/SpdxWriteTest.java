@@ -4,7 +4,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.opensourceway.sbom.manager.TestCommon;
+import org.opensourceway.sbom.manager.utils.TestCommon;
 import org.opensourceway.sbom.manager.TestConstants;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.dao.VulnerabilityRepository;

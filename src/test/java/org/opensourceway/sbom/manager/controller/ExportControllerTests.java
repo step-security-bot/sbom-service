@@ -4,7 +4,7 @@ package org.opensourceway.sbom.manager.controller;
 import org.junit.jupiter.api.Test;
 import org.opensourceway.sbom.manager.SbomApplicationContextHolder;
 import org.opensourceway.sbom.manager.SbomManagerApplication;
-import org.opensourceway.sbom.manager.TestCommon;
+import org.opensourceway.sbom.manager.utils.TestCommon;
 import org.opensourceway.sbom.manager.TestConstants;
 import org.opensourceway.sbom.manager.model.spdx.SpdxDocument;
 import org.opensourceway.sbom.utils.Mapper;
