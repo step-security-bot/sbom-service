@@ -1,4 +1,4 @@
-package org.opensourceway.sbom.manager;
+package org.opensourceway.sbom.manager.utils;
 
 import org.opensourceway.sbom.manager.model.spdx.SpdxDocument;
 import org.opensourceway.sbom.manager.model.spdx.SpdxPackage;
