@@ -1,15 +1,29 @@
 package org.opensourceway.sbom.manager.utils;
 
+import org.opensourceway.sbom.manager.dao.ProductRepository;
+import org.opensourceway.sbom.manager.dao.RawSbomRepository;
+import org.opensourceway.sbom.manager.model.Product;
+import org.opensourceway.sbom.manager.model.RawSbom;
 import org.opensourceway.sbom.manager.model.spdx.SpdxDocument;
 import org.opensourceway.sbom.manager.model.spdx.SpdxPackage;
 import org.opensourceway.sbom.manager.model.spdx.SpdxRelationship;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Service
 public class TestCommon {
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private RawSbomRepository rawSbomRepository;
+
     public static void assertSpdxDocument(SpdxDocument spdxDocument) {
         assertThat(spdxDocument.getSpdxVersion()).isEqualTo("SPDX-2.2");
         assertThat(spdxDocument.getName()).isEqualTo("Unnamed document");
@@ -36,5 +50,23 @@ public class TestCommon {
         assertThat(relationship.spdxElementId()).isEqualTo("SPDXRef-Package-PyPI-asttokens-2.0.5");
         assertThat(relationship.relationshipType().name()).isEqualTo("DEPENDS_ON");
         assertThat(relationship.relatedSpdxElement()).isEqualTo("SPDXRef-Package-PyPI-six-1.16.0");
+    }
+
+    public void cleanPublishRawSbomData(String productName) {
+        Optional<Product> productOptional = productRepository.findByName(productName);
+        if (productOptional.isEmpty()) {
+            return;
+        }
+
+        RawSbom condition = new RawSbom();
+        condition.setProduct(productOptional.get());
+        condition.setSpec(SbomSpecification.SPDX_2_2.getSpecification());
+        condition.setSpecVersion(SbomSpecification.SPDX_2_2.getVersion());
+        condition.setFormat(SbomFormat.JSON.getFileExtName());
+
+        RawSbom existRawSbom = rawSbomRepository.queryRawSbom(condition);
+        if (existRawSbom != null) {
+            rawSbomRepository.delete(existRawSbom);
+        }
     }
 }

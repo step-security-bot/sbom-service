@@ -8,8 +8,8 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.opensourceway.sbom.manager.TestConstants;
 import org.opensourceway.sbom.constants.SbomConstants;
+import org.opensourceway.sbom.manager.TestConstants;
 import org.opensourceway.sbom.manager.dao.ProductRepository;
 import org.opensourceway.sbom.manager.dao.ProductTypeRepository;
 import org.opensourceway.sbom.manager.dao.RawSbomRepository;
@@ -29,8 +29,7 @@ import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
 import org.opensourceway.sbom.manager.model.vo.VulnerabilityVo;
 import org.opensourceway.sbom.manager.model.vo.request.PublishSbomRequest;
 import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
-import org.opensourceway.sbom.manager.utils.SbomFormat;
-import org.opensourceway.sbom.manager.utils.SbomSpecification;
+import org.opensourceway.sbom.manager.utils.TestCommon;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
@@ -43,7 +42,6 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,6 +64,9 @@ class SbomServiceTest {
 
     @Autowired
     private RawSbomRepository rawSbomRepository;
+
+    @Autowired
+    private TestCommon testCommon;
 
     private static String packageId = null;
 
@@ -364,28 +365,11 @@ class SbomServiceTest {
         assertThat(protobuf.getVersion()).isEqualTo("3.13.0");
     }
 
-    private void cleanPublishRawSbomData() {
-        Optional<Product> productOptional = productRepository.findByName(TestConstants.PUBLISH_SAMPLE_FOR_SERVICE_PRODUCT_NAME);
-        if (productOptional.isEmpty()) {
-            return;
-        }
-
-        RawSbom condition = new RawSbom();
-        condition.setProduct(productOptional.get());
-        condition.setSpec(SbomSpecification.SPDX_2_2.getSpecification());
-        condition.setSpecVersion(SbomSpecification.SPDX_2_2.getVersion());
-        condition.setFormat(SbomFormat.JSON.getFileExtName());
-
-        RawSbom existRawSbom = rawSbomRepository.queryRawSbom(condition);
-        if (existRawSbom != null) {
-            rawSbomRepository.delete(existRawSbom);
-        }
-    }
 
     @Test
     @Order(1)
     public void republishWaitingSbom() throws IOException {
-        cleanPublishRawSbomData();
+        testCommon.cleanPublishRawSbomData(TestConstants.PUBLISH_SAMPLE_FOR_SERVICE_PRODUCT_NAME);
 
         PublishSbomRequest request = new PublishSbomRequest();
         request.setProductName(TestConstants.PUBLISH_SAMPLE_FOR_SERVICE_PRODUCT_NAME);
@@ -415,7 +399,7 @@ class SbomServiceTest {
     @Test
     @Order(2)
     public void republishFinishedSbom() throws IOException {
-        cleanPublishRawSbomData();
+        testCommon.cleanPublishRawSbomData(TestConstants.PUBLISH_SAMPLE_FOR_SERVICE_PRODUCT_NAME);
 
         PublishSbomRequest request = new PublishSbomRequest();
         request.setProductName(TestConstants.PUBLISH_SAMPLE_FOR_SERVICE_PRODUCT_NAME);
