@@ -1,6 +1,7 @@
 package org.opensourceway.sbom.manager.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
@@ -69,7 +70,7 @@ public class RawSbom {
     }
 
     public void setSpec(String spec) {
-        this.spec = spec;
+        this.spec = StringUtils.lowerCase(spec);
     }
 
     public String getSpecVersion() {
@@ -77,7 +78,7 @@ public class RawSbom {
     }
 
     public void setSpecVersion(String specVersion) {
-        this.specVersion = specVersion;
+        this.specVersion = StringUtils.lowerCase(specVersion);
     }
 
     public String getFormat() {
@@ -85,7 +86,7 @@ public class RawSbom {
     }
 
     public void setFormat(String format) {
-        this.format = format;
+        this.format = StringUtils.lowerCase(format);
     }
 
     public byte[] getValue() {
