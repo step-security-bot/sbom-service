@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ReadSbomConfig {
+public class ScheduleBatchJobConfig {
 
     @Bean
     public JobDetail jobDetail() {
