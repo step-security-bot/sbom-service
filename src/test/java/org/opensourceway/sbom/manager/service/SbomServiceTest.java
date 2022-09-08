@@ -29,6 +29,8 @@ import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
 import org.opensourceway.sbom.manager.model.vo.VulnerabilityVo;
 import org.opensourceway.sbom.manager.model.vo.request.PublishSbomRequest;
 import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
+import org.opensourceway.sbom.manager.utils.SbomFormat;
+import org.opensourceway.sbom.manager.utils.SbomSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
@@ -41,6 +43,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -361,9 +364,29 @@ class SbomServiceTest {
         assertThat(protobuf.getVersion()).isEqualTo("3.13.0");
     }
 
+    private void cleanPublishRawSbomData() {
+        Optional<Product> productOptional = productRepository.findByName(TestConstants.PUBLISH_SAMPLE_FOR_SERVICE_PRODUCT_NAME);
+        if (productOptional.isEmpty()) {
+            return;
+        }
+
+        RawSbom condition = new RawSbom();
+        condition.setProduct(productOptional.get());
+        condition.setSpec(SbomSpecification.SPDX_2_2.getSpecification());
+        condition.setSpecVersion(SbomSpecification.SPDX_2_2.getVersion());
+        condition.setFormat(SbomFormat.JSON.getFileExtName());
+
+        RawSbom existRawSbom = rawSbomRepository.queryRawSbom(condition);
+        if (existRawSbom != null) {
+            rawSbomRepository.delete(existRawSbom);
+        }
+    }
+
     @Test
     @Order(1)
     public void republishWaitingSbom() throws IOException {
+        cleanPublishRawSbomData();
+
         PublishSbomRequest request = new PublishSbomRequest();
         request.setProductName(TestConstants.PUBLISH_SAMPLE_FOR_SERVICE_PRODUCT_NAME);
         request.setSbomContent(IOUtils.toString(new ClassPathResource(TestConstants.SAMPLE_UPLOAD_FILE_NAME).getInputStream(), Charset.defaultCharset()));
@@ -375,13 +398,13 @@ class SbomServiceTest {
         assertThat(response.getErrorInfo()).isNull();
         assertThat(response.getSuccess()).isTrue();
 
-        UUID taskIdRepublish = sbomService.publishSbom(request);
-        assertThat(taskId).isEqualTo(taskIdRepublish);
-        response = sbomService.getSbomPublishResult(taskId);
-        assertThat(response.getSbomRef()).isNull();
-        assertThat(response.getFinish()).isFalse();
-        assertThat(response.getErrorInfo()).isNull();
-        assertThat(response.getSuccess()).isTrue();
+        String errorMsg = null;
+        try {
+            sbomService.publishSbom(request);
+        } catch (RuntimeException e) {
+            errorMsg = e.getMessage();
+        }
+        assertThat(errorMsg).isEqualTo("product: %s has sbom import job in running.".formatted(TestConstants.PUBLISH_SAMPLE_FOR_SERVICE_PRODUCT_NAME));
 
         RawSbom rawSbom = rawSbomRepository.findByTaskId(taskId).orElse(null);
         if (Objects.nonNull(rawSbom)) {
@@ -392,6 +415,8 @@ class SbomServiceTest {
     @Test
     @Order(2)
     public void republishFinishedSbom() throws IOException {
+        cleanPublishRawSbomData();
+
         PublishSbomRequest request = new PublishSbomRequest();
         request.setProductName(TestConstants.PUBLISH_SAMPLE_FOR_SERVICE_PRODUCT_NAME);
         request.setSbomContent(IOUtils.toString(new ClassPathResource(TestConstants.SAMPLE_UPLOAD_FILE_NAME).getInputStream(), Charset.defaultCharset()));
