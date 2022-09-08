@@ -157,7 +157,7 @@ public class SbomServiceImpl implements SbomService {
                 response.setSuccess(Boolean.TRUE);
                 response.setFinish(Boolean.TRUE);
                 response.setSbomRef(UrlUtil.generateSbomUrl(sbomWebsiteDomain, rawSbom.getProduct().getName()));
-            } else if (List.of(SbomConstants.TASK_STATUS_FAILED)
+            } else if (List.of(SbomConstants.TASK_STATUS_FAILED_FINISH)
                     .contains(rawSbom.getTaskStatus())) {
                 response.setSuccess(Boolean.FALSE);
                 response.setFinish(Boolean.FALSE);
