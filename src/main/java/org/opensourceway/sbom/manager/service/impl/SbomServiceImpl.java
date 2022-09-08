@@ -122,9 +122,9 @@ public class SbomServiceImpl implements SbomService {
 
         RawSbom oldRawSbom = sbomFileRepository.queryRawSbom(rawSbom);
         if (oldRawSbom != null) {
-            if (Objects.nonNull(oldRawSbom.getTaskStatus()) &&
-                    !StringUtils.equals(oldRawSbom.getTaskStatus(), SbomConstants.TASK_STATUS_FINISH)) {
-                return oldRawSbom.getTaskId();
+            if (!List.of(SbomConstants.TASK_STATUS_FINISH, SbomConstants.TASK_STATUS_FAILED_FINISH)
+                    .contains(oldRawSbom.getTaskStatus())) {
+                throw new RuntimeException("product: %s has sbom import job in running.".formatted(publishSbomRequest.getProductName()));
             }
             rawSbom.setId(oldRawSbom.getId());
             rawSbom.setCreateTime(oldRawSbom.getCreateTime());

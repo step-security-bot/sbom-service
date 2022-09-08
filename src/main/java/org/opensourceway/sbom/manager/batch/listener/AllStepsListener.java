@@ -20,6 +20,8 @@ import java.util.UUID;
 
 public class AllStepsListener implements JobExecutionListener {
 
+    private final Integer batchJobRestartMaxTimes;
+
     @Autowired
     private JobRepository jobRepository;
 
@@ -30,6 +32,11 @@ public class AllStepsListener implements JobExecutionListener {
     private RawSbomRepository rawSbomRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(AllStepsListener.class);
+
+    public AllStepsListener(Integer batchJobRestartMaxTimes) {
+        this.batchJobRestartMaxTimes = batchJobRestartMaxTimes;
+        logger.info("Spring Batch AllStepsListener init, batchJobRestartMaxTimes: {}", batchJobRestartMaxTimes);
+    }
 
     @Override
     public void beforeJob(@NotNull JobExecution jobExecution) {
@@ -100,8 +107,9 @@ public class AllStepsListener implements JobExecutionListener {
                 }
             }
 
-            boolean isOverMaxRestartLimit = jobExecution.getExecutionContext().getInt(BatchContextConstants.BATCH_JOB_RESTART_COUNTER_KEY, SbomConstants.BATCH_JOB_RESTART_MAX_TIMES)
-                    >= SbomConstants.BATCH_JOB_RESTART_MAX_TIMES;
+            boolean isOverMaxRestartLimit = jobExecution.getExecutionContext()
+                    .getInt(BatchContextConstants.BATCH_JOB_RESTART_COUNTER_KEY, 0) >= this.batchJobRestartMaxTimes;
+            logger.error("failed batch job isOverMaxRestartLimit:{}", isOverMaxRestartLimit);
             rawSbom.setTaskStatus(isOverMaxRestartLimit ? SbomConstants.TASK_STATUS_FAILED_FINISH : SbomConstants.TASK_STATUS_FAILED);
             rawSbomRepository.save(rawSbom);
         }

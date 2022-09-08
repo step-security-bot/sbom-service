@@ -49,7 +49,4 @@ public class SbomConstants {
 
     public static final String PRODUCT_OPENGAUSS_NAME = "openGauss";
 
-    public static final Integer BATCH_JOB_RESTART_MAX_TIMES = 3;
-
-
 }
