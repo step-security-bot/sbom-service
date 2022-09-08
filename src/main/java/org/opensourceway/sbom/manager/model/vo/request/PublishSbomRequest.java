@@ -1,6 +1,5 @@
 package org.opensourceway.sbom.manager.model.vo.request;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.opensourceway.sbom.manager.utils.SbomFormat;
 import org.opensourceway.sbom.manager.utils.SbomSpecification;
 
@@ -60,6 +59,11 @@ public class PublishSbomRequest implements Serializable {
 
     @Override
     public String toString() {
-        return ToStringBuilder.reflectionToString(this);
+        return "PublishSbomRequest{" +
+                "productName='" + productName + '\'' +
+                ", spec='" + spec + '\'' +
+                ", specVersion='" + specVersion + '\'' +
+                ", format='" + format + '\'' +
+                '}';
     }
 }
