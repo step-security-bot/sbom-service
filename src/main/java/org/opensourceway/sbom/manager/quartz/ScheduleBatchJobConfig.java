@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 public class ScheduleBatchJobConfig {
 
     @Bean
-    public JobDetail jobDetail() {
+    public JobDetail readSbomJobDetail() {
         return JobBuilder.newJob(ReadSbomJob.class)
                 .withIdentity("readSbom")
                 .storeDurably()
@@ -20,12 +20,30 @@ public class ScheduleBatchJobConfig {
     }
 
     @Bean
-    public Trigger trigger() {
+    public Trigger readSbomJobTrigger() {
         return TriggerBuilder.newTrigger()
-                .forJob(jobDetail())
+                .forJob(readSbomJobDetail())
                 .withIdentity("readSbom")
                 .startNow()
                 .withSchedule(CronScheduleBuilder.cronSchedule("0 * * * * ? *"))
+                .build();
+    }
+
+    @Bean
+    public JobDetail restartFailedReadJobDetail() {
+        return JobBuilder.newJob(RestartFailedReadJob.class)
+                .withIdentity("restartReadSbom")
+                .storeDurably()
+                .build();
+    }
+
+    @Bean
+    public Trigger restartFailedReadJobTrigger() {
+        return TriggerBuilder.newTrigger()
+                .forJob(restartFailedReadJobDetail())
+                .withIdentity("restartReadSbom")
+                .startNow()
+                .withSchedule(CronScheduleBuilder.cronSchedule("30 0/5 * * * ? *"))
                 .build();
     }
 
