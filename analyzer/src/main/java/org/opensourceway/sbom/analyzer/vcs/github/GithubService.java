@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.text.MessageFormat;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
@@ -41,5 +42,17 @@ public class GithubService implements VcsService {
                 Optional.ofNullable(repoInfo.description()).orElse(""),
                 Optional.ofNullable(repoInfo.homepage()).orElse(""),
                 Optional.ofNullable(repoInfo.repoUrl()).orElse(""));
+    }
+
+    @Override
+    public String getTagDownloadUrl(String org, String repo, String tag) {
+        return MessageFormat.format("https://{0}/{1}/{2}/archive/refs/tags/{3}.tar.gz",
+                VcsEnum.GITHUB.getVcsHost(), org, repo, tag);
+    }
+
+    @Override
+    public String getCommitUrl(String org, String repo, String commitId) {
+        return MessageFormat.format("https://{0}/{1}/{2}/commit/{3}",
+                VcsEnum.GITHUB.getVcsHost(), org, repo, commitId);
     }
 }
