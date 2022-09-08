@@ -41,7 +41,11 @@
                         <chunk reader="extractOssIndexReader"
                                processor="extractOssIndexProcessor"
                                writer="extractOssIndexWriter"
-                               commit-interval="2"/>
+                               commit-interval="2" retry-limit="3">
+                            <retryable-exception-classes>
+                                <include class="java.lang.Exception"/>
+                            </retryable-exception-classes>
+                        </chunk>
                     </tasklet>
                 </step>
             </flow>
@@ -51,7 +55,12 @@
                         <chunk reader="extractCveManagerReader"
                                processor="extractCveManagerProcessor"
                                writer="extractCveManagerWriter"
-                               commit-interval="2"/>
+                               commit-interval="2" retry-limit="3">
+                            <!-- retry-limit: 1(first execution) + 2(twice retry) = 3-->
+                            <retryable-exception-classes>
+                                <include class="java.lang.Exception"/>
+                            </retryable-exception-classes>
+                        </chunk>
                     </tasklet>
                 </step>
             </flow>
@@ -117,6 +126,8 @@
           class="org.opensourceway.sbom.manager.batch.step.ReadSbomEndStep"/>
 
     <bean id="allStepsListener"
-          class="org.opensourceway.sbom.manager.batch.listener.AllStepsListener"/>
+          class="org.opensourceway.sbom.manager.batch.listener.AllStepsListener">
+        <constructor-arg value="3"/>
+    </bean>
 
 </beans>
