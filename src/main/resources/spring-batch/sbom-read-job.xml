@@ -34,7 +34,7 @@
             <tasklet ref="resolveMavenDepStep"/>
         </step>
 
-        <split id="sbomConsumers" task-executor="taskExecutor" next="readSbomEndTask">
+        <split id="sbomConsumers" task-executor="taskExecutor" next="collectStatisticsTask">
             <flow>
                 <step id="extractOssIndex">
                     <tasklet>
@@ -65,6 +65,10 @@
                 </step>
             </flow>
         </split>
+
+        <step id="collectStatisticsTask" next="readSbomEndTask">
+            <tasklet ref="collectStatisticsStep"/>
+        </step>
 
         <step id="readSbomEndTask">
             <tasklet ref="readSbomEndStep"/>
@@ -121,6 +125,9 @@
         <constructor-arg ref="cveManagerServiceImpl"/>
     </bean>
     <!-- CVE Manager CVE Service -->
+
+    <bean id="collectStatisticsStep"
+          class="org.opensourceway.sbom.manager.batch.step.CollectStatisticsStep"/>
 
     <bean id="readSbomEndStep"
           class="org.opensourceway.sbom.manager.batch.step.ReadSbomEndStep"/>
