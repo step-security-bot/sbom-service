@@ -47,22 +47,22 @@ dependencies {
     implementation("oss-review-toolkit:model")
     implementation("oss-review-toolkit:utils:spdx-utils")
 
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
-    implementation("org.springframework.boot:spring-boot-starter-quartz")
-    implementation("com.fasterxml.jackson.core:jackson-databind")
-    implementation("org.apache.commons:commons-lang3:$commonsLang3Version")
-    implementation("org.apache.commons:commons-collections4:$commonsCollections4Version")
     implementation("commons-io:commons-io:$commonsIoVersion")
     implementation("com.github.package-url:packageurl-java:$packageUrlJavaVersion")
     implementation("com.vladmihalcea:hibernate-types-55:$hibernateTypesVersion")
-    testImplementation("org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16")
+    implementation("org.apache.commons:commons-collections4:$commonsCollections4Version")
+    implementation("org.apache.commons:commons-lang3:$commonsLang3Version")
+    implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("org.postgresql:postgresql")
     implementation("org.springframework.boot:spring-boot-starter-batch")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-quartz")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
 
     providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
 
+    testImplementation("org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 

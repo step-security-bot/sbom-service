@@ -65,12 +65,13 @@ public class HttpParser implements Parser {
         String host = wrapper.host();
         String path = wrapper.path();
         path = resolveCache(path);
-        for (String suffix : Arrays.asList(".tar.gz", ".tar.xz", ".zip", ".tar", ".gz", ".xz")) {
+        String url = "https://" + host + path;
+        for (String suffix : Arrays.asList(".tar.gz", ".tgz", ".tar.xz", ".zip", ".tar", ".gz", ".xz", ".tar.bz2", ".tbz2")) {
             path = path.replace(suffix, "");
         }
 
-        String dirPattern = "/(.*?)/(.*?)/.*/(\\D*([.\\-_\\da-z]*))/.*";
-        String packagePattern = "/(.*?)/(.*?)/.*/(\\D*([.\\-_\\da-z]*))";
+        String dirPattern = "/(.*?)/(.*?)/.*/(\\D*([.\\-_\\da-zA-Z]*))/.*";
+        String packagePattern = "/(.*?)/(.*?)/.*/(\\D*([.\\-_\\da-zA-Z]*))";
         for (String pattern : Arrays.asList(dirPattern, packagePattern)) {
             Matcher matcher = Pattern.compile(pattern).matcher(path);
             if (matcher.matches()) {
@@ -78,8 +79,11 @@ public class HttpParser implements Parser {
                 String repo = matcher.group(2);
                 String tag = matcher.group(3);
                 String version = matcher.group(4);
+                if (Pattern.compile("[a-zA-Z]*").matcher(tag).matches()) {
+                    continue;
+                }
                 if (Stream.of(org, repo, tag, version).allMatch(StringUtils::isNotEmpty)) {
-                    return packageGenerator.generatePackageFromVcs(host, org, repo, version, "", tag);
+                    return packageGenerator.generatePackageFromVcs(host, org, repo, version, "", tag, url);
                 }
             }
         }

@@ -29,18 +29,23 @@
             <tasklet ref="persistSbomMetadataStep"/>
         </step>
 
+        <!-- In org.opensourceway.sbom.manager.batch.job.JobConfiguration.restartSbomReadJob, use this step id decide rawSbom record's new taskStatus -->
         <step id="resolveMavenDepTask" next="sbomConsumers">
             <tasklet ref="resolveMavenDepStep"/>
         </step>
 
-        <split id="sbomConsumers" task-executor="taskExecutor" next="readSbomEndTask">
+        <split id="sbomConsumers" task-executor="taskExecutor" next="collectStatisticsTask">
             <flow>
                 <step id="extractOssIndex">
                     <tasklet>
                         <chunk reader="extractOssIndexReader"
                                processor="extractOssIndexProcessor"
                                writer="extractOssIndexWriter"
-                               commit-interval="2"/>
+                               commit-interval="2" retry-limit="3">
+                            <retryable-exception-classes>
+                                <include class="java.lang.Exception"/>
+                            </retryable-exception-classes>
+                        </chunk>
                     </tasklet>
                 </step>
             </flow>
@@ -50,7 +55,12 @@
                         <chunk reader="extractCveManagerReader"
                                processor="extractCveManagerProcessor"
                                writer="extractCveManagerWriter"
-                               commit-interval="2"/>
+                               commit-interval="2" retry-limit="3">
+                            <!-- retry-limit: 1(first execution) + 2(twice retry) = 3-->
+                            <retryable-exception-classes>
+                                <include class="java.lang.Exception"/>
+                            </retryable-exception-classes>
+                        </chunk>
                     </tasklet>
                 </step>
             </flow>
@@ -66,10 +76,18 @@
             </flow>
         </split>
 
+        <step id="collectStatisticsTask" next="readSbomEndTask">
+            <tasklet ref="collectStatisticsStep"/>
+        </step>
+
         <step id="readSbomEndTask">
             <tasklet ref="readSbomEndStep"/>
             <end on="*"/>
         </step>
+
+        <listeners>
+            <listener ref="allStepsListener"/>
+        </listeners>
     </job>
 
     <bean id="selectWaitRawSbomStep"
@@ -118,6 +136,9 @@
     </bean>
     <!-- CVE Manager CVE Service -->
 
+    <bean id="collectStatisticsStep"
+          class="org.opensourceway.sbom.manager.batch.step.CollectStatisticsStep"/>
+
     <!-- License Service -->
     <bean id="extractLicenseReader"
           class="org.opensourceway.sbom.manager.batch.reader.license.ExternalPurlRefListReader">
@@ -132,5 +153,10 @@
 
     <bean id="readSbomEndStep"
           class="org.opensourceway.sbom.manager.batch.step.ReadSbomEndStep"/>
+
+    <bean id="allStepsListener"
+          class="org.opensourceway.sbom.manager.batch.listener.AllStepsListener">
+        <constructor-arg value="3"/>
+    </bean>
 
 </beans>

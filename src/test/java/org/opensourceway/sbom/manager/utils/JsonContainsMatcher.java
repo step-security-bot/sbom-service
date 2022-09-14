@@ -1,4 +1,4 @@
-package org.opensourceway.sbom.manager;
+package org.opensourceway.sbom.manager.utils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.BaseMatcher;

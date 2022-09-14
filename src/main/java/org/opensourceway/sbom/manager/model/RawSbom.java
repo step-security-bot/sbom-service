@@ -1,6 +1,7 @@
 package org.opensourceway.sbom.manager.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
@@ -53,6 +54,9 @@ public class RawSbom {
     @Column(columnDefinition = "UUID", name = "task_id")
     private UUID taskId;
 
+    @Column(name = "job_execution_id")
+    private Long jobExecutionId;
+
     public UUID getId() {
         return id;
     }
@@ -66,7 +70,7 @@ public class RawSbom {
     }
 
     public void setSpec(String spec) {
-        this.spec = spec;
+        this.spec = StringUtils.lowerCase(spec);
     }
 
     public String getSpecVersion() {
@@ -74,7 +78,7 @@ public class RawSbom {
     }
 
     public void setSpecVersion(String specVersion) {
-        this.specVersion = specVersion;
+        this.specVersion = StringUtils.lowerCase(specVersion);
     }
 
     public String getFormat() {
@@ -82,7 +86,7 @@ public class RawSbom {
     }
 
     public void setFormat(String format) {
-        this.format = format;
+        this.format = StringUtils.lowerCase(format);
     }
 
     public byte[] getValue() {
@@ -132,4 +136,13 @@ public class RawSbom {
     public void setTaskId(UUID taskId) {
         this.taskId = taskId;
     }
+
+    public Long getJobExecutionId() {
+        return jobExecutionId;
+    }
+
+    public void setJobExecutionId(Long jobExecutionId) {
+        this.jobExecutionId = jobExecutionId;
+    }
+
 }

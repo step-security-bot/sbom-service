@@ -1,7 +1,10 @@
 package org.opensourceway.sbom.manager.utils;
 
+import com.fasterxml.jackson.annotation.JsonClassDescription;
+
 import java.util.Map;
 
+@JsonClassDescription
 public enum SbomFormat {
     JSON("json"),
     YAML("yaml"),

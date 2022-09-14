@@ -17,8 +17,10 @@ import javax.persistence.Index;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -59,6 +61,10 @@ public class Product {
     @Type(type = "jsonb")
     private Map<String, ?> attribute;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<ProductStatistics> productStatistics;
+
     public UUID getId() {
         return id;
     }
@@ -97,6 +103,28 @@ public class Product {
 
     public void setAttribute(Map<String, ?> attribute) {
         this.attribute = attribute;
+    }
+
+    public List<ProductStatistics> getProductStatistics() {
+        return productStatistics;
+    }
+
+    public void setProductStatistics(List<ProductStatistics> productStatistics) {
+        if (Objects.isNull(this.productStatistics)) {
+            this.productStatistics = productStatistics;
+        } else {
+            this.productStatistics.clear();
+            this.productStatistics.addAll(productStatistics);
+        }
+    }
+
+    public void addProductStatistics(ProductStatistics productStatistics) {
+        if (Objects.isNull(this.productStatistics)) {
+            this.productStatistics = new ArrayList<>();
+        }
+        if (!this.productStatistics.contains(productStatistics)) {
+            this.productStatistics.add(productStatistics);
+        }
     }
 }
 

@@ -1,9 +1,11 @@
 package org.opensourceway.sbom.manager.utils;
 
+import com.fasterxml.jackson.annotation.JsonClassDescription;
 import org.apache.commons.lang3.StringUtils;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.model.spdx.SpdxDocument;
 
+@JsonClassDescription
 public enum SbomSpecification {
     SPDX_2_2(SbomConstants.SPDX_NAME, "2.2", SpdxDocument.class),
     CYCLONEDX_1_4(SbomConstants.CYCLONEDX_NAME, "1.4", null),

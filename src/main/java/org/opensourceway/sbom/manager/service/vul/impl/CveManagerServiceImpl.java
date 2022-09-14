@@ -7,6 +7,7 @@ import org.opensourceway.sbom.clients.cvemanager.CveManagerClient;
 import org.opensourceway.sbom.clients.cvemanager.model.ComponentReport;
 import org.opensourceway.sbom.clients.cvemanager.model.CveManagerVulnerability;
 import org.opensourceway.sbom.manager.dao.ExternalVulRefRepository;
+import org.opensourceway.sbom.manager.dao.PackageRepository;
 import org.opensourceway.sbom.manager.dao.VulnerabilityRepository;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.ExternalVulRef;
@@ -60,6 +61,9 @@ public class CveManagerServiceImpl extends AbstractVulService {
 
     @Autowired
     private ExternalVulRefRepository externalVulRefRepository;
+
+    @Autowired
+    private PackageRepository packageRepository;
 
     @Override
     public void persistExternalVulRefForSbom(Sbom sbom, Boolean blocking) {
@@ -230,10 +234,13 @@ public class CveManagerServiceImpl extends AbstractVulService {
     public void persistExternalVulRefChunk(Set<Pair<ExternalPurlRef, Object>> externalVulRefSet) {
         for (Pair<ExternalPurlRef, Object> externalVulRefPair : externalVulRefSet) {
             ExternalPurlRef purlRef = externalVulRefPair.getLeft();
+            Package purlOwnerPackage = packageRepository.findById(purlRef.getPkg().getId())
+                    .orElseThrow(() -> new RuntimeException("package id: %s not found".formatted(purlRef.getPkg().getId())));
+
             CveManagerVulnerability vul = (CveManagerVulnerability) externalVulRefPair.getRight();
 
             Vulnerability vulnerability = vulnerabilityRepository.saveAndFlush(persistVulnerability(vul));
-            Map<Pair<UUID, String>, ExternalVulRef> existExternalVulRefs = Optional.ofNullable(purlRef.getPkg().getExternalVulRefs())
+            Map<Pair<UUID, String>, ExternalVulRef> existExternalVulRefs = Optional.ofNullable(purlOwnerPackage.getExternalVulRefs())
                     .orElse(new ArrayList<>())
                     .stream()
                     .collect(Collectors.toMap(it ->
@@ -245,7 +252,7 @@ public class CveManagerServiceImpl extends AbstractVulService {
             externalVulRef.setStatus(Optional.ofNullable(externalVulRef.getStatus()).orElse(VulStatus.AFFECTED.name()));
             externalVulRef.setPurl(PurlUtil.strToPackageUrlVo(vul.getPurl()));
             externalVulRef.setVulnerability(vulnerability);
-            externalVulRef.setPkg(purlRef.getPkg());
+            externalVulRef.setPkg(purlOwnerPackage);
             externalVulRefRepository.saveAndFlush(externalVulRef);
         }
     }

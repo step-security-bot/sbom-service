@@ -3,7 +3,7 @@ package org.opensourceway.sbom.manager.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
-import org.opensourceway.sbom.manager.JsonContainsMatcher;
+import org.opensourceway.sbom.manager.utils.JsonContainsMatcher;
 import org.opensourceway.sbom.manager.SbomApplicationContextHolder;
 import org.opensourceway.sbom.manager.SbomManagerApplication;
 import org.opensourceway.sbom.manager.TestConstants;
