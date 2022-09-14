@@ -1,19 +1,19 @@
 package org.opensourceway.sbom.clients.license;
 
-import org.opensourceway.sbom.clients.license.model.ComponentReport;
-import org.opensourceway.sbom.clients.license.model.License;
-import org.opensourceway.sbom.clients.license.model.LicenseInfo;
-import reactor.core.publisher.Mono;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.opensourceway.sbom.clients.license.vo.ComplianceResponse;
+import org.opensourceway.sbom.clients.license.vo.LicenseNameAndUrl;
 
 import java.util.List;
+import java.util.Map;
 
 public interface LicenseClient {
 
     boolean needRequest();
 
-    Mono<ComponentReport[]> getComponentReport(List<String> coordinates);
+    ComplianceResponse[] getComponentReport(List<String> coordinates) throws JsonProcessingException;
 
-    Mono<LicenseInfo[]> getLicenseInfo();
+    Map<String, LicenseNameAndUrl> getLicensesInfo();
 
-    Mono<License> scanLicenseFromPurl(String purl);
+    void scanLicenseFromPurl(String purl);
 }

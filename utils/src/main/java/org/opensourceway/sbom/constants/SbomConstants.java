@@ -39,4 +39,6 @@ public class SbomConstants {
 
     public static final String PRODUCT_OPENGAUSS_NAME = "openGauss";
 
+    public static final String SOURCE_OPENEULER_NAME = "src-openeuler";
+
 }

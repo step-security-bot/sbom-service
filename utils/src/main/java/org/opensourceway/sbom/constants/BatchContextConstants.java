@@ -18,4 +18,6 @@ public class BatchContextConstants {
 
     public final static String BATCH_PRODUCT_TYPE_KEY = "productType";
 
+    public final static String BATCH_LICENSE_INFO_MAP = "licenseInfoMap";
+
 }

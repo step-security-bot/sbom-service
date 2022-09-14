@@ -3,14 +3,13 @@ package org.opensourceway.sbom.manager.batch.reader.license;
 import org.apache.commons.collections4.ListUtils;
 import org.jetbrains.annotations.NotNull;
 import org.opensourceway.sbom.clients.license.LicenseClient;
-import org.opensourceway.sbom.clients.license.model.LicenseInfo;
+import org.opensourceway.sbom.clients.license.vo.LicenseNameAndUrl;
 import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.manager.dao.SbomRepository;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Sbom;
 import org.opensourceway.sbom.manager.service.license.LicenseService;
-import org.opensourceway.sbom.manager.service.license.impl.LicenseServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
@@ -20,7 +19,6 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
-import reactor.core.publisher.Mono;
 
 import java.util.Iterator;
 import java.util.List;
@@ -70,6 +68,7 @@ public class ExternalPurlRefListReader implements ItemReader<List<ExternalPurlRe
         List<ExternalPurlRef> externalPurlRefs = sbomOptional.get().getPackages().stream()
                 .map(Package::getExternalPurlRefs)
                 .flatMap(List::stream)
+                .filter(externalPurlRef -> externalPurlRef.getCategory().equals("PACKAGE_MANAGER"))
                 .toList();
 
         List<List<ExternalPurlRef>> chunks = ListUtils.partition(externalPurlRefs,
@@ -80,12 +79,13 @@ public class ExternalPurlRefListReader implements ItemReader<List<ExternalPurlRe
                 externalPurlRefs.size(),
                 chunks.size());
 
-        Mono<LicenseInfo[]> licInfoMono;
-        Map<String, Map<String, String>> licenseInfoMap;
+        Map<String, LicenseNameAndUrl> licenseInfoMap;
         try {
-            licInfoMono = licenseClient.getLicenseInfo();
-            licenseInfoMap = LicenseServiceImpl.FormatLicenseInfos(licInfoMono.block());
-            this.stepExecution.getExecutionContext().put("licenseInfoMap", licenseInfoMap);
+            if (jobContext.get(BatchContextConstants.BATCH_LICENSE_INFO_MAP) == null) {
+                licenseInfoMap = licenseClient.getLicensesInfo();
+                jobContext.put(BatchContextConstants.BATCH_LICENSE_INFO_MAP, licenseInfoMap);
+            }
+
         } catch (Exception e) {
             logger.error("failed to fetch license info for sbom.");
             throw e;

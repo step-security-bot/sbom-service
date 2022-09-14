@@ -74,7 +74,6 @@ public class SpdxReader implements SbomReader {
         SpdxDocument document = SbomMapperUtil.readDocument(format, SbomSpecification.SPDX_2_2.getDocumentClass(), fileContent);
         Sbom sbom = persistSbom(productName, document);
         vulServices.forEach(vulService -> vulService.persistExternalVulRefForSbom(sbom, true));
-        licenseServices.persistLicenseForSbom(sbom, true);
     }
 
     @Override

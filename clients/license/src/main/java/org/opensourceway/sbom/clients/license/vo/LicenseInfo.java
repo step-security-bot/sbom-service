@@ -1,4 +1,4 @@
-package org.opensourceway.sbom.clients.license.model;
+package org.opensourceway.sbom.clients.license.vo;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

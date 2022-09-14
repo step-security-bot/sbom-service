@@ -2,6 +2,8 @@ package org.opensourceway.sbom.manager.batch.writer.license;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.opensourceway.sbom.clients.license.vo.LicenseNameAndUrl;
+import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.service.license.LicenseService;
 import org.slf4j.Logger;
@@ -36,9 +38,10 @@ public class ExternalPurlRefListWriter implements ItemWriter<Set<Pair<ExternalPu
     @Override
     public void write(List<? extends Set<Pair<ExternalPurlRef, Object>>> chunks) {
         logger.info("start ExternalPurlRefListWriter service name:{}, chunk size:{}", getLicenseService().getClass().getName(), chunks.size());
-        for (Set<Pair<ExternalPurlRef, Object>> externalVulRefSet : chunks) {
-            getLicenseService().persistExternalLicenseRefChunk(externalVulRefSet,
-                    (Map<String, Map<String, String>>) this.stepExecution.getExecutionContext().get("licenseInfoMap"));
+        for (Set<Pair<ExternalPurlRef, Object>> externalLicenseRefSet : chunks) {
+
+            getLicenseService().persistExternalLicenseRefChunk(externalLicenseRefSet,
+                    (Map<String, LicenseNameAndUrl>) jobContext.get(BatchContextConstants.BATCH_LICENSE_INFO_MAP));
         }
         logger.info("finish ExternalPurlRefListWriter");
     }

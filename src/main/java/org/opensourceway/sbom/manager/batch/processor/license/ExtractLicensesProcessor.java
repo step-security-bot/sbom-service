@@ -25,7 +25,7 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
     private static final Logger logger = LoggerFactory.getLogger(ExtractLicensesProcessor.class);
     @Autowired
     @Qualifier("licenseServiceImpl")
-    LicenseService licenseService;
+    private LicenseService licenseService;
     private StepExecution stepExecution;
     private ExecutionContext jobContext;
 

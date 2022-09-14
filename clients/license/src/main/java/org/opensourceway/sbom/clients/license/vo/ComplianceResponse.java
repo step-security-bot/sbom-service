@@ -1,15 +1,15 @@
-package org.opensourceway.sbom.clients.license.model;
+package org.opensourceway.sbom.clients.license.vo;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.io.Serializable;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ComponentReport implements Serializable {
+public class ComplianceResponse implements Serializable {
 
     private String purl;
 
-    private License result;
+    private LicenseAndCopyright result;
 
     public String getPurl() {
         return purl;
@@ -19,11 +19,11 @@ public class ComponentReport implements Serializable {
         this.purl = purl;
     }
 
-    public License getResult() {
+    public LicenseAndCopyright getResult() {
         return result;
     }
 
-    public void setReference(License result) {
+    public void setReference(LicenseAndCopyright result) {
         this.result = result;
     }
 
