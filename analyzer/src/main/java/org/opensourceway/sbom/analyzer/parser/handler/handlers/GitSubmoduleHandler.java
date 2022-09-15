@@ -61,7 +61,7 @@ public class GitSubmoduleHandler implements Handler {
 
         String commitId = data.commitId().trim();
         Matcher m = Pattern.compile("\\((\\D*([.+\\-\\da-z]*))-.*-.*\\)").matcher(versionString);
-        if (m.matches()) {
+        if (m.matches() && StringUtils.isNotEmpty(m.group(2))) {
             String tag = m.group(1);
             String version = m.group(2);
             return packageGenerator.generatePackageFromVcs(host, org, repo, version, commitId, tag, null);

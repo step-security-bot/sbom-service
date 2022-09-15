@@ -3,12 +3,14 @@ package org.opensourceway.sbom.manager.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
+import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.RawSbom;
 import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.model.vo.PageVo;
 import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
+import org.opensourceway.sbom.manager.model.vo.VulCountVo;
 import org.opensourceway.sbom.manager.model.vo.VulnerabilityVo;
 import org.opensourceway.sbom.manager.model.vo.request.PublishSbomRequest;
 import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
@@ -62,4 +64,8 @@ public interface SbomService {
     PageVo<VulnerabilityVo> queryVulnerabilityByPackageId(String packageId, Pageable pageable);
 
     void persistSbomFromTraceData(String productName, String fileName, InputStream inputStream) throws IOException;
+
+    ProductStatistics queryProductStatistics(String productName);
+
+    List<VulCountVo> queryProductVulTrend(String productName, Long startTimestamp, Long endTimestamp);
 }
