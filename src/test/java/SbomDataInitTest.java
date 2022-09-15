@@ -7,6 +7,8 @@ import org.opensourceway.sbom.manager.SbomApplicationContextHolder;
 import org.opensourceway.sbom.manager.SbomManagerApplication;
 import org.opensourceway.sbom.manager.TestConstants;
 import org.opensourceway.sbom.manager.dao.ExternalVulRefRepository;
+import org.opensourceway.sbom.manager.dao.LicenseRepository;
+import org.opensourceway.sbom.manager.dao.PackageRepository;
 import org.opensourceway.sbom.manager.dao.ProductRepository;
 import org.opensourceway.sbom.manager.dao.ProductStatisticsRepository;
 import org.opensourceway.sbom.manager.dao.SbomRepository;
@@ -14,6 +16,7 @@ import org.opensourceway.sbom.manager.dao.VulReferenceRepository;
 import org.opensourceway.sbom.manager.dao.VulScoreRepository;
 import org.opensourceway.sbom.manager.dao.VulnerabilityRepository;
 import org.opensourceway.sbom.manager.model.ExternalVulRef;
+import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.ProductStatistics;
@@ -33,7 +36,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.sql.Timestamp;
-import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -72,6 +75,12 @@ public class SbomDataInitTest {
 
     @Autowired
     private ProductStatisticsRepository productStatisticsRepository;
+
+    @Autowired
+    private LicenseRepository licenseRepository;
+
+    @Autowired
+    private PackageRepository packageRepository;
 
     @Test
     @Order(1)
@@ -161,6 +170,47 @@ public class SbomDataInitTest {
         externalVulRef.setType("cve");
         externalVulRef.setPurl(PurlUtil.strToPackageUrlVo(purl));
         externalVulRefRepository.save(externalVulRef);
+    }
+
+    @Test
+    @Order(3)
+    public void insertLicense() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+        insertLicense("License-test", pkg);
+    }
+
+    private void insertLicense(String lic, Package pkg) {
+        License license = licenseRepository.findByName(lic).orElse(new License());
+        license.setName(lic);
+        if (license.getPackages() == null) {
+            license.setPackages(new HashSet<>());
+        }
+        if (pkg.getLicenses() == null) {
+            pkg.setLicenses(new HashSet<>());
+        }
+        if (!isContainLicense(pkg, license)) {
+            pkg.getLicenses().add(license);
+            license.getPackages().add(pkg);
+        }
+        license.setSpdxLicenseId("License for test");
+        license.setUrl("https://xxx/licenses/License-test");
+        license.setIsLegal(false);
+        License licenseRet = licenseRepository.save(license);
+        assertThat(licenseRet.getPackages().size()).isEqualTo(1);
+    }
+
+    private Boolean isContainLicense(Package pkg, License license) {
+        for (Package pkgs : license.getPackages()) {
+            if (pkgs.getName().equals(pkg.getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Test

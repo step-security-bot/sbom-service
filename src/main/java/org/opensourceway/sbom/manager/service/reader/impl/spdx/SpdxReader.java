@@ -2,7 +2,6 @@ package org.opensourceway.sbom.manager.service.reader.impl.spdx;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
-import org.opensourceway.sbom.manager.model.sbom.SbomDocument;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.dao.ProductRepository;
 import org.opensourceway.sbom.manager.dao.SbomRepository;
@@ -14,6 +13,7 @@ import org.opensourceway.sbom.manager.model.PkgVerfCodeExcludedFile;
 import org.opensourceway.sbom.manager.model.Sbom;
 import org.opensourceway.sbom.manager.model.SbomCreator;
 import org.opensourceway.sbom.manager.model.SbomElementRelationship;
+import org.opensourceway.sbom.manager.model.sbom.SbomDocument;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
 import org.opensourceway.sbom.manager.model.spdx.SpdxDocument;
 import org.opensourceway.sbom.manager.model.spdx.SpdxPackage;

@@ -64,6 +64,16 @@
                     </tasklet>
                 </step>
             </flow>
+            <flow>
+                <step id="extractLicense">
+                    <tasklet>
+                        <chunk reader="extractLicenseReader"
+                               processor="extractLicenseProcessor"
+                               writer="extractLicenseWriter"
+                               commit-interval="2"/>
+                    </tasklet>
+                </step>
+            </flow>
         </split>
 
         <step id="collectStatisticsTask" next="readSbomEndTask">
@@ -128,6 +138,18 @@
 
     <bean id="collectStatisticsStep"
           class="org.opensourceway.sbom.manager.batch.step.CollectStatisticsStep"/>
+
+    <!-- License Service -->
+    <bean id="extractLicenseReader"
+          class="org.opensourceway.sbom.manager.batch.reader.license.ExternalPurlRefListReader">
+        <constructor-arg ref="licenseServiceImpl"/>
+    </bean>
+    <bean id="extractLicenseProcessor"
+          class="org.opensourceway.sbom.manager.batch.processor.license.ExtractLicensesProcessor"/>
+    <bean id="extractLicenseWriter"
+          class="org.opensourceway.sbom.manager.batch.writer.license.ExternalPurlRefListWriter">
+        <constructor-arg ref="licenseServiceImpl"/>
+    </bean>
 
     <bean id="readSbomEndStep"
           class="org.opensourceway.sbom.manager.batch.step.ReadSbomEndStep"/>

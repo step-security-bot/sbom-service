@@ -15,4 +15,8 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     Product queryProductByFullAttributes(@Param("attr") String attr);
 
     Optional<Product> findByName(String name);
+
+    @Query(value = "SELECT A.* FROM product A, sbom B WHERE A.id = B.product_id and B.id = :sbomId",
+            nativeQuery = true)
+    Product findBySbomId(UUID sbomId);
 }
