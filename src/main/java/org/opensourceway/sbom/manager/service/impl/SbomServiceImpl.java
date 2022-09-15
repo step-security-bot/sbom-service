@@ -4,13 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.opensourceway.sbom.analyzer.TraceDataAnalyzer;
-import org.opensourceway.sbom.manager.SbomApplicationContextHolder;
 import org.opensourceway.sbom.constants.SbomConstants;
+import org.opensourceway.sbom.manager.SbomApplicationContextHolder;
 import org.opensourceway.sbom.manager.dao.ExternalPurlRefRepository;
 import org.opensourceway.sbom.manager.dao.ExternalVulRefRepository;
 import org.opensourceway.sbom.manager.dao.PackageRepository;
 import org.opensourceway.sbom.manager.dao.ProductConfigRepository;
 import org.opensourceway.sbom.manager.dao.ProductRepository;
+import org.opensourceway.sbom.manager.dao.ProductStatisticsRepository;
 import org.opensourceway.sbom.manager.dao.ProductTypeRepository;
 import org.opensourceway.sbom.manager.dao.RawSbomRepository;
 import org.opensourceway.sbom.manager.dao.SbomRepository;
@@ -19,6 +20,7 @@ import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.ExternalVulRef;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
+import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.ProductType;
 import org.opensourceway.sbom.manager.model.RawSbom;
 import org.opensourceway.sbom.manager.model.Sbom;
@@ -29,6 +31,7 @@ import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.model.vo.PageVo;
 import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
+import org.opensourceway.sbom.manager.model.vo.VulCountVo;
 import org.opensourceway.sbom.manager.model.vo.VulnerabilityVo;
 import org.opensourceway.sbom.manager.model.vo.request.PublishSbomRequest;
 import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
@@ -38,10 +41,10 @@ import org.opensourceway.sbom.manager.service.writer.SbomWriter;
 import org.opensourceway.sbom.manager.utils.EntityUtil;
 import org.opensourceway.sbom.manager.utils.PurlUtil;
 import org.opensourceway.sbom.manager.utils.SbomFormat;
+import org.opensourceway.sbom.manager.utils.SbomMapperUtil;
 import org.opensourceway.sbom.manager.utils.SbomSpecification;
 import org.opensourceway.sbom.manager.utils.UrlUtil;
 import org.opensourceway.sbom.utils.Mapper;
-import org.opensourceway.sbom.manager.utils.SbomMapperUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -93,6 +96,9 @@ public class SbomServiceImpl implements SbomService {
 
     @Autowired
     private TraceDataAnalyzer traceDataAnalyzer;
+
+    @Autowired
+    private ProductStatisticsRepository productStatisticsRepository;
 
     @Value("${sbom.service.website.domain}")
     private String sbomWebsiteDomain;
@@ -372,6 +378,19 @@ public class SbomServiceImpl implements SbomService {
     public void persistSbomFromTraceData(String productName, String fileName, InputStream inputStream) throws IOException {
         byte[] sbomContent = traceDataAnalyzer.analyze(productName, fileName, inputStream);
         readSbomFile(productName, productName + ".spdx.json", sbomContent);
+    }
+
+    @Override
+    public ProductStatistics queryProductStatistics(String productName) {
+        return productStatisticsRepository.findNewestByProductName(productName);
+    }
+
+    @Override
+    public List<VulCountVo> queryProductVulTrend(String productName, Long startTimestamp, Long endTimestamp) {
+        return productStatisticsRepository.findByProductNameAndCreateTimeRange(productName, startTimestamp, endTimestamp)
+                .stream()
+                .map(VulCountVo::fromProductStatistics)
+                .toList();
     }
 
 }

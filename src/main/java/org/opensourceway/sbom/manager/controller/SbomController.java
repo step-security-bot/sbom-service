@@ -4,12 +4,14 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
+import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.RawSbom;
 import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.model.vo.PageVo;
 import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
+import org.opensourceway.sbom.manager.model.vo.VulCountVo;
 import org.opensourceway.sbom.manager.model.vo.VulnerabilityVo;
 import org.opensourceway.sbom.manager.model.vo.request.PublishSbomRequest;
 import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
@@ -430,6 +432,48 @@ public class SbomController {
         }
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body("Success");
+    }
+
+    @GetMapping("/queryProductStatistics")
+    public @ResponseBody ResponseEntity queryProductStatisticsByProductName(@RequestParam String productName) {
+        logger.info("query product statistics by product name: {}", productName);
+        ProductStatistics productStatistics;
+        try {
+            productStatistics = sbomService.queryProductStatistics(productName);
+        } catch (RuntimeException e) {
+            logger.error("query product statistics error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("query product statistics error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("query product statistics error");
+        }
+
+        if (Objects.isNull(productStatistics)) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("product statistics of %s doesn't exist".formatted(productName));
+        }
+
+        logger.info("query product statistics result: {}", productStatistics);
+        return ResponseEntity.status(HttpStatus.OK).body(productStatistics);
+    }
+
+    @GetMapping("/queryProductVulTrend")
+    public @ResponseBody ResponseEntity queryProductVulTrendByProductNameAndTimeRange(@RequestParam String productName,
+                                                                                      @RequestParam Long startTimestamp,
+                                                                                      @RequestParam Long endTimestamp) {
+        logger.info("query product vulnerability trend by product name: {}, time range: [{}, {}]", productName, startTimestamp, endTimestamp);
+        List<VulCountVo> vulCountVos;
+        try {
+            vulCountVos = sbomService.queryProductVulTrend(productName, startTimestamp, endTimestamp);
+        } catch (RuntimeException e) {
+            logger.error("query product vulnerability trend error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("query product vulnerability trend error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("query product vulnerability trend error");
+        }
+
+        logger.info("query product vulnerability trend result: {}", vulCountVos);
+        return ResponseEntity.status(HttpStatus.OK).body(vulCountVos);
     }
 
 }

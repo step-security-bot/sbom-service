@@ -7,12 +7,16 @@ import org.opensourceway.sbom.manager.SbomApplicationContextHolder;
 import org.opensourceway.sbom.manager.SbomManagerApplication;
 import org.opensourceway.sbom.manager.TestConstants;
 import org.opensourceway.sbom.manager.dao.ExternalVulRefRepository;
+import org.opensourceway.sbom.manager.dao.ProductRepository;
+import org.opensourceway.sbom.manager.dao.ProductStatisticsRepository;
 import org.opensourceway.sbom.manager.dao.SbomRepository;
 import org.opensourceway.sbom.manager.dao.VulReferenceRepository;
 import org.opensourceway.sbom.manager.dao.VulScoreRepository;
 import org.opensourceway.sbom.manager.dao.VulnerabilityRepository;
 import org.opensourceway.sbom.manager.model.ExternalVulRef;
 import org.opensourceway.sbom.manager.model.Package;
+import org.opensourceway.sbom.manager.model.Product;
+import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.Sbom;
 import org.opensourceway.sbom.manager.model.VulRefSource;
 import org.opensourceway.sbom.manager.model.VulReference;
@@ -28,6 +32,10 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -58,6 +66,12 @@ public class SbomDataInitTest {
 
     @Autowired
     private ExternalVulRefRepository externalVulRefRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private ProductStatisticsRepository productStatisticsRepository;
 
     @Test
     @Order(1)
@@ -162,5 +176,74 @@ public class SbomDataInitTest {
                 .andDo(print())
                 .andExpect(status().isAccepted())
                 .andExpect(content().string("Success"));
+    }
+
+    @Test
+    @Order(3)
+    public void insertProductStatistics() {
+        Product product = productRepository.findByName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(product).isNotNull();
+        ProductStatistics statistics = productStatisticsRepository
+                .findByProductNameAndCreateTime(TestConstants.SAMPLE_PRODUCT_NAME, new Timestamp((1663150600000L)))
+                .orElse(new ProductStatistics());
+        statistics.setProduct(product);
+        statistics.setCreateTime(new Timestamp((1663150600000L)));
+        statistics.setPackageCount(100L);
+        statistics.setDepCount(200L);
+        statistics.setModuleCount(300L);
+        statistics.setRuntimeDepCount(0L);
+        statistics.setVulCount(50L);
+        statistics.setLicenseCount(60L);
+        statistics.setCriticalVulCount(7L);
+        statistics.setHighVulCount(8L);
+        statistics.setMediumVulCount(9L);
+        statistics.setLowVulCount(10L);
+        statistics.setNoneVulCount(11L);
+        statistics.setUnknownVulCount(5L);
+        statistics.setPackageWithCriticalVulCount(13L);
+        statistics.setPackageWithHighVulCount(14L);
+        statistics.setPackageWithMediumVulCount(15L);
+        statistics.setPackageWithLowVulCount(16L);
+        statistics.setPackageWithNoneVulCount(17L);
+        statistics.setPackageWithUnknownVulCount(18L);
+        statistics.setPackageWithoutVulCount(7L);
+        statistics.setPackageWithLegalLicenseCount(20L);
+        statistics.setPackageWithIllegalLicenseCount(21L);
+        statistics.setPackageWithoutLicenseCount(19L);
+        statistics.setPackageWithMultiLicenseCount(10L);
+        statistics.setLicenseDistribution(Map.of("Apache-2.0", 2L));
+
+        ProductStatistics anotherStatistics = productStatisticsRepository
+                .findByProductNameAndCreateTime(TestConstants.SAMPLE_PRODUCT_NAME, new Timestamp((1663250600000L)))
+                .orElse(new ProductStatistics());
+        anotherStatistics.setProduct(product);
+        anotherStatistics.setCreateTime(new Timestamp((1663250600000L)));
+        anotherStatistics.setPackageCount(1000L);
+        anotherStatistics.setDepCount(2000L);
+        anotherStatistics.setModuleCount(3000L);
+        anotherStatistics.setRuntimeDepCount(0L);
+        anotherStatistics.setVulCount(500L);
+        anotherStatistics.setLicenseCount(600L);
+        anotherStatistics.setCriticalVulCount(70L);
+        anotherStatistics.setHighVulCount(80L);
+        anotherStatistics.setMediumVulCount(90L);
+        anotherStatistics.setLowVulCount(100L);
+        anotherStatistics.setNoneVulCount(110L);
+        anotherStatistics.setUnknownVulCount(50L);
+        anotherStatistics.setPackageWithCriticalVulCount(130L);
+        anotherStatistics.setPackageWithHighVulCount(140L);
+        anotherStatistics.setPackageWithMediumVulCount(150L);
+        anotherStatistics.setPackageWithLowVulCount(160L);
+        anotherStatistics.setPackageWithNoneVulCount(170L);
+        anotherStatistics.setPackageWithUnknownVulCount(180L);
+        anotherStatistics.setPackageWithoutVulCount(70L);
+        anotherStatistics.setPackageWithLegalLicenseCount(200L);
+        anotherStatistics.setPackageWithIllegalLicenseCount(210L);
+        anotherStatistics.setPackageWithoutLicenseCount(190L);
+        anotherStatistics.setPackageWithMultiLicenseCount(100L);
+        anotherStatistics.setLicenseDistribution(Map.of("MIT", 20L));
+
+        product.setProductStatistics(List.of(statistics, anotherStatistics));
+        productRepository.save(product);
     }
 }
