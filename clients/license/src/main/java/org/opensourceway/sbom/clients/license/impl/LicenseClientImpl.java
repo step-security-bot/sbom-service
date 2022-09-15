@@ -48,7 +48,7 @@ public class LicenseClientImpl implements LicenseClient {
     private String licenseInfoBaseUrl;
 
     // format the license info from json to map type
-    public static Map<String, LicenseNameAndUrl> FormatLicenseInfos(LicenseInfo[] licenseInfos) {
+    private Map<String, LicenseNameAndUrl> FormatLicenseInfos(LicenseInfo[] licenseInfos) {
         Map<String, LicenseNameAndUrl> licenseInfoMap = new HashMap<>();
 
         Arrays.stream(licenseInfos).forEach(licenseInfo -> {
@@ -76,13 +76,11 @@ public class LicenseClientImpl implements LicenseClient {
 
     // get licenses from api by purl
     @Override
-    public ComplianceResponse[] getComponentReport(List<String> coordinates) throws JsonProcessingException {
+    public ComplianceResponse[] getComplianceResponse(List<String> coordinates) throws JsonProcessingException {
         String licenseListStr = Mapper.jsonMapper.writeValueAsString(coordinates);
         WebClient client = createWebClient(defaultBaseUrl);
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
         builder.part("purl", licenseListStr);
-
-        logger.info("request license:" + Thread.currentThread().getName());
 
         Mono<ComplianceResponse[]> mono = client.post()
                 .uri("/lic")

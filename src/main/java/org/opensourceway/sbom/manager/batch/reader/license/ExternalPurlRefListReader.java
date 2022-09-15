@@ -80,16 +80,10 @@ public class ExternalPurlRefListReader implements ItemReader<List<ExternalPurlRe
                 chunks.size());
 
         Map<String, LicenseNameAndUrl> licenseInfoMap;
-        try {
-            if (jobContext.get(BatchContextConstants.BATCH_LICENSE_INFO_MAP) == null) {
-                licenseInfoMap = licenseClient.getLicensesInfo();
-                jobContext.put(BatchContextConstants.BATCH_LICENSE_INFO_MAP, licenseInfoMap);
-            }
+        // TODO move map to service
+        licenseInfoMap = licenseClient.getLicensesInfo();
+        jobContext.put(BatchContextConstants.BATCH_LICENSE_INFO_MAP, licenseInfoMap);
 
-        } catch (Exception e) {
-            logger.error("failed to fetch license info for sbom.");
-            throw e;
-        }
     }
 
     @Nullable
@@ -115,6 +109,7 @@ public class ExternalPurlRefListReader implements ItemReader<List<ExternalPurlRe
 
     @Override
     public ExitStatus afterStep(@NotNull StepExecution stepExecution) {
+        this.jobContext.remove(BatchContextConstants.BATCH_LICENSE_INFO_MAP);
         return null;
     }
 

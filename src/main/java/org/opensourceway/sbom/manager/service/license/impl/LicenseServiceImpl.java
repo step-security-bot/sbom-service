@@ -94,10 +94,9 @@ public class LicenseServiceImpl implements LicenseService {
         String productType = String.valueOf(product.getAttribute().get("productType"));
         try {
 
-            if (productType.equals(SbomConstants.PRODUCT_MINDSPORE_NAME)) {
+            if (SbomConstants.PRODUCT_MINDSPORE_NAME.equals(productType)) {
                 purl = dealMindsporePurl(packageUrlVo);
-            } else if (productType.equals(SbomConstants.PRODUCT_OPENEULER_NAME)) {
-
+            } else if (SbomConstants.PRODUCT_OPENEULER_NAME.equals(productType)) {
                 purl = dealOpenEulerPurl(packageUrlVo, product);
             }
         } catch (MalformedPackageURLException e) {
@@ -107,6 +106,11 @@ public class LicenseServiceImpl implements LicenseService {
         return purl;
     }
 
+    /***
+     * change openEuler purl format to get license
+     * for example:
+     * pkg:rpm/nodejs-lodash-some@3.10.1-1.oe2203 -> pkg:gitee/src-openeuler/nodejs-lodash-some@openEuler-22.03-LTS
+     ***/
     private String dealOpenEulerPurl(PackageUrlVo packageUrlVo, Product product) throws MalformedPackageURLException {
         if (!"rpm".equals(packageUrlVo.getType())) {
 
@@ -120,6 +124,11 @@ public class LicenseServiceImpl implements LicenseService {
         }
     }
 
+    /***
+     * change MindSpore purl format to get license
+     * for example:
+     * pkg:gitee/mindspore/akg@1.7.0 -> pkg:gitee/mindspore/akg@v1.7.0
+     ***/
     private String dealMindsporePurl(PackageUrlVo packageUrlVo) throws MalformedPackageURLException {
         if ("mindspore".equals(packageUrlVo.getNamespace())) {
             return (new PackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(), packageUrlVo.getName(),
@@ -158,7 +167,7 @@ public class LicenseServiceImpl implements LicenseService {
                     purls.add(purlForLicense);
                 }
             });
-            ComplianceResponse[] responseArr = licenseClient.getComponentReport(purls);
+            ComplianceResponse[] responseArr = licenseClient.getComplianceResponse(purls);
             if (Objects.isNull(responseArr) || responseArr.length == 0) {
                 return resultSet;
             }
@@ -177,6 +186,7 @@ public class LicenseServiceImpl implements LicenseService {
 
     @Override
     public void persistExternalLicenseRefChunk(Set<Pair<ExternalPurlRef, Object>> externalLicenseRefSet, Map<String, LicenseNameAndUrl> licenseInfoMap) {
+        int numOfNotScan = 0;
         for (Pair<ExternalPurlRef, Object> externalLicenseRefPair : externalLicenseRefSet) {
             ExternalPurlRef purlRef = externalLicenseRefPair.getLeft();
             ComplianceResponse response = (ComplianceResponse) externalLicenseRefPair.getRight();
@@ -209,8 +219,10 @@ public class LicenseServiceImpl implements LicenseService {
             } else {
                 if (Boolean.TRUE.equals(isScan) && response.getPurl().startsWith("pkg:git")) {
                     scanLicense(response);
+                    numOfNotScan++;
                 }
             }
         }
+        logger.info("The num of package not scanned license: {}", numOfNotScan);
     }
 }

@@ -11,7 +11,7 @@ public interface LicenseClient {
 
     boolean needRequest();
 
-    ComplianceResponse[] getComponentReport(List<String> coordinates) throws JsonProcessingException;
+    ComplianceResponse[] getComplianceResponse(List<String> coordinates) throws JsonProcessingException;
 
     Map<String, LicenseNameAndUrl> getLicensesInfo();
 

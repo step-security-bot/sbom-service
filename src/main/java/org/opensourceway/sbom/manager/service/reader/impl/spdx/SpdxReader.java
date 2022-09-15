@@ -17,7 +17,6 @@ import org.opensourceway.sbom.manager.model.sbom.SbomDocument;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
 import org.opensourceway.sbom.manager.model.spdx.SpdxDocument;
 import org.opensourceway.sbom.manager.model.spdx.SpdxPackage;
-import org.opensourceway.sbom.manager.service.license.LicenseService;
 import org.opensourceway.sbom.manager.service.reader.SbomReader;
 import org.opensourceway.sbom.manager.service.vul.VulService;
 import org.opensourceway.sbom.manager.utils.PurlUtil;
@@ -51,12 +50,9 @@ public class SpdxReader implements SbomReader {
 
     private final List<VulService> vulServices;
 
-    private final LicenseService licenseServices;
-
     @Autowired
-    public SpdxReader(List<VulService> vulServices, LicenseService licenseServices) {
+    public SpdxReader(List<VulService> vulServices) {
         this.vulServices = vulServices;
-        this.licenseServices = licenseServices;
     }
 
     @Override
