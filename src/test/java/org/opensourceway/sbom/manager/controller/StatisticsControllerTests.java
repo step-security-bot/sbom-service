@@ -27,8 +27,7 @@ public class StatisticsControllerTests {
     @Test
     public void queryProductStatistics() throws Exception {
         this.mockMvc
-                .perform(get("/sbom-api/queryProductStatistics")
-                        .param("productName", TestConstants.SAMPLE_PRODUCT_NAME)
+                .perform(get("/sbom-api/queryProductStatistics/%s".formatted(TestConstants.SAMPLE_PRODUCT_NAME))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -63,8 +62,7 @@ public class StatisticsControllerTests {
     @Test
     public void queryProductStatisticsNotExists() throws Exception {
         this.mockMvc
-                .perform(get("/sbom-api/queryProductStatistics")
-                        .param("productName", TestConstants.SAMPLE_PRODUCT_NAME + "Error")
+                .perform(get("/sbom-api/queryProductStatistics/%s".formatted(TestConstants.SAMPLE_PRODUCT_NAME + "Error"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -75,8 +73,7 @@ public class StatisticsControllerTests {
     @Test
     public void queryProductVulTrend() throws Exception {
         this.mockMvc
-                .perform(get("/sbom-api/queryProductVulTrend")
-                        .param("productName", TestConstants.SAMPLE_PRODUCT_NAME)
+                .perform(get("/sbom-api/queryProductVulTrend/%s".formatted(TestConstants.SAMPLE_PRODUCT_NAME))
                         .param("startTimestamp", "1663150600000")
                         .param("endTimestamp", "1663250600000")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -104,8 +101,7 @@ public class StatisticsControllerTests {
     @Test
     public void queryProductVulTrendTimeFilter() throws Exception {
         this.mockMvc
-                .perform(get("/sbom-api/queryProductVulTrend")
-                        .param("productName", TestConstants.SAMPLE_PRODUCT_NAME)
+                .perform(get("/sbom-api/queryProductVulTrend/%s".formatted(TestConstants.SAMPLE_PRODUCT_NAME))
                         .param("startTimestamp", "1663150600000")
                         .param("endTimestamp", "1663150600001")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -126,8 +122,7 @@ public class StatisticsControllerTests {
     @Test
     public void queryProductVulTrendNotExists() throws Exception {
         this.mockMvc
-                .perform(get("/sbom-api/queryProductVulTrend")
-                        .param("productName", TestConstants.SAMPLE_PRODUCT_NAME + "Error")
+                .perform(get("/sbom-api/queryProductVulTrend/%s".formatted(TestConstants.SAMPLE_PRODUCT_NAME + "Error"))
                         .param("startTimestamp", "1663150600000")
                         .param("endTimestamp", "1663250600000")
                         .contentType(MediaType.APPLICATION_JSON)

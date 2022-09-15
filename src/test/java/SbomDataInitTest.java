@@ -229,7 +229,7 @@ public class SbomDataInitTest {
     }
 
     @Test
-    @Order(3)
+    @Order(4)
     public void insertProductStatistics() {
         Product product = productRepository.findByName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
         assertThat(product).isNotNull();

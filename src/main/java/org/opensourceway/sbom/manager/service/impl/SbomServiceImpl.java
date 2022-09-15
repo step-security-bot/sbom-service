@@ -387,6 +387,15 @@ public class SbomServiceImpl implements SbomService {
 
     @Override
     public List<VulCountVo> queryProductVulTrend(String productName, Long startTimestamp, Long endTimestamp) {
+        Long oneMonthInMilli = 30L * 24 * 60 * 60 * 1000;
+        // if endTimestamp is not set, set it to now
+        if (endTimestamp == 0) {
+            endTimestamp = System.currentTimeMillis();
+        }
+        // if startTimestamp is not set, set it to one month before endTimestamp
+        if (startTimestamp == 0) {
+            startTimestamp = endTimestamp - oneMonthInMilli;
+        }
         return productStatisticsRepository.findByProductNameAndCreateTimeRange(productName, startTimestamp, endTimestamp)
                 .stream()
                 .map(VulCountVo::fromProductStatistics)
