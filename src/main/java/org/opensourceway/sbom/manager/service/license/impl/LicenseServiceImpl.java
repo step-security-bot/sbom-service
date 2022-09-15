@@ -108,7 +108,7 @@ public class LicenseServiceImpl implements LicenseService {
     }
 
     private String dealOpenEulerPurl(PackageUrlVo packageUrlVo, Product product) throws MalformedPackageURLException {
-        if (!packageUrlVo.getType().equals("rpm")) {
+        if (!"rpm".equals(packageUrlVo.getType())) {
 
             return (new PackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(), packageUrlVo.getName(),
                     packageUrlVo.getVersion(), null, null)).canonicalize();
@@ -121,9 +121,12 @@ public class LicenseServiceImpl implements LicenseService {
     }
 
     private String dealMindsporePurl(PackageUrlVo packageUrlVo) throws MalformedPackageURLException {
-        if (packageUrlVo.getNamespace().equals("mindspore")) {
+        if ("mindspore".equals(packageUrlVo.getNamespace())) {
             return (new PackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(), packageUrlVo.getName(),
                     "v" + packageUrlVo.getVersion(), null, null)).canonicalize();
+        } else if (packageUrlVo.getType() != null && packageUrlVo.getType().contains("git")) {
+            return (new PackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(), packageUrlVo.getName(),
+                    packageUrlVo.getVersion(), null, null)).canonicalize();
         } else {
             return null;
         }
@@ -204,9 +207,7 @@ public class LicenseServiceImpl implements LicenseService {
                     licenseRepository.save(license);
                 });
             } else {
-
-
-                if (Boolean.TRUE.equals(isScan) && response.getPurl().startsWith("pkg:gitee")) {
+                if (Boolean.TRUE.equals(isScan) && response.getPurl().startsWith("pkg:git")) {
                     scanLicense(response);
                 }
             }
