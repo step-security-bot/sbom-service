@@ -185,8 +185,8 @@ public class SbomDataInitTest {
     }
 
     private void insertLicense(String lic, Package pkg) {
-        License license = licenseRepository.findByName(lic).orElse(new License());
-        license.setName(lic);
+        License license = licenseRepository.findBySpdxLicenseId(lic).orElse(new License());
+        license.setSpdxLicenseId(lic);
         if (license.getPackages() == null) {
             license.setPackages(new HashSet<>());
         }
@@ -197,7 +197,7 @@ public class SbomDataInitTest {
             pkg.getLicenses().add(license);
             license.getPackages().add(pkg);
         }
-        license.setSpdxLicenseId("License for test");
+        license.setName("License for test");
         license.setUrl("https://xxx/licenses/License-test");
         license.setIsLegal(false);
         License licenseRet = licenseRepository.save(license);
