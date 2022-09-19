@@ -533,4 +533,28 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.size").value(15))
                 .andExpect(jsonPath("$.first").value(true));
     }
+
+    @Test
+    public void queryPackageStatisticsByPackageId() throws Exception {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+
+        this.mockMvc
+                .perform(get("/sbom-api/queryPackageStatistics/%s".formatted(pkg.getId().toString()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.criticalVulCount").value(0))
+                .andExpect(jsonPath("$.highVulCount").value(1))
+                .andExpect(jsonPath("$.mediumVulCount").value(2))
+                .andExpect(jsonPath("$.lowVulCount").value(0))
+                .andExpect(jsonPath("$.noneVulCount").value(0))
+                .andExpect(jsonPath("$.unknownVulCount").value(1));
+    }
 }

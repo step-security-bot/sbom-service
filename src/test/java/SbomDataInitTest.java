@@ -201,6 +201,7 @@ public class SbomDataInitTest {
         license.setUrl("https://xxx/licenses/License-test");
         license.setIsLegal(false);
         License licenseRet = licenseRepository.save(license);
+        packageRepository.save(pkg);
         assertThat(licenseRet.getPackages().size()).isEqualTo(1);
     }
 

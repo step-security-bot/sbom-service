@@ -1,7 +1,11 @@
 package org.opensourceway.sbom.manager.utils;
 
+import org.apache.commons.lang3.StringUtils;
+import org.opensourceway.sbom.manager.model.VulScore;
 import org.opensourceway.sbom.manager.model.VulScoringSystem;
+import org.opensourceway.sbom.manager.model.Vulnerability;
 
+import java.util.List;
 import java.util.Objects;
 
 public enum CvssSeverity {
@@ -78,5 +82,32 @@ public enum CvssSeverity {
             throw new RuntimeException("invalid vulnerability scoring system: [%s]".formatted(vulScoringSystem));
         }
         throw new RuntimeException("score [%s] doesn't match vulnerability scoring system: [%s]".formatted(score, vulScoringSystem));
+    }
+
+    public static CvssSeverity calculateVulCvssSeverity(Vulnerability vul) {
+        CvssSeverity cvssSeverity = CvssSeverity.UNKNOWN;
+        List<VulScore> scores = vul.getVulScores();
+
+        if (scores.size() == 1) {
+            cvssSeverity = CvssSeverity.calculateCvssSeverity(
+                    VulScoringSystem.valueOf(scores.get(0).getScoringSystem()), scores.get(0).getScore());
+        } else if (scores.size() > 1) {
+            VulScore cvss3 = scores.stream()
+                    .filter(score -> StringUtils.equals(score.getScoringSystem(), VulScoringSystem.CVSS3.name()))
+                    .findFirst()
+                    .orElse(null);
+            VulScore cvss2 = scores.stream()
+                    .filter(score -> StringUtils.equals(score.getScoringSystem(), VulScoringSystem.CVSS2.name()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (Objects.nonNull(cvss3)) {
+                cvssSeverity = CvssSeverity.calculateCvssSeverity(VulScoringSystem.CVSS3, cvss3.getScore());
+            } else if (Objects.nonNull(cvss2)) {
+                cvssSeverity = CvssSeverity.calculateCvssSeverity(VulScoringSystem.CVSS2, cvss2.getScore());
+            }
+        }
+
+        return cvssSeverity;
     }
 }
