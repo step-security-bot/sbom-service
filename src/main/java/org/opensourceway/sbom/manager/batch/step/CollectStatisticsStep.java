@@ -7,6 +7,7 @@ import org.opensourceway.sbom.manager.batch.ExecutionContextUtils;
 import org.opensourceway.sbom.manager.dao.ProductRepository;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.ExternalVulRef;
+import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.ProductStatistics;
@@ -30,6 +31,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 public class CollectStatisticsStep implements Tasklet {
@@ -147,6 +150,29 @@ public class CollectStatisticsStep implements Tasklet {
     }
 
     private void collectLicenseStatistics(ProductStatistics statistics, Sbom sbom) {
+        statistics.setLicenseCount(sbom.getPackages().stream()
+                .map(Package::getLicenses)
+                .flatMap(Set::stream)
+                .distinct()
+                .count());
+        statistics.setPackageWithMultiLicenseCount(sbom.getPackages().stream()
+                .filter(pkg -> pkg.getLicenses().size() > 1)
+                .count());
+        statistics.setPackageWithoutLicenseCount(sbom.getPackages().stream()
+                .filter(pkg -> pkg.getLicenses().size() == 0)
+                .count());
+        statistics.setPackageWithLegalLicenseCount(sbom.getPackages().stream()
+                .filter(pkg -> pkg.getLicenses().stream().anyMatch(License::getIsLegal))
+                .count());
+        statistics.setPackageWithIllegalLicenseCount(sbom.getPackages().stream()
+                .filter(pkg -> pkg.getLicenses().stream().anyMatch(license -> !license.getIsLegal()))
+                .count());
 
+        TreeMap<String, Long> licenseDistribution = new TreeMap<>();
+        sbom.getPackages().stream()
+                .map(Package::getLicenses)
+                .forEach(licenses -> licenses.forEach(license -> licenseDistribution.merge(license.getSpdxLicenseId(), 1L, Long::sum)));
+
+        statistics.setLicenseDistribution(licenseDistribution);
     }
 }
