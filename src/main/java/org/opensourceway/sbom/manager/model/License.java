@@ -30,13 +30,13 @@ public class License {
      * Name of a license.
      * Multiple names may refer to the same license, e.g., both "Apache 2" and "Apache 2.0" refer to "Apache-2.0".
      */
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "TEXT")
     private String name;
 
     /**
      * Unique identifier of a license, e.g., "Apache-2.0", "BSD-3-Clause", "GPL-3.0-only".
      */
-    @Column(columnDefinition = "TEXT", name = "spdx_license_id")
+    @Column(columnDefinition = "TEXT", name = "spdx_license_id", nullable = false)
     private String spdxLicenseId;
 
     /**

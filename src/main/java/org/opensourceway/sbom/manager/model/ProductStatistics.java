@@ -35,6 +35,7 @@ public class ProductStatistics {
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     private UUID id;
 
+    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private Timestamp createTime;
 
     /**

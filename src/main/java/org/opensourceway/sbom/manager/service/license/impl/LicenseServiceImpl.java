@@ -70,7 +70,7 @@ public class LicenseServiceImpl implements LicenseService {
     private void getLicenseIdAndUrl(License license, Map<String, LicenseNameAndUrl> licenseInfoMap, String lic) {
         if (licenseInfoMap.get(lic) != null) {
             if (licenseInfoMap.get(lic).getName() != null) {
-                license.setSpdxLicenseId(licenseInfoMap.get(lic).getName());
+                license.setName(licenseInfoMap.get(lic).getName());
             }
             if (licenseInfoMap.get(lic).getUrl() != null) {
                 license.setUrl(licenseInfoMap.get(lic).getUrl());
@@ -195,8 +195,8 @@ public class LicenseServiceImpl implements LicenseService {
                 List<String> licenseList = new ArrayList<>(illegalLicenseList);
                 licenseList.addAll(response.getResult().getRepoLicenseLegal());
                 licenseList.forEach(lic -> {
-                    License license = licenseRepository.findByName(lic).orElse(new License());
-                    license.setName(lic);
+                    License license = licenseRepository.findBySpdxLicenseId(lic).orElse(new License());
+                    license.setSpdxLicenseId(lic);
                     getLicenseIdAndUrl(license, licenseInfoMap, lic);
                     Package pkg = packageRepository.findById(purlRef.getPkg().getId()).orElseThrow();
                     if (pkg.getLicenses() == null) {

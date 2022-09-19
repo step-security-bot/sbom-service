@@ -40,11 +40,11 @@ public class RawSbom {
     @JsonIgnore
     private Product product;
 
-    @Column(name = "create_time")
+    @Column(name = "create_time", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     @CreationTimestamp
     private Timestamp createTime;
 
-    @Column(name = "update_time")
+    @Column(name = "update_time", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     @UpdateTimestamp
     private Timestamp updateTime;
 
