@@ -18,4 +18,7 @@ public class TestConstants {
     public static final String PUBLISH_SAMPLE_PRODUCT_NAME = "publishTest";
 
     public static final String PUBLISH_SAMPLE_FOR_SERVICE_PRODUCT_NAME = "publishServiceTest";
+
+    public static final String ARCHIVE_DOWNLOAD_TMP_DIR_PREFIX = "archive_download_tmp_dir";
+
 }
