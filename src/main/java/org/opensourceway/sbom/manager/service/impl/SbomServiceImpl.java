@@ -28,6 +28,7 @@ import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
 import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
+import org.opensourceway.sbom.manager.model.vo.PackageStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.model.vo.PageVo;
 import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
@@ -38,6 +39,7 @@ import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
 import org.opensourceway.sbom.manager.service.SbomService;
 import org.opensourceway.sbom.manager.service.reader.SbomReader;
 import org.opensourceway.sbom.manager.service.writer.SbomWriter;
+import org.opensourceway.sbom.manager.utils.CvssSeverity;
 import org.opensourceway.sbom.manager.utils.EntityUtil;
 import org.opensourceway.sbom.manager.utils.PurlUtil;
 import org.opensourceway.sbom.manager.utils.SbomFormat;
@@ -400,6 +402,28 @@ public class SbomServiceImpl implements SbomService {
                 .stream()
                 .map(VulCountVo::fromProductStatistics)
                 .toList();
+    }
+
+    @Override
+    public PackageStatisticsVo queryPackageStatisticsByPackageId(String packageId) {
+        Package pkg = packageRepository.findById(UUID.fromString(packageId)).orElse(null);
+
+        if (Objects.isNull(pkg)) {
+            return null;
+        }
+
+        PackageStatisticsVo vo = new PackageStatisticsVo();
+        Map<CvssSeverity, Long> vulSeverityVulCountMap = pkg.getExternalVulRefs().stream()
+                .map(ExternalVulRef::getVulnerability)
+                .distinct()
+                .collect(Collectors.groupingBy(CvssSeverity::calculateVulCvssSeverity, Collectors.counting()));
+        vo.setCriticalVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.CRITICAL, 0L));
+        vo.setHighVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.HIGH, 0L));
+        vo.setMediumVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.MEDIUM, 0L));
+        vo.setLowVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.LOW, 0L));
+        vo.setNoneVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.NONE, 0L));
+        vo.setUnknownVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.UNKNOWN, 0L));
+        return vo;
     }
 
 }

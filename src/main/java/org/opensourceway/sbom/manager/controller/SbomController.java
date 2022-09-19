@@ -8,6 +8,7 @@ import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.RawSbom;
 import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
+import org.opensourceway.sbom.manager.model.vo.PackageStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.model.vo.PageVo;
 import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
@@ -474,6 +475,28 @@ public class SbomController {
 
         logger.info("query product vulnerability trend result: {}", vulCountVos);
         return ResponseEntity.status(HttpStatus.OK).body(vulCountVos);
+    }
+
+    @GetMapping("/queryPackageStatistics/{packageId}")
+    public @ResponseBody ResponseEntity queryPackageStatisticsByPackageId(@PathVariable("packageId") String packageId) {
+        logger.info("query package statistics by packageId: {}", packageId);
+        PackageStatisticsVo vo;
+        try {
+            vo = sbomService.queryPackageStatisticsByPackageId(packageId);
+        } catch (RuntimeException e) {
+            logger.error("query package statistics error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("query package statistics error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("query package statistics error");
+        }
+
+        if (Objects.isNull(vo)) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("package %s doesn't exist".formatted(packageId));
+        }
+
+        logger.info("query package statistics result: {}", vo);
+        return ResponseEntity.status(HttpStatus.OK).body(vo);
     }
 
 }
