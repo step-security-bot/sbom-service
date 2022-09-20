@@ -51,10 +51,8 @@ public interface SbomService {
                                                    PackageUrlVo purl,
                                                    Pageable pageable) throws Exception;
 
-    PageVo<PackagePurlVo> queryPackageInfoByBinaryViaSpec(String productName,
-                                                          String binaryType,
-                                                          PackageUrlVo purl,
-                                                          Pageable pageable);
+    PageVo<PackagePurlVo> queryPackageInfoByBinaryViaSpec(String productName, String binaryType, PackageUrlVo purl,
+                                                          String startVersion, String endVersion, Pageable pageable);
 
     List<String> queryProductType();
 

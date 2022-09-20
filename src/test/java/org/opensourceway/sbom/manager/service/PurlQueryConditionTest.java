@@ -15,7 +15,8 @@ public class PurlQueryConditionTest {
 
     @Test
     public void mavenOnlyNameTest() {
-        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(new PackageUrlVo("maven", "", "zookeeper", ""));
+        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(
+                new PackageUrlVo("maven", "", "zookeeper", ""), null , null);
 
         assertThat(result.get("type").getFirst()).isEqualTo("maven");
         assertThat(result.get("type").getSecond()).isTrue();
@@ -29,7 +30,8 @@ public class PurlQueryConditionTest {
 
     @Test
     public void mavenNameAndNamespaceTest() {
-        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(new PackageUrlVo("maven", "org.apache.zookeeper", "zookeeper", ""));
+        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(
+                new PackageUrlVo("maven", "org.apache.zookeeper", "zookeeper", ""), null , null);
 
         assertThat(result.get("type").getFirst()).isEqualTo("maven");
         assertThat(result.get("type").getSecond()).isTrue();
@@ -44,8 +46,26 @@ public class PurlQueryConditionTest {
     }
 
     @Test
+    public void mavenNameAndNamespaceAndStartVersionTest() {
+        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(
+                new PackageUrlVo("maven", "org.apache.zookeeper", "zookeeper", ""), "3.4.6" , null);
+
+        assertThat(result.get("type").getFirst()).isEqualTo("maven");
+        assertThat(result.get("type").getSecond()).isTrue();
+
+        assertThat(result.get("namespace").getFirst()).isEqualTo("org.apache.zookeeper");
+        assertThat(result.get("namespace").getSecond()).isTrue();
+
+        assertThat(result.get("name").getFirst()).isEqualTo("zookeeper");
+        assertThat(result.get("name").getSecond()).isTrue();
+
+        assertThat(result.containsValue("version")).isFalse();
+    }
+
+    @Test
     public void mavenGavTest() {
-        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(new PackageUrlVo("maven", "org.apache.zookeeper", "zookeeper", "3.4.6"));
+        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(
+                new PackageUrlVo("maven", "org.apache.zookeeper", "zookeeper", "3.4.6"), null , null);
 
         assertThat(result.get("type").getFirst()).isEqualTo("maven");
         assertThat(result.get("type").getSecond()).isTrue();
@@ -64,7 +84,8 @@ public class PurlQueryConditionTest {
     public void notSupportTypeTest() {
         Map<String, Pair<String, Boolean>> result = null;
         try {
-            result = PurlUtil.generatePurlQueryConditionMap(new PackageUrlVo("pip", "org.apache.zookeeper", "zookeeper", "3.4.6"));
+            result = PurlUtil.generatePurlQueryConditionMap(
+                    new PackageUrlVo("pip", "org.apache.zookeeper", "zookeeper", "3.4.6"), null , null);
         } catch (RuntimeException e) {
             assertThat(e.getMessage()).isEqualTo("purl query condition not support type: pip");
         }
@@ -73,7 +94,8 @@ public class PurlQueryConditionTest {
 
     @Test
     public void pypiOnlyNameTest() {
-        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(new PackageUrlVo("pypi", "", "numpy", ""));
+        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(
+                new PackageUrlVo("pypi", "", "numpy", ""), null , null);
 
         assertThat(result.get("type").getFirst()).isEqualTo("pypi");
         assertThat(result.get("type").getSecond()).isTrue();
@@ -85,8 +107,23 @@ public class PurlQueryConditionTest {
     }
 
     @Test
+    public void pypiNameAndStartVersionTest() {
+        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(
+                new PackageUrlVo("pypi", "", "numpy", ""), "1.21.0" , null);
+
+        assertThat(result.get("type").getFirst()).isEqualTo("pypi");
+        assertThat(result.get("type").getSecond()).isTrue();
+
+        assertThat(result.get("name").getFirst()).isEqualTo("numpy");
+        assertThat(result.get("name").getSecond()).isTrue();
+
+        assertThat(result.containsValue("version")).isFalse();
+    }
+
+    @Test
     public void pypiNameAndVersionTest() {
-        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(new PackageUrlVo("pypi", "", "numpy", "5.9.1"));
+        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(
+                new PackageUrlVo("pypi", "", "numpy", "5.9.1"), null , null);
 
         assertThat(result.get("type").getFirst()).isEqualTo("pypi");
         assertThat(result.get("type").getSecond()).isTrue();
@@ -100,7 +137,8 @@ public class PurlQueryConditionTest {
 
     @Test
     public void rpmOnlyNameTest() {
-        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(new PackageUrlVo("rpm", "", "openssl", ""));
+        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(
+                new PackageUrlVo("rpm", "", "openssl", ""), null , null);
 
         assertThat(result.get("type").getFirst()).isEqualTo("rpm");
         assertThat(result.get("type").getSecond()).isTrue();
@@ -112,8 +150,23 @@ public class PurlQueryConditionTest {
     }
 
     @Test
+    public void rpmNameAndStartVersionTest() {
+        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(
+                new PackageUrlVo("rpm", "", "openssl", ""), "1.1.1" , null);
+
+        assertThat(result.get("type").getFirst()).isEqualTo("rpm");
+        assertThat(result.get("type").getSecond()).isTrue();
+
+        assertThat(result.get("name").getFirst()).isEqualTo("openssl");
+        assertThat(result.get("name").getSecond()).isTrue();
+
+        assertThat(result.containsValue("version")).isFalse();
+    }
+
+    @Test
     public void rpmNameAndVersionTest() {
-        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(new PackageUrlVo("rpm", "", "openssl", "1.2.3"));
+        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(
+                new PackageUrlVo("rpm", "", "openssl", "1.2.3"), null , null);
 
         assertThat(result.get("type").getFirst()).isEqualTo("rpm");
         assertThat(result.get("type").getSecond()).isTrue();
@@ -127,7 +180,8 @@ public class PurlQueryConditionTest {
 
     @Test
     public void mavenCheckSumTest1() {
-        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(new PackageUrlVo("maven", "checksum", "b314c7ebb7d599944981908b7f3ed33a30e78f3a", "1.0.0"));
+        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(
+                new PackageUrlVo("maven", "checksum", "b314c7ebb7d599944981908b7f3ed33a30e78f3a", "1.0.0"), null , null);
 
         assertThat(result.get("type").getFirst()).isEqualTo("maven");
         assertThat(result.get("type").getSecond()).isTrue();
@@ -144,7 +198,8 @@ public class PurlQueryConditionTest {
 
     @Test
     public void mavenCheckSumTest2() {
-        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(new PackageUrlVo("maven", "sha1", "b314c7ebb7d599944981908b7f3ed33a30e78f3a", "1.0.0"));
+        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(
+                new PackageUrlVo("maven", "sha1", "b314c7ebb7d599944981908b7f3ed33a30e78f3a", "1.0.0"), null , null);
 
         assertThat(result.get("type").getFirst()).isEqualTo("maven");
         assertThat(result.get("type").getSecond()).isTrue();

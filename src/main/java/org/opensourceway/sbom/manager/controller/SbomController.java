@@ -303,24 +303,20 @@ public class SbomController {
                                                                  @RequestParam(name = "namespace", required = false) String namespace,
                                                                  @RequestParam(name = "name", required = false) String name,
                                                                  @RequestParam(name = "version", required = false) String version,
+                                                                 @RequestParam(required = false) String startVersion,
+                                                                 @RequestParam(required = false) String endVersion,
                                                                  @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
                                                                  @RequestParam(name = "size", required = false, defaultValue = "15") Integer size) {
-        logger.info("query package info by productName:{}, binaryType:{}, type:{}, namespace:{}, name:{}, version:{}", productName,
-                binaryType,
-                type,
-                namespace,
-                name,
-                version);
+        logger.info("query package info by productName:{}, binaryType:{}, type:{}, namespace:{}, name:{}, version:{}, " +
+                        "startVersion:{}, endVersion: {}",
+                productName, binaryType, type, namespace, name, version, startVersion, endVersion);
 
         PackageUrlVo purl = new PackageUrlVo(type, namespace, name, version);
         Pageable pageable = PageRequest.of(page, size);
         PageVo<PackagePurlVo> queryResult;
 
         try {
-            queryResult = sbomService.queryPackageInfoByBinaryViaSpec(productName,
-                    binaryType,
-                    purl,
-                    pageable);
+            queryResult = sbomService.queryPackageInfoByBinaryViaSpec(productName, binaryType, purl, startVersion, endVersion, pageable);
         } catch (RuntimeException e) {
             logger.error("query sbom packages failed.", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
