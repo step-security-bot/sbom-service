@@ -51,4 +51,8 @@ public class SbomConstants {
 
     public static final String SOURCE_OPENEULER_NAME = "src-openeuler";
 
+    public static final String ExternalPurlRef_TYPE_CHECKSUM = "checksum";
+
+    public static final String ExternalPurlRef_CATEGORY = "EXTERNAL_MANAGER";
+
 }

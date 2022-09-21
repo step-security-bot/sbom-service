@@ -42,6 +42,7 @@ dependencies {
     implementation(project(":utils"))
     implementation(project(":clients:cve-manager"))
     implementation(project(":clients:license"))
+    implementation(project(":clients:sonatype"))
     implementation(project(":clients:oss-index"))
 
     implementation("oss-review-toolkit:model")
