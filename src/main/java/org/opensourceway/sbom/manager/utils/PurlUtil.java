@@ -10,6 +10,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Stream;
 
 public class PurlUtil {
     public static PackageURL strToPackageURL(String purlStr) {
@@ -114,18 +115,18 @@ public class PurlUtil {
         }
     }
 
-    public static Map<String, Pair<String, Boolean>> generatePurlQueryConditionMap(PackageUrlVo purl) {
+    public static Map<String, Pair<String, Boolean>> generatePurlQueryConditionMap(PackageUrlVo purl, String startVersion, String endVersion) {
         String type = StringUtils.lowerCase(purl.getType());
         switch (type) {
             case "maven":
-                return PurlUtil.generateMavenPurlQueryConditionMap(purl.getNamespace(), purl.getName(), purl.getVersion());
+                return PurlUtil.generateMavenPurlQueryConditionMap(purl.getNamespace(), purl.getName(), purl.getVersion(), startVersion, endVersion);
             case "rpm":
-                return PurlUtil.generateRpmPurlQueryConditionMap(purl.getName(), purl.getVersion());
+                return PurlUtil.generateRpmPurlQueryConditionMap(purl.getName(), purl.getVersion(), startVersion, endVersion);
             case "pypi":
             case "github":
             case "gitlab":
             case "gitee":
-                return PurlUtil.generateNoNamespacePurlQueryConditionMap(type, purl.getName(), purl.getVersion());
+                return PurlUtil.generateNoNamespacePurlQueryConditionMap(type, purl.getName(), purl.getVersion(), startVersion, endVersion);
             // TODO 后续追加其他包管理的支持
         }
 
@@ -137,13 +138,15 @@ public class PurlUtil {
      * <p>
      * 1. name必须有值
      * <p>
-     * 2. name仅在version和namespace均有值场景下才进行精确查询，否则使用模糊匹配
+     * 2. name仅在(version/startVersion/endVersion)任一有值且namespace有值场景下才进行精确查询，否则使用模糊匹配
      * <p>
      * 3. version和namespace若有值进行精确查询
      */
-    private static Map<String, Pair<String, Boolean>> generateMavenPurlQueryConditionMap(String namespace, String name, String version) {
+    private static Map<String, Pair<String, Boolean>> generateMavenPurlQueryConditionMap(String namespace, String name, String version,
+                                                                                         String startVersion, String endVersion) {
         if (StringUtils.isEmpty(name)) {
-            throw new RuntimeException("maven purl query condition params is error, namespace: %s, name: %s, version: %s".formatted(namespace, name, version));
+            throw new RuntimeException(("maven purl query condition params is error, namespace: %s, name: %s, version: %s, " +
+                    "startVersion: %s, endVersion: %s").formatted(namespace, name, version, startVersion, endVersion));
         }
         Map<String, Pair<String, Boolean>> purlComponents = CollectionUtils.newHashMap(0);
         purlComponents.put("type", Pair.of(SbomConstants.PURL_MAVEN_TYPE_VALUE, true));
@@ -155,7 +158,7 @@ public class PurlUtil {
             purlComponents.put("namespace", Pair.of(namespace, true));
         }
 
-        if (StringUtils.isNotEmpty(namespace) && StringUtils.isNotEmpty(version)) {
+        if (StringUtils.isNotEmpty(namespace) && (Stream.of(version, startVersion, endVersion).anyMatch(StringUtils::isNotEmpty))) {
             purlComponents.put("name", Pair.of(name, true));
         } else {
             purlComponents.put("name", Pair.of(name, false));
@@ -171,19 +174,23 @@ public class PurlUtil {
      * <p>
      * 1. name必须有值
      * <p>
-     * 2. name在version有值场景下进行精确查询，否则使用模糊匹配
+     * 2. name在(version/startVersion/endVersion)任一有值场景下进行精确查询，否则使用模糊匹配
      * <p>
      * 3. version若有值进行模糊匹配(页面仅需要传值epoch:version-release中的version部分)
      */
-    private static Map<String, Pair<String, Boolean>> generateRpmPurlQueryConditionMap(String name, String version) {
+    private static Map<String, Pair<String, Boolean>> generateRpmPurlQueryConditionMap(String name, String version,
+                                                                                       String startVersion, String endVersion) {
         if (StringUtils.isEmpty(name)) {
-            throw new RuntimeException("rpm purl query condition params is error, name: %s, version: %s".formatted(name, version));
+            throw new RuntimeException(("rpm purl query condition params is error, name: %s, version: %s, " +
+                    "startVersion: %s, endVersion: %s").formatted(name, version, startVersion, endVersion));
         }
         Map<String, Pair<String, Boolean>> purlComponents = CollectionUtils.newHashMap(0);
         purlComponents.put("type", Pair.of(SbomConstants.PURL_RPM_TYPE_VALUE, true));
 
         if (StringUtils.isNotEmpty(version)) {
             purlComponents.put("version", Pair.of(version, false));
+            purlComponents.put("name", Pair.of(name, true));
+        } else if (Stream.of(startVersion, endVersion).anyMatch(StringUtils::isNotEmpty)) {
             purlComponents.put("name", Pair.of(name, true));
         } else {
             purlComponents.put("name", Pair.of(name, false));
@@ -197,19 +204,23 @@ public class PurlUtil {
      * <p>
      * 1. name必须有值
      * <p>
-     * 2. name在version有值场景下进行精确查询，否则使用模糊匹配
+     * 2. name在(version/startVersion/endVersion)任一有值场景下进行精确查询，否则使用模糊匹配
      * <p>
      * 3. version若有值进行精确查询
      */
-    private static Map<String, Pair<String, Boolean>> generateNoNamespacePurlQueryConditionMap(String type, String name, String version) {
+    private static Map<String, Pair<String, Boolean>> generateNoNamespacePurlQueryConditionMap(String type, String name, String version,
+                                                                                               String startVersion, String endVersion) {
         if (StringUtils.isEmpty(name)) {
-            throw new RuntimeException("%s purl query condition params is error, name: %s, version: %s".formatted(type, name, version));
+            throw new RuntimeException(("%s purl query condition params is error, name: %s, version: %s, " +
+                    "startVersion: %s, endVersion: %s").formatted(type, name, version, startVersion, endVersion));
         }
         Map<String, Pair<String, Boolean>> purlComponents = CollectionUtils.newHashMap(0);
         purlComponents.put("type", Pair.of(type, true));
 
         if (StringUtils.isNotEmpty(version)) {
             purlComponents.put("version", Pair.of(version, true));
+            purlComponents.put("name", Pair.of(name, true));
+        } else if (Stream.of(startVersion, endVersion).anyMatch(StringUtils::isNotEmpty)) {
             purlComponents.put("name", Pair.of(name, true));
         } else {
             purlComponents.put("name", Pair.of(name, false));

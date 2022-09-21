@@ -142,7 +142,7 @@ class SbomServiceTest {
 
         PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
                 ReferenceCategory.EXTERNAL_MANAGER.name(),
-                purl,
+                purl, null, null,
                 pageable);
         assertThat(result.getTotalElements()).isEqualTo(1);
     }
@@ -157,7 +157,7 @@ class SbomServiceTest {
 
         PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
                 ReferenceCategory.EXTERNAL_MANAGER.name(),
-                purl,
+                purl, null, null,
                 pageable);
         assertThat(result.getTotalElements()).isEqualTo(7);
     }
@@ -172,7 +172,7 @@ class SbomServiceTest {
 
         PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
                 ReferenceCategory.EXTERNAL_MANAGER.name(),
-                purl,
+                purl, null, null,
                 pageable);
         assertThat(result.getTotalElements()).isEqualTo(9);
     }
@@ -188,7 +188,7 @@ class SbomServiceTest {
 
         PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
                 ReferenceCategory.EXTERNAL_MANAGER.name(),
-                purl,
+                purl, null, null,
                 pageable);
         assertThat(result.getTotalElements()).isEqualTo(0);
     }
@@ -204,7 +204,7 @@ class SbomServiceTest {
 
         PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
                 ReferenceCategory.EXTERNAL_MANAGER.name(),
-                purl,
+                purl, null, null,
                 pageable);
         assertThat(result.getTotalElements()).isEqualTo(0);
     }
@@ -217,7 +217,7 @@ class SbomServiceTest {
                 new PackageUrlVo("gitee",
                         "mindspore",
                         "akg",
-                        "1.7.0"),
+                        "1.7.0"), null, null,
                 PageRequest.of(0, 15));
         assertThat(refs.getTotalElements()).isEqualTo(1);
     }
@@ -230,7 +230,7 @@ class SbomServiceTest {
                 new PackageUrlVo("gitee",
                         "mindspore",
                         "akg",
-                        "x.7.0"),
+                        "x.7.0"), null, null,
                 PageRequest.of(0, 15));
         assertThat(refs.getTotalElements()).isEqualTo(0);
     }
