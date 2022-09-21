@@ -7,6 +7,7 @@ import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.RawSbom;
 import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
+import org.opensourceway.sbom.manager.model.vo.PackageStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.model.vo.PageVo;
 import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
@@ -50,10 +51,8 @@ public interface SbomService {
                                                    PackageUrlVo purl,
                                                    Pageable pageable) throws Exception;
 
-    PageVo<PackagePurlVo> queryPackageInfoByBinaryViaSpec(String productName,
-                                                          String binaryType,
-                                                          PackageUrlVo purl,
-                                                          Pageable pageable);
+    PageVo<PackagePurlVo> queryPackageInfoByBinaryViaSpec(String productName, String binaryType, PackageUrlVo purl,
+                                                          String startVersion, String endVersion, Pageable pageable);
 
     List<String> queryProductType();
 
@@ -68,4 +67,6 @@ public interface SbomService {
     ProductStatistics queryProductStatistics(String productName);
 
     List<VulCountVo> queryProductVulTrend(String productName, Long startTimestamp, Long endTimestamp);
+
+    PackageStatisticsVo queryPackageStatisticsByPackageId(String packageId);
 }

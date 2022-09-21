@@ -339,7 +339,7 @@ public class PkgQueryControllerTests {
                 .andDo(print())
                 .andExpect(status().isInternalServerError())
                 .andExpect(header().string("Content-Type", "application/json"))
-                .andExpect(content().string("maven purl query condition params is error, namespace: zookeeper, name: , version: "));
+                .andExpect(content().string("maven purl query condition params is error, namespace: zookeeper, name: , version: , startVersion: null, endVersion: null"));
     }
 
     @Test
@@ -398,6 +398,100 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.last").value(true))
                 .andExpect(jsonPath("$.totalElements").value(0))
                 .andExpect(jsonPath("$.totalPages").value(0));
+    }
+
+    @Test
+    public void queryPackageInfoByBinaryExactlyWithRangeTest() throws Exception {
+        this.mockMvc
+                .perform(post("/sbom-api/querySbomPackagesByBinary")
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
+                        .param("binaryType", ReferenceCategory.EXTERNAL_MANAGER.name())
+                        .param("type", "maven")
+                        .param("namespace", "org.apache.zookeeper")
+                        .param("name", "zookeeper")
+                        .param("version", "3.4.6")
+                        .param("startVersion", "3.4.7")
+                        .param("endVersion", "3.4.8")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.size").value(15))
+                .andExpect(jsonPath("$.content.[0].name").value("hive"));
+    }
+
+    @Test
+    public void queryPackageInfoByBinaryRangeTest() throws Exception {
+        this.mockMvc
+                .perform(post("/sbom-api/querySbomPackagesByBinary")
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
+                        .param("binaryType", ReferenceCategory.EXTERNAL_MANAGER.name())
+                        .param("type", "maven")
+                        .param("namespace", "org.apache.zookeeper")
+                        .param("name", "zookeeper")
+                        .param("version", "")
+                        .param("startVersion", "3.4.5")
+                        .param("endVersion", "3.4.7")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.size").value(50))
+                .andExpect(jsonPath("$.content.[0].name").value("hive"));
+    }
+
+    @Test
+    public void queryPackageInfoByBinaryStartVersionTest() throws Exception {
+        this.mockMvc
+                .perform(post("/sbom-api/querySbomPackagesByBinary")
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
+                        .param("binaryType", ReferenceCategory.EXTERNAL_MANAGER.name())
+                        .param("type", "maven")
+                        .param("namespace", "org.apache.zookeeper")
+                        .param("name", "zookeeper")
+                        .param("version", "")
+                        .param("startVersion", "3.4.5")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.totalElements").value(5))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.size").value(50))
+                .andExpect(jsonPath("$.content.[0].name").value("kafka"));
+    }
+
+    @Test
+    public void queryPackageInfoByBinaryEndVersionTest() throws Exception {
+        this.mockMvc
+                .perform(post("/sbom-api/querySbomPackagesByBinary")
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
+                        .param("binaryType", ReferenceCategory.EXTERNAL_MANAGER.name())
+                        .param("type", "maven")
+                        .param("namespace", "org.apache.zookeeper")
+                        .param("name", "zookeeper")
+                        .param("version", "")
+                        .param("endVersion", "3.4.7")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.size").value(50))
+                .andExpect(jsonPath("$.content.[0].name").value("hive"));
     }
 
     @Test
@@ -532,5 +626,29 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.empty").value(false))
                 .andExpect(jsonPath("$.size").value(15))
                 .andExpect(jsonPath("$.first").value(true));
+    }
+
+    @Test
+    public void queryPackageStatisticsByPackageId() throws Exception {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+
+        this.mockMvc
+                .perform(get("/sbom-api/queryPackageStatistics/%s".formatted(pkg.getId().toString()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.criticalVulCount").value(0))
+                .andExpect(jsonPath("$.highVulCount").value(1))
+                .andExpect(jsonPath("$.mediumVulCount").value(2))
+                .andExpect(jsonPath("$.lowVulCount").value(0))
+                .andExpect(jsonPath("$.noneVulCount").value(0))
+                .andExpect(jsonPath("$.unknownVulCount").value(1));
     }
 }

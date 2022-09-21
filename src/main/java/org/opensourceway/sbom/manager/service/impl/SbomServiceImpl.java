@@ -28,6 +28,7 @@ import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
 import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
+import org.opensourceway.sbom.manager.model.vo.PackageStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.model.vo.PageVo;
 import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
@@ -38,6 +39,7 @@ import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
 import org.opensourceway.sbom.manager.service.SbomService;
 import org.opensourceway.sbom.manager.service.reader.SbomReader;
 import org.opensourceway.sbom.manager.service.writer.SbomWriter;
+import org.opensourceway.sbom.manager.utils.CvssSeverity;
 import org.opensourceway.sbom.manager.utils.EntityUtil;
 import org.opensourceway.sbom.manager.utils.PurlUtil;
 import org.opensourceway.sbom.manager.utils.SbomFormat;
@@ -45,6 +47,9 @@ import org.opensourceway.sbom.manager.utils.SbomMapperUtil;
 import org.opensourceway.sbom.manager.utils.SbomSpecification;
 import org.opensourceway.sbom.manager.utils.UrlUtil;
 import org.opensourceway.sbom.utils.Mapper;
+import org.opensourceway.sbom.utils.VersionUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -69,6 +74,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(rollbackFor = Exception.class)
 public class SbomServiceImpl implements SbomService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SbomServiceImpl.class);
 
     @Autowired
     private RawSbomRepository sbomFileRepository;
@@ -323,10 +330,8 @@ public class SbomServiceImpl implements SbomService {
     }
 
     @Override
-    public PageVo<PackagePurlVo> queryPackageInfoByBinaryViaSpec(String productName,
-                                                                 String binaryType,
-                                                                 PackageUrlVo purl,
-                                                                 Pageable pageable) {
+    public PageVo<PackagePurlVo> queryPackageInfoByBinaryViaSpec(String productName, String binaryType, PackageUrlVo purl,
+                                                                 String startVersion, String endVersion, Pageable pageable) {
         ReferenceCategory referenceCategory = ReferenceCategory.findReferenceCategory(binaryType);
         if (!ReferenceCategory.BINARY_TYPE.contains(referenceCategory)) {
             throw new RuntimeException("binary type: %s is not support".formatted(binaryType));
@@ -334,7 +339,42 @@ public class SbomServiceImpl implements SbomService {
         Sbom sbom = sbomRepository.findByProductName(productName)
                 .orElseThrow(() -> new RuntimeException("can't find %s's sbom metadata".formatted(productName)));
 
-        Map<String, Pair<String, Boolean>> purlComponents = PurlUtil.generatePurlQueryConditionMap(purl);
+        Map<String, Pair<String, Boolean>> purlComponents = PurlUtil.generatePurlQueryConditionMap(purl, startVersion, endVersion);
+        // 指定版本非空或者版本上下限均为空时，按分页查询处理
+        // 指定版本为空并且版本上下限任一非空时，先查出所有符合条件的组件再根据版本范围过滤，最后返回一个假分页
+        if (StringUtils.isEmpty(purl.getVersion()) && (StringUtils.isNotEmpty(startVersion) || StringUtils.isNotEmpty(endVersion))) {
+            List<ExternalPurlRef> result = externalPurlRefRepository.findAll(
+                    ExternalPurlRefSpecs.hasSbomId(sbom.getId())
+                            .and(ExternalPurlRefSpecs.hasCategory(binaryType))
+                            .and(ExternalPurlRefSpecs.hasType(ReferenceType.PURL.getType()))
+                            .and(ExternalPurlRefSpecs.hasPurlComponent(purlComponents))
+                            .and(ExternalPurlRefSpecs.withSort("name")));
+            // 上下限均非空，startVersion <= version <= endVersion
+            if (StringUtils.isNotEmpty(startVersion) && StringUtils.isNotEmpty(endVersion)) {
+                result = result.stream()
+                        .filter(ref -> VersionUtil.inRange(ref.getPurl().getVersion(), startVersion, endVersion))
+                        .toList();
+            // 下限为空，上限非空，version <= endVersion
+            } else if (StringUtils.isEmpty(startVersion)) {
+                result = result.stream()
+                        .filter(ref -> VersionUtil.lessThanOrEqualTo(ref.getPurl().getVersion(), endVersion))
+                        .toList();
+            // 上限为空，下限非空，startVersion <= version
+            } else {
+                result = result.stream()
+                        .filter(ref -> VersionUtil.greaterThanOrEqualTo(ref.getPurl().getVersion(), startVersion))
+                        .toList();
+            }
+            // 最多保留n个结果
+            var maxReserveSize = 50;
+            if (result.size() > maxReserveSize) {
+                logger.warn("received {} components, truncate to {}", result.size(), maxReserveSize);
+                result = result.subList(0, maxReserveSize);
+            }
+            return new PageVo<>(new PageImpl(result.stream().map(PackagePurlVo::fromExternalPurlRef).toList(),
+                    PageRequest.of(0, maxReserveSize), result.size()));
+        }
+
         Page<ExternalPurlRef> result = externalPurlRefRepository.findAll(
                 ExternalPurlRefSpecs.hasSbomId(sbom.getId())
                         .and(ExternalPurlRefSpecs.hasCategory(binaryType))
@@ -400,6 +440,28 @@ public class SbomServiceImpl implements SbomService {
                 .stream()
                 .map(VulCountVo::fromProductStatistics)
                 .toList();
+    }
+
+    @Override
+    public PackageStatisticsVo queryPackageStatisticsByPackageId(String packageId) {
+        Package pkg = packageRepository.findById(UUID.fromString(packageId)).orElse(null);
+
+        if (Objects.isNull(pkg)) {
+            return null;
+        }
+
+        PackageStatisticsVo vo = new PackageStatisticsVo();
+        Map<CvssSeverity, Long> vulSeverityVulCountMap = pkg.getExternalVulRefs().stream()
+                .map(ExternalVulRef::getVulnerability)
+                .distinct()
+                .collect(Collectors.groupingBy(CvssSeverity::calculateVulCvssSeverity, Collectors.counting()));
+        vo.setCriticalVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.CRITICAL, 0L));
+        vo.setHighVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.HIGH, 0L));
+        vo.setMediumVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.MEDIUM, 0L));
+        vo.setLowVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.LOW, 0L));
+        vo.setNoneVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.NONE, 0L));
+        vo.setUnknownVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.UNKNOWN, 0L));
+        return vo;
     }
 
 }
