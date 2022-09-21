@@ -8,10 +8,12 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.opensourceway.sbom.clients.sonatype.SonatypeClient;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.TestConstants;
-import org.opensourceway.sbom.manager.TestConstants;
+import org.opensourceway.sbom.manager.dao.ExternalPurlRefRepository;
 import org.opensourceway.sbom.manager.dao.LicenseRepository;
+import org.opensourceway.sbom.manager.dao.PackageRepository;
 import org.opensourceway.sbom.manager.dao.ProductRepository;
 import org.opensourceway.sbom.manager.dao.ProductTypeRepository;
 import org.opensourceway.sbom.manager.dao.RawSbomRepository;
@@ -55,6 +57,15 @@ class SbomServiceTest {
 
     @Autowired
     private SbomService sbomService;
+
+    @Autowired
+    private PackageRepository packageRepository;
+
+    @Autowired
+    private ExternalPurlRefRepository externalPurlRefRepository;
+
+    @Autowired
+    private SonatypeClient sonatypeClient;
 
     @Autowired
     private ProductTypeRepository productTypeRepository;
@@ -208,6 +219,46 @@ class SbomServiceTest {
                 pageable);
         assertThat(result.getTotalElements()).isEqualTo(0);
     }
+//
+//
+//    @Test
+//    public void queryGAVInfoByBinaryChecksum() {
+//        // actual purl value: pkg:maven/sqlline/sqlline@1.3.0
+//        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME).orElse(null);
+//        assert sbom != null;
+//        Package pkg = packageRepository.findBySbomIdAndSpdxId(sbom.getId(),"SPDXRef-a3f765c97df09328").get(0);
+//        List<ExternalPurlRef> ExternalPurlRefList = externalPurlRefRepository.queryPackageRef(
+//                pkg.getId(),ReferenceCategory.EXTERNAL_MANAGER.name(),SbomConstants.ExternalPurlRef_TYPE_CHECKSUM);
+//        assertThat(ExternalPurlRefList.size()).isEqualTo(1);
+//        GAVInfo gavInfo = sonatypeClient.getGAVByChecksum(ExternalPurlRefList.get(0).getPurl().getName());
+//        assertThat(gavInfo.getResponse().getDocs().size()).isEqualTo(1);
+//        assertThat(gavInfo.getResponse().getDocs().get(0).getGroup()).isEqualTo("sqlline");
+//        assertThat(gavInfo.getResponse().getDocs().get(0).getArtifact()).isEqualTo("sqlline");
+//        assertThat(gavInfo.getResponse().getDocs().get(0).getVersion()).isEqualTo("1.3.0");
+//        ExternalPurlRef externalPurlRef = ExternalPurlRefList.get(0);
+//        String tmpNamespace =externalPurlRef.getPurl().getNamespace();
+//        String tmpName =externalPurlRef.getPurl().getName();
+//        String tmpVersion =externalPurlRef.getPurl().getVersion();
+//        String tmpType =externalPurlRef.getType();
+//        externalPurlRef.setType("purl");
+//        externalPurlRef.getPurl().setNamespace("sqlline");
+//        externalPurlRef.getPurl().setNamespace("sqlline");
+//        externalPurlRef.getPurl().setNamespace("1.3.0");
+//        externalPurlRefRepository.save(externalPurlRef);
+//        assertThat(externalPurlRefRepository.queryPackageRef(pkg.getId(),ReferenceCategory.EXTERNAL_MANAGER.name(),
+//                SbomConstants.ExternalPurlRef_TYPE_CHECKSUM).size()).isEqualTo(0);
+//        assertThat(externalPurlRefRepository.queryPackageRef(pkg.getId(),ReferenceCategory.EXTERNAL_MANAGER.name(),
+//                "purl").size()).isEqualTo(217);
+//        externalPurlRef.setType(tmpType);
+//        externalPurlRef.getPurl().setNamespace(tmpNamespace);
+//        externalPurlRef.getPurl().setName(tmpName);
+//        externalPurlRef.getPurl().setVersion(tmpVersion);
+//        externalPurlRefRepository.save(externalPurlRef);
+//        assertThat(externalPurlRefRepository.queryPackageRef(pkg.getId(),ReferenceCategory.EXTERNAL_MANAGER.name(),
+//                SbomConstants.ExternalPurlRef_TYPE_CHECKSUM).size()).isEqualTo(1);
+//        assertThat(externalPurlRefRepository.queryPackageRef(pkg.getId(),ReferenceCategory.EXTERNAL_MANAGER.name(),
+//                "purl").size()).isEqualTo(216);
+//    }
 
     @Test
     public void queryPackageInfoByBinaryViaSpecFullComponent() {
