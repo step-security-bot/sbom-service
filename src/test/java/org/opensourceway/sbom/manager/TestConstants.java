@@ -21,4 +21,6 @@ public class TestConstants {
 
     public static final String ARCHIVE_DOWNLOAD_TMP_DIR_PREFIX = "archive_download_tmp_dir";
 
+    public static final String PUBLISH_TEST_CHECKSUM_NAME = "checksumTest";
+
 }

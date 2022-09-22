@@ -3,7 +3,6 @@ package org.opensourceway.sbom.manager.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
-import org.opensourceway.sbom.manager.utils.JsonContainsMatcher;
 import org.opensourceway.sbom.manager.SbomApplicationContextHolder;
 import org.opensourceway.sbom.manager.SbomManagerApplication;
 import org.opensourceway.sbom.manager.TestConstants;
@@ -12,6 +11,7 @@ import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Sbom;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.manager.service.SbomService;
+import org.opensourceway.sbom.manager.utils.JsonContainsMatcher;
 import org.opensourceway.sbom.utils.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -467,8 +467,7 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.last").value(true))
                 .andExpect(jsonPath("$.totalElements").value(5))
                 .andExpect(jsonPath("$.totalPages").value(1))
-                .andExpect(jsonPath("$.size").value(50))
-                .andExpect(jsonPath("$.content.[0].name").value("kafka"));
+                .andExpect(jsonPath("$.size").value(50));
     }
 
     @Test

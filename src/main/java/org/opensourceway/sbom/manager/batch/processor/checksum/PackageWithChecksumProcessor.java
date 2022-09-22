@@ -5,6 +5,7 @@ import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.Package;
+import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.manager.service.checksum.ChecksumService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,7 @@ public class PackageWithChecksumProcessor implements ItemProcessor<Package, List
         logger.info("start PackageWithChecksumProcessor sbomId:{}", sbomId);
 
         List<List<ExternalPurlRef>> resultList = checksumService.extractGAVByChecksumRef(pkg.getId(),
-                SbomConstants.ExternalPurlRef_CATEGORY, SbomConstants.ExternalPurlRef_TYPE_CHECKSUM);
+                ReferenceCategory.EXTERNAL_MANAGER.name(), SbomConstants.ExternalPurlRef_TYPE_CHECKSUM);
 
         logger.info("finish PackageWithChecksumProcessor resultSet size:{}", resultList.size());
         return resultList;
