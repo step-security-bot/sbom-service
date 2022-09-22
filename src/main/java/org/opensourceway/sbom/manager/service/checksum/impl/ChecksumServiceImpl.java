@@ -84,16 +84,15 @@ public class ChecksumServiceImpl implements ChecksumService {
     public void persistExternalGAVRef(List<List<ExternalPurlRef>> externalPurlRefList) {
         List<ExternalPurlRef> externalPurlRefsTOChange = externalPurlRefList.get(0);
         List<ExternalPurlRef> externalPurlRefsTORemove = externalPurlRefList.get(1);
-        for (ExternalPurlRef externalPurlRef : externalPurlRefsTOChange) {
+        // TODO delete can not real remove date
+//        for (ExternalPurlRef externalPurlRef : externalPurlRefsTOChange) {
 //            externalPurlRefRepository.save(externalPurlRef);
-            logger.info("save GAV info for {}", externalPurlRef.getId());
-        }
+//        }
         externalPurlRefRepository.saveAll(externalPurlRefsTOChange);
 
-        for (ExternalPurlRef externalPurlRef : externalPurlRefsTORemove) {
+//        for (ExternalPurlRef externalPurlRef : externalPurlRefsTORemove) {
 //            externalPurlRefRepository.delete(externalPurlRef);
-            logger.info("delete GAV info for {}", externalPurlRef.getId());
-        }
+//        }
         externalPurlRefRepository.deleteAllInBatch(externalPurlRefsTORemove);
     }
 

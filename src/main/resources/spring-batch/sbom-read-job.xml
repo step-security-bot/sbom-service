@@ -31,7 +31,6 @@
 
         <!-- In org.opensourceway.sbom.manager.batch.job.JobConfiguration.restartSbomReadJob, use this step id decide rawSbom record's new taskStatus -->
         <step id="resolveMavenDepTask" next="sbomConsumers">
-            <!--            <tasklet ref="resolveMavenDepStep"/>-->
             <tasklet>
                 <chunk reader="packageWithChecksumListReader"
                        processor="packageWithChecksumListProcessor"
@@ -110,9 +109,6 @@
 
     <bean id="persistSbomMetadataStep"
           class="org.opensourceway.sbom.manager.batch.step.PersistSbomMetadataStep"/>
-
-    <!--    <bean id="resolveMavenDepStep"-->
-    <!--          class="org.opensourceway.sbom.manager.batch.step.ResolveMavenDepStep"/>-->
 
     <bean id="taskExecutor" class="org.springframework.core.task.SimpleAsyncTaskExecutor"/>
 
