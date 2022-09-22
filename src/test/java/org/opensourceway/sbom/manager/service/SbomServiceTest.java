@@ -8,12 +8,9 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.opensourceway.sbom.clients.sonatype.SonatypeClient;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.TestConstants;
-import org.opensourceway.sbom.manager.dao.ExternalPurlRefRepository;
 import org.opensourceway.sbom.manager.dao.LicenseRepository;
-import org.opensourceway.sbom.manager.dao.PackageRepository;
 import org.opensourceway.sbom.manager.dao.ProductRepository;
 import org.opensourceway.sbom.manager.dao.ProductTypeRepository;
 import org.opensourceway.sbom.manager.dao.RawSbomRepository;
@@ -57,15 +54,6 @@ class SbomServiceTest {
 
     @Autowired
     private SbomService sbomService;
-
-    @Autowired
-    private PackageRepository packageRepository;
-
-    @Autowired
-    private ExternalPurlRefRepository externalPurlRefRepository;
-
-    @Autowired
-    private SonatypeClient sonatypeClient;
 
     @Autowired
     private ProductTypeRepository productTypeRepository;
@@ -357,14 +345,14 @@ class SbomServiceTest {
     }
 
     @Test
-    public void queryLicenseByPackageId(){
+    public void queryLicenseByPackageId() {
         Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
         assertThat(sbom).isNotNull();
         Package pkg = sbom.getPackages().stream()
                 .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
                 .findFirst().orElse(null);
         assertThat(pkg).isNotNull();
-        List<License> licenses= licenseRepository.findByPkgId(pkg.getId());
+        List<License> licenses = licenseRepository.findByPkgId(pkg.getId());
         assertThat(licenses.size()).isEqualTo(1);
         assertThat(licenses.get(0).getSpdxLicenseId()).isEqualTo("License-test");
         assertThat(licenses.get(0).getName()).isEqualTo("License for test");

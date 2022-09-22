@@ -23,7 +23,7 @@ import java.util.UUID;
 
 public class PackageWithChecksumListReader implements ItemReader<Package>, StepExecutionListener {
     private static final Logger logger =
-            LoggerFactory.getLogger(org.opensourceway.sbom.manager.batch.reader.checksum.PackageWithChecksumListReader.class);
+            LoggerFactory.getLogger(PackageWithChecksumListReader.class);
     private final ChecksumService checksumService;
 
     @Autowired
