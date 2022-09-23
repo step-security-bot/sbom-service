@@ -31,7 +31,12 @@
 
         <!-- In org.opensourceway.sbom.manager.batch.job.JobConfiguration.restartSbomReadJob, use this step id decide rawSbom record's new taskStatus -->
         <step id="resolveMavenDepTask" next="sbomConsumers">
-            <tasklet ref="resolveMavenDepStep"/>
+            <tasklet>
+                <chunk reader="packageWithChecksumListReader"
+                       processor="packageWithChecksumListProcessor"
+                       writer="packageWithChecksumListWriter"
+                       commit-interval="3"/>
+            </tasklet>
         </step>
 
         <split id="sbomConsumers" task-executor="taskExecutor" next="collectStatisticsTask">
@@ -105,10 +110,19 @@
     <bean id="persistSbomMetadataStep"
           class="org.opensourceway.sbom.manager.batch.step.PersistSbomMetadataStep"/>
 
-    <bean id="resolveMavenDepStep"
-          class="org.opensourceway.sbom.manager.batch.step.ResolveMavenDepStep"/>
-
     <bean id="taskExecutor" class="org.springframework.core.task.SimpleAsyncTaskExecutor"/>
+
+    <!-- checksum Service -->
+    <bean id="packageWithChecksumListReader"
+          class="org.opensourceway.sbom.manager.batch.reader.checksum.PackageWithChecksumListReader">
+        <constructor-arg ref="checksumServiceImpl"/>
+    </bean>
+    <bean id="packageWithChecksumListProcessor"
+          class="org.opensourceway.sbom.manager.batch.processor.checksum.PackageWithChecksumProcessor"/>
+    <bean id="packageWithChecksumListWriter"
+          class="org.opensourceway.sbom.manager.batch.writer.checksum.PackageWithChecksumListWriter">
+        <constructor-arg ref="checksumServiceImpl"/>
+    </bean>
 
     <!-- OssIndex CVE Service -->
     <bean id="extractOssIndexReader"
