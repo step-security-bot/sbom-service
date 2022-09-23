@@ -9,6 +9,7 @@ import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
+import org.opensourceway.sbom.manager.model.vo.PackageWithStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PageVo;
 import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
 import org.opensourceway.sbom.manager.model.vo.VulCountVo;
@@ -37,11 +38,11 @@ public interface SbomService {
 
     PageVo<Package> findPackagesPageable(String productName, int page, int size);
 
-    List<Package> queryPackageInfoByName(String productName, String packageName, boolean isExactly);
+    List<PackageWithStatisticsVo> queryPackageInfoByName(String productName, String packageName, boolean isExactly);
 
     Package queryPackageInfoById(String packageId);
 
-    PageVo<Package> getPackageInfoByNameForPage(String productName, String packageName, Boolean isEqual, int page, int size);
+    PageVo<PackageWithStatisticsVo> getPackageInfoByNameForPage(String productName, String packageName, Boolean isEqual, int page, int size);
 
     BinaryManagementVo queryPackageBinaryManagement(String packageId, String binaryType);
 

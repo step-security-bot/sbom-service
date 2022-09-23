@@ -50,6 +50,7 @@ public class PkgVerfCode {
      * The list of file excluded from the package verification code calculation.
      */
     @OneToMany(mappedBy = "pkgVerfCode", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<PkgVerfCodeExcludedFile> pkgVerfCodeExcludedFiles;
 
     public UUID getId() {

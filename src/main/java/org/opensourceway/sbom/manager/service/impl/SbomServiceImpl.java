@@ -30,6 +30,7 @@ import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
+import org.opensourceway.sbom.manager.model.vo.PackageWithStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PageVo;
 import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
 import org.opensourceway.sbom.manager.model.vo.VulCountVo;
@@ -39,7 +40,6 @@ import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
 import org.opensourceway.sbom.manager.service.SbomService;
 import org.opensourceway.sbom.manager.service.reader.SbomReader;
 import org.opensourceway.sbom.manager.service.writer.SbomWriter;
-import org.opensourceway.sbom.manager.utils.CvssSeverity;
 import org.opensourceway.sbom.manager.utils.EntityUtil;
 import org.opensourceway.sbom.manager.utils.PurlUtil;
 import org.opensourceway.sbom.manager.utils.SbomFormat;
@@ -264,10 +264,13 @@ public class SbomServiceImpl implements SbomService {
     }
 
     @Override
-    public List<Package> queryPackageInfoByName(String productName, String packageName, boolean isExactly) {
+    public List<PackageWithStatisticsVo> queryPackageInfoByName(String productName, String packageName, boolean isExactly) {
         String equalPackageName = isExactly ? packageName : null;
 
-        return packageRepository.getPackageInfoByName(productName, equalPackageName, packageName, SbomConstants.MAX_QUERY_LINE);
+        return packageRepository.getPackageInfoByName(productName, equalPackageName, packageName, SbomConstants.MAX_QUERY_LINE)
+                .stream()
+                .map(PackageWithStatisticsVo::fromPackage)
+                .toList();
     }
 
     @Override
@@ -276,11 +279,13 @@ public class SbomServiceImpl implements SbomService {
     }
 
     @Override
-    public PageVo<Package> getPackageInfoByNameForPage(String productName, String packageName, Boolean isExactly, int page, int size) {
+    public PageVo<PackageWithStatisticsVo> getPackageInfoByNameForPage(String productName, String packageName, Boolean isExactly, int page, int size) {
         String equalPackageName = BooleanUtils.isTrue(isExactly) ? packageName : null;
         Pageable pageable = PageRequest.of(page, size).withSort(Sort.by(Sort.Order.by("name")));
 
-        return new PageVo<>((PageImpl<Package>) packageRepository.getPackageInfoByNameForPage(productName, isExactly, equalPackageName, packageName, pageable));
+        Page<Package> result = packageRepository.getPackageInfoByNameForPage(productName, isExactly, equalPackageName, packageName, pageable);
+        return new PageVo<>(new PageImpl<>(result.stream().map(PackageWithStatisticsVo::fromPackage).toList(),
+                result.getPageable(), result.getTotalElements()));
     }
 
     @Override
@@ -444,24 +449,7 @@ public class SbomServiceImpl implements SbomService {
 
     @Override
     public PackageStatisticsVo queryPackageStatisticsByPackageId(String packageId) {
-        Package pkg = packageRepository.findById(UUID.fromString(packageId)).orElse(null);
-
-        if (Objects.isNull(pkg)) {
-            return null;
-        }
-
-        PackageStatisticsVo vo = new PackageStatisticsVo();
-        Map<CvssSeverity, Long> vulSeverityVulCountMap = pkg.getExternalVulRefs().stream()
-                .map(ExternalVulRef::getVulnerability)
-                .distinct()
-                .collect(Collectors.groupingBy(CvssSeverity::calculateVulCvssSeverity, Collectors.counting()));
-        vo.setCriticalVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.CRITICAL, 0L));
-        vo.setHighVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.HIGH, 0L));
-        vo.setMediumVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.MEDIUM, 0L));
-        vo.setLowVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.LOW, 0L));
-        vo.setNoneVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.NONE, 0L));
-        vo.setUnknownVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.UNKNOWN, 0L));
-        return vo;
+        return packageRepository.findById(UUID.fromString(packageId)).map(PackageStatisticsVo::fromPackage).orElse(null);
     }
 
 }

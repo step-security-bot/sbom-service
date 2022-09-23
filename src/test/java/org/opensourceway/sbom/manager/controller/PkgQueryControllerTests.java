@@ -10,6 +10,7 @@ import org.opensourceway.sbom.manager.dao.SbomRepository;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Sbom;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
+import org.opensourceway.sbom.manager.model.vo.PackageWithStatisticsVo;
 import org.opensourceway.sbom.manager.service.SbomService;
 import org.opensourceway.sbom.manager.utils.JsonContainsMatcher;
 import org.opensourceway.sbom.utils.Mapper;
@@ -61,8 +62,7 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.last").value(false))
                 .andExpect(jsonPath("$.totalElements").value(78))
                 .andExpect(jsonPath("$.number").value(1))
-                .andExpect(jsonPath("$.content.[0].name").value("eigen"))
-                .andExpect(jsonPath("$.content.[1].homepage").value("http://google.github.io/flatbuffers/"));
+                .andExpect(jsonPath("$.content.[0].name").value("eigen"));
     }
 
     @Test
@@ -83,8 +83,7 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.number").value(0))
                 .andExpect(jsonPath("$.numberOfElements").value(1))
-                .andExpect(jsonPath("$.content.[0].name").value("hive"))
-                .andExpect(jsonPath("$.content.[0].homepage").value("http://hive.apache.org/"));
+                .andExpect(jsonPath("$.content.[0].name").value("hive"));
     }
 
     @Test
@@ -107,9 +106,7 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.number").value(0))
                 .andExpect(jsonPath("$.numberOfElements").value(3))
                 .andExpect(jsonPath("$.content.[0].name").value("hive"))
-                .andExpect(jsonPath("$.content.[0].homepage").value("http://hive.apache.org/"))
-                .andExpect(jsonPath("$.content.[2].name").value("hivex-devel"))
-                .andExpect(jsonPath("$.content.[2].homepage").value("http://libguestfs.org/"));
+                .andExpect(jsonPath("$.content.[2].name").value("hivex-devel"));
     }
 
     @Test
@@ -144,8 +141,6 @@ public class PkgQueryControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
                 .andExpect(jsonPath("$.*", hasSize(2)))
-                .andExpect(jsonPath("$.[0].spdxId").value("SPDXRef-Package-PyPI-pillow-9.1.1"))
-                .andExpect(jsonPath("$.[1].spdxId").value("SPDXRef-Package-PyPI-pillow-9.1.1-source-artifact"))
                 .andExpect(jsonPath("$.[0].name").value("pillow"))
                 .andExpect(jsonPath("$.[1].name").value("pillow"));
     }
@@ -157,7 +152,7 @@ public class PkgQueryControllerTests {
             return;
         }
 
-        List<Package> packagesList = sbomService.queryPackageInfoByName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME, TestConstants.BINARY_TEST_PACKAGE_NAME, true);
+        List<PackageWithStatisticsVo> packagesList = sbomService.queryPackageInfoByName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME, TestConstants.BINARY_TEST_PACKAGE_NAME, true);
         assertThat(packagesList).isNotEmpty();
 
         PkgQueryControllerTests.packageId = packagesList.get(0).getId().toString();
