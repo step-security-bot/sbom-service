@@ -26,6 +26,7 @@ import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
+import org.opensourceway.sbom.manager.model.vo.PackageWithStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PageVo;
 import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
 import org.opensourceway.sbom.manager.model.vo.VulnerabilityVo;
@@ -80,7 +81,7 @@ class SbomServiceTest {
             return;
         }
 
-        List<Package> packagesList = sbomService.queryPackageInfoByName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME, TestConstants.BINARY_TEST_PACKAGE_NAME, true);
+        List<PackageWithStatisticsVo> packagesList = sbomService.queryPackageInfoByName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME, TestConstants.BINARY_TEST_PACKAGE_NAME, true);
         assertThat(packagesList).isNotEmpty();
 
         SbomServiceTest.packageId = packagesList.get(0).getId().toString();

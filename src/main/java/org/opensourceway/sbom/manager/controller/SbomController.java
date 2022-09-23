@@ -10,6 +10,7 @@ import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
+import org.opensourceway.sbom.manager.model.vo.PackageWithStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PageVo;
 import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
 import org.opensourceway.sbom.manager.model.vo.VulCountVo;
@@ -249,7 +250,7 @@ public class SbomController {
                 isExactly,
                 page,
                 size);
-        PageVo<Package> packagesPage = sbomService.getPackageInfoByNameForPage(productName, packageName, isExactly, page, size);
+        PageVo<PackageWithStatisticsVo> packagesPage = sbomService.getPackageInfoByNameForPage(productName, packageName, isExactly, page, size);
 
         logger.info("query sbom packages result:{}", packagesPage);
         return ResponseEntity.status(HttpStatus.OK).body(packagesPage);
@@ -260,7 +261,7 @@ public class SbomController {
                                                               @PathVariable("packageName") String packageName,
                                                               @PathVariable(value = "isExactly") boolean isExactly) {
         logger.info("query sbom packages by productName:{}, packageName:{}, isExactly:{}", productName, packageName, isExactly);
-        List<Package> packagesList = sbomService.queryPackageInfoByName(productName, packageName, isExactly);
+        List<PackageWithStatisticsVo> packagesList = sbomService.queryPackageInfoByName(productName, packageName, isExactly);
 
         logger.info("query sbom packages result:{}", packagesList);
         return ResponseEntity.status(HttpStatus.OK).body(packagesList);
