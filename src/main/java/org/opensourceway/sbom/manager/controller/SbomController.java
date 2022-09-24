@@ -7,6 +7,8 @@ import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.RawSbom;
 import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
+import org.opensourceway.sbom.manager.model.vo.CopyrightVo;
+import org.opensourceway.sbom.manager.model.vo.LicenseVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
@@ -45,6 +47,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -413,8 +416,32 @@ public class SbomController {
         return ResponseEntity.status(HttpStatus.OK).body(vulnerabilities);
     }
 
+    @GetMapping("/queryPackageLicenseAndCopyright/{packageId}")
+    public @ResponseBody
+    ResponseEntity queryLicenseByPackageId(@PathVariable("packageId") String packageId) {
+        logger.info("query package License by packageId: {}", packageId);
+        Map<String, List> licenseAndCopyright = new HashMap<>();
+        List<LicenseVo> licenses;
+        List<CopyrightVo> copyrights;
+        try {
+            licenses = sbomService.queryLicenseByPackageId(packageId);
+            copyrights = sbomService.queryCopyrightByPackageId(packageId);
+            licenseAndCopyright.put("licenseContent", licenses);
+            licenseAndCopyright.put("copyrightContent", copyrights);
+        } catch (RuntimeException e) {
+            logger.error("query package license error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("query package license error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("query package license error");
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(licenseAndCopyright);
+    }
+
     @PostMapping("/uploadSbomTraceData")
-    public @ResponseBody ResponseEntity uploadSbomTraceData(HttpServletRequest request, @RequestParam String productName) throws IOException {//HttpServletRequest request
+    public @ResponseBody
+    ResponseEntity uploadSbomTraceData(HttpServletRequest request, @RequestParam String productName) throws IOException {//HttpServletRequest request
         MultipartFile file = ((MultipartHttpServletRequest) request).getFile("uploadFileName");
         if (file == null || file.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("upload file is empty");
