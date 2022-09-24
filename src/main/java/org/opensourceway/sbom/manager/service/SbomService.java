@@ -6,6 +6,8 @@ import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.RawSbom;
 import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
+import org.opensourceway.sbom.manager.model.vo.CopyrightVo;
+import org.opensourceway.sbom.manager.model.vo.LicenseVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
@@ -70,4 +72,8 @@ public interface SbomService {
     List<VulCountVo> queryProductVulTrend(String productName, Long startTimestamp, Long endTimestamp);
 
     PackageStatisticsVo queryPackageStatisticsByPackageId(String packageId);
+
+    List<LicenseVo> queryLicenseByPackageId(String packageId);
+
+    List<CopyrightVo> queryCopyrightByPackageId(String packageId);
 }

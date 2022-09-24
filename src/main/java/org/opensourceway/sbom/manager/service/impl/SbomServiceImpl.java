@@ -8,6 +8,7 @@ import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.SbomApplicationContextHolder;
 import org.opensourceway.sbom.manager.dao.ExternalPurlRefRepository;
 import org.opensourceway.sbom.manager.dao.ExternalVulRefRepository;
+import org.opensourceway.sbom.manager.dao.LicenseRepository;
 import org.opensourceway.sbom.manager.dao.PackageRepository;
 import org.opensourceway.sbom.manager.dao.ProductConfigRepository;
 import org.opensourceway.sbom.manager.dao.ProductRepository;
@@ -18,6 +19,7 @@ import org.opensourceway.sbom.manager.dao.SbomRepository;
 import org.opensourceway.sbom.manager.dao.spec.ExternalPurlRefSpecs;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.ExternalVulRef;
+import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.ProductStatistics;
@@ -27,6 +29,8 @@ import org.opensourceway.sbom.manager.model.Sbom;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
 import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
+import org.opensourceway.sbom.manager.model.vo.CopyrightVo;
+import org.opensourceway.sbom.manager.model.vo.LicenseVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
@@ -100,6 +104,9 @@ public class SbomServiceImpl implements SbomService {
 
     @Autowired
     private ExternalVulRefRepository externalVulRefRepository;
+
+    @Autowired
+    private LicenseRepository licenseRepository;
 
     @Autowired
     private TraceDataAnalyzer traceDataAnalyzer;
@@ -450,6 +457,22 @@ public class SbomServiceImpl implements SbomService {
     @Override
     public PackageStatisticsVo queryPackageStatisticsByPackageId(String packageId) {
         return packageRepository.findById(UUID.fromString(packageId)).map(PackageStatisticsVo::fromPackage).orElse(null);
+    }
+
+    @Override
+    public List<LicenseVo> queryLicenseByPackageId(String packageId) {
+        List<License> result = licenseRepository.findByPkgId(UUID.fromString(packageId));
+        return result.stream().map(LicenseVo::fromLicense).toList();
+    }
+
+    @Override
+    public List<CopyrightVo> queryCopyrightByPackageId(String packageId) {
+        // TODO  Data is temporarily fixed
+        CopyrightVo copyrightVo = new CopyrightVo();
+        copyrightVo.setOrganization("copyrightTmp");
+        copyrightVo.setStartYear("2000");
+        copyrightVo.setAdditionalInfo("XXXXXXX");
+        return List.of(copyrightVo);
     }
 
 }
