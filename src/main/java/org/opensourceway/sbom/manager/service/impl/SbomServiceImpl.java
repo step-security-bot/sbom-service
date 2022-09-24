@@ -467,6 +467,7 @@ public class SbomServiceImpl implements SbomService {
 
     @Override
     public List<CopyrightVo> queryCopyrightByPackageId(String packageId) {
+        // TODO  Data is temporarily fixed
         CopyrightVo copyrightVo = new CopyrightVo();
         copyrightVo.setOrganization("copyrightTmp");
         copyrightVo.setStartYear("2000");
