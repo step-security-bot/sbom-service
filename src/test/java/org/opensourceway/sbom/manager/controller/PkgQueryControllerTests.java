@@ -645,4 +645,31 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.noneVulCount").value(0))
                 .andExpect(jsonPath("$.unknownVulCount").value(1));
     }
+
+    @Test
+    public void queryLicenseAndCopyrightByPackageId() throws Exception {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+        this.mockMvc
+                .perform(get("/sbom-api/queryPackageLicenseAndCopyright/%s".formatted(pkg.getId().toString()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.licenseContent.length()").value(1))
+                .andExpect(jsonPath("$.licenseContent.[0].licenseId").value("License-test"))
+                .andExpect(jsonPath("$.licenseContent.[0].licenseName").value("License for test"))
+                .andExpect(jsonPath("$.licenseContent.[0].licenseUrl").value("https://xxx/licenses/License-test"))
+                .andExpect(jsonPath("$.licenseContent.[0].legal").value(false))
+                .andExpect(jsonPath("$.copyrightContent.length()").value(1))
+                .andExpect(jsonPath("$.copyrightContent.[0].organization").value("copyrightTmp"))
+                .andExpect(jsonPath("$.copyrightContent.[0].startYear").value("2000"))
+                .andExpect(jsonPath("$.copyrightContent.[0].additionalInfo").value("XXXXXXX"));
+
+    }
 }
