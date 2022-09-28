@@ -53,4 +53,6 @@ public class SbomConstants {
 
     public static final String ExternalPurlRef_TYPE_CHECKSUM = "checksum";
 
+    public static final String LINUX_FILE_SYSTEM_SEPARATOR = "/";
+
 }
