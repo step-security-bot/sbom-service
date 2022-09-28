@@ -17,6 +17,7 @@ import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.service.license.LicenseService;
+import org.opensourceway.sbom.openeuler.obs.SbomRepoConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,7 +118,7 @@ public class LicenseServiceImpl implements LicenseService {
             return (new PackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(), packageUrlVo.getName(),
                     packageUrlVo.getVersion(), null, null)).canonicalize();
         } else {
-            return (new PackageURL("gitee", SbomConstants.SOURCE_OPENEULER_NAME, packageUrlVo.getName(),
+            return (new PackageURL("gitee", SbomRepoConstants.OPENEULER_REPO_ORG, packageUrlVo.getName(),
                     product.getAttribute().get("productType") + "-" + product.getAttribute().get("version"),
                     null, null)).canonicalize();
 

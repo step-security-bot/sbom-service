@@ -8,6 +8,7 @@ dependencies {
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     implementation("org.apache.commons:commons-compress:$commonsCompressVersion")
     implementation("com.github.package-url:packageurl-java:$packageUrlJavaVersion")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
 
     api("com.google.guava:guava:31.1-jre")
 
