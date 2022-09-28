@@ -1,0 +1,35 @@
+<!-- from https://gitee.com/src-openeuler/obs_meta/blob/master/openEuler-22.03-LTS/openEuler:22.03:LTS/kata-containers/_service -->
+<services>
+    <service name="tar_scm_kernel_repo">
+      <param name="scm">repo</param>
+      <param name="url">next/openEuler-22.03-LTS/openEuler-kernel/</param>
+    </service>
+    <service name="recompress">
+      <param name="compression">gz</param>
+      <param name="file">*.tar</param>
+    </service>
+    <service name="tar_scm_repo_docker">
+       <param name="scm">repo</param>
+       <param name="url">next/openEuler-22.03-LTS/kata_integration</param>
+       <param name="filename">kata_integration</param>
+       <param name="versionformat">v1.0.0</param>
+       <param name="submodules">disable</param>
+       <param name="exclude">.git</param>
+    </service>
+    <service name="tar_scm_repo_docker">
+       <param name="scm">repo</param>
+       <param name="url">next/openEuler-22.03-LTS/kata-containers</param>
+       <param name="filename">kata-containers</param>
+       <param name="versionformat">v1.11.1</param>
+       <param name="submodules">disable</param>
+       <param name="exclude">.git</param>
+    </service>
+    <service name="recompress">
+      <param name="compression">gz</param>
+      <param name="file">*.tar</param>
+    </service>
+    <service name="extract_file">
+      <param name="archive">*kata-containers*.tar.gz</param>
+      <param name="files">kata-containers.spec</param>
+    </service>
+</services>

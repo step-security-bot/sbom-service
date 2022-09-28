@@ -23,4 +23,6 @@ public class TestConstants {
 
     public static final String PUBLISH_TEST_CHECKSUM_NAME = "checksumTest";
 
+    public static final String SAMPLE_OBS_META_SERVICE_FILE_NAME = "specs/obs_meta_service";
+
 }

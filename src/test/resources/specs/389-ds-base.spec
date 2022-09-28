@@ -3,6 +3,11 @@
 %{!?with_tmpfiles_d: %global with_tmpfiles_d %{_sysconfdir}/tmpfiles.d}
 %define who opensourceway
 ExcludeArch:   i686
+%global base_name1       antunit1
+
+%global    base_name2       antunit2
+%global base_name    beanutils
+%global short_name   commons-%{base_name}
 
 
 Name:          389-ds-base
