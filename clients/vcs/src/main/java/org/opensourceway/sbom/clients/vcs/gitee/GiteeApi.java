@@ -1,7 +1,10 @@
 package org.opensourceway.sbom.clients.vcs.gitee;
 
+import org.apache.commons.lang3.StringUtils;
 import org.opensourceway.sbom.clients.vcs.VcsApi;
+import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeFileInfo;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeRepoInfo;
+import org.opensourceway.sbom.utils.WebClientExceptionFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +14,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.unit.DataSize;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
@@ -18,9 +23,16 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
@@ -35,8 +47,22 @@ public class GiteeApi implements VcsApi {
     @Value("${gitee.api.token}")
     private String token;
 
+    @Value("${spring.codec.max-in-memory-size}")
+    private String maxInMemorySize;
+
+    @Override
+    public String getDefaultBaseUrl() {
+        return defaultBaseUrl;
+    }
+
     private WebClient createWebClient() {
-        return WebClient.create(this.defaultBaseUrl);
+        ExchangeStrategies strategies = ExchangeStrategies.builder()
+                .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize((int) DataSize.parse(maxInMemorySize).toBytes()))
+                .build();
+        return WebClient.builder()
+                .baseUrl(this.defaultBaseUrl)
+                .exchangeStrategies(strategies)
+                .build();
     }
 
     @Override
@@ -56,6 +82,7 @@ public class GiteeApi implements VcsApi {
 
     }
 
+    @Override
     public Path downloadRepoArchive(Path downloadDir, String org, String repo, String branch) {
         WebClient client = createWebClient();
         String downloadUri = "/%s/%s/repository/archive/%s.zip".formatted(org, repo, branch);
@@ -97,4 +124,53 @@ public class GiteeApi implements VcsApi {
         DataBufferUtils.write(responseFlux, zipPath, CREATE_NEW).block(Duration.ofSeconds(90));
         return zipPath;
     }
+
+    /**
+     * @param fileNameRegex file name regex or suffix
+     * @return file name and file content map
+     * @see: API DOC: <a href="https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoContents(Path)">获取仓库具体路径下的内容</a>
+     */
+    @Override
+    public List<GiteeFileInfo> findRepoFiles(String org, String repo, String branch, String fileDir, String fileNameRegex) {
+        GiteeFileInfo[] files = createWebClient().get()
+                .uri(URI.create("%s/api/v5/repos/%s/%s/contents/%s?ref=%s".formatted(this.defaultBaseUrl,
+                        org,
+                        repo,
+                        URLEncoder.encode(fileDir, StandardCharsets.UTF_8),
+                        URLEncoder.encode(branch, StandardCharsets.UTF_8))))
+                .headers(httpHeaders -> {
+                    if (!ObjectUtils.isEmpty(token)) {
+                        httpHeaders.add("Authorization", "token %s".formatted(token));
+                    }
+                })
+                .retrieve()
+                .bodyToMono(GiteeFileInfo[].class)
+                .retryWhen(Retry.backoff(3, Duration.ofSeconds(5))
+                        .filter(WebClientExceptionFilter::is5xxException))
+                .block(Duration.ofSeconds(100));
+        if (files == null) {
+            return Collections.emptyList();
+        }
+
+        Pattern regex = Pattern.compile(fileNameRegex, Pattern.CASE_INSENSITIVE);
+        return Arrays.stream(files)
+                .filter(file -> regex.matcher(file.name()).matches() || StringUtils.endsWith(file.name(), fileNameRegex))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public String getFileContext(String downloadUrl) {
+        return createWebClient().get()
+                .uri(URI.create(downloadUrl))
+                .headers(httpHeaders -> {
+                    if (!ObjectUtils.isEmpty(token)) {
+                        httpHeaders.add("Authorization", "token %s".formatted(token));
+                    }
+                })
+                .retrieve()
+                .bodyToMono(String.class)
+                .retryWhen(Retry.backoff(1, Duration.ofSeconds(2)))
+                .block();
+    }
+
 }
