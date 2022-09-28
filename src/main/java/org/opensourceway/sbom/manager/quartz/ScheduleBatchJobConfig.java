@@ -47,4 +47,23 @@ public class ScheduleBatchJobConfig {
                 .build();
     }
 
+    @Bean
+    public JobDetail fetchOpenEulerRepoMetaJobDetail() {
+        return JobBuilder.newJob(FetchOpenEulerRepoMetaJob.class)
+                .withIdentity("fetchOpenEulerRepoMeta")
+                .storeDurably()
+                .build();
+    }
+
+    @Bean
+    public Trigger fetchOpenEulerRepoMetaJobTrigger() {
+        return TriggerBuilder.newTrigger()
+                .forJob(fetchOpenEulerRepoMetaJobDetail())
+                .withIdentity("fetchOpenEulerRepoMeta")
+                .startNow()
+                // TODO modify cron
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 20 8 * * ? *"))
+                .build();
+    }
+
 }
