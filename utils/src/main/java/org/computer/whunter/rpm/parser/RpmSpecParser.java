@@ -24,11 +24,16 @@
  */
 package org.computer.whunter.rpm.parser;
 
-import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,6 +54,8 @@ import java.util.regex.Pattern;
  */
 public class RpmSpecParser {
 
+    private static final Logger logger = LoggerFactory.getLogger(RpmSpecParser.class);
+
     private static final String[] COMMON_FIELDS = {"name", "version", "release", "buildrequires", "requires",
             "summary", "license", "vendor", "packager", "provides",
             "url", "source[0-9]+", "group", "buildRoot", "buildArch",
@@ -56,7 +63,17 @@ public class RpmSpecParser {
 
     private static final String[] MACRO_FIELDS = {"package"};
 
-    private static final String MACRO_DEFINITION_PATTERN = "^%define\\s.*";
+    // FIXME 非标处理，后续优化
+    private static final Map<Pattern, String> BUILD_IN_MACRO_VALUE_MAPPING = new HashMap<>() {
+        {
+            put(Pattern.compile("%\\{python3_pkgversion\\}"), "3");
+            put(Pattern.compile("%\\{python3_other_pkgversion\\}"), "3");
+            put(Pattern.compile("%\\{vendor\\}"), "openEuler");
+            put(Pattern.compile("%\\{package64kb\\}"), "");
+        }
+    };
+
+    private static final String[] INNER_MACRO_PATTERNS = {"^%define\\s.*", "^%global\\s.*"};
 
     private final Map<Pattern, String> m_fieldPatterns = new HashMap<>();
     private final Map<Pattern, String> m_fieldReferenceMatcherPatterns = new HashMap<>();
@@ -64,10 +81,7 @@ public class RpmSpecParser {
     private final Map<Pattern, String> m_placeholderReferenceMatcherPatterns = new HashMap<>();
     private final Map<String, Pattern> m_placeholderReferenceReplacePatterns = new HashMap<>();
 
-    /**
-     * The path of the spec file to parse
-     */
-    private final String m_specFilePath;
+    private final String specFileContent;
 
     /**
      * Create a parser that will parse an RPM spec file.
@@ -75,15 +89,19 @@ public class RpmSpecParser {
      * @param specFilePath the patch of the spec file to parse.
      * @return a parser ready to parse the file.
      */
-    public static RpmSpecParser createParser(String specFilePath) {
-        return new RpmSpecParser(specFilePath);
+    public static RpmSpecParser createParserByFile(String specFilePath) throws IOException {
+        return new RpmSpecParser(Files.readString(Path.of(specFilePath), StandardCharsets.UTF_8));
+    }
+
+    public static RpmSpecParser createParserByContent(String specFileContent) {
+        return new RpmSpecParser(specFileContent);
     }
 
     /**
      * Private constructor
      */
-    private RpmSpecParser(String specFilePath) {
-        m_specFilePath = specFilePath;
+    private RpmSpecParser(String specFileContent) {
+        this.specFileContent = specFileContent;
 
         initFields(COMMON_FIELDS, Boolean.FALSE);
         initFields(MACRO_FIELDS, Boolean.TRUE);
@@ -119,7 +137,7 @@ public class RpmSpecParser {
             if (isMacro) {
                 fieldRegex.append(")(.*)");
             } else {
-                fieldRegex.append("):(.*)");
+                fieldRegex.append(")\\s*:(.*)");
             }
 
             macroMatchRegex.append("\\}.*");
@@ -140,8 +158,8 @@ public class RpmSpecParser {
      * @throws FileNotFoundException if the path of the spec file could not be opened for reading.
      */
     public Multimap<String, String> parse() throws FileNotFoundException {
-        Multimap<String, String> properties = ArrayListMultimap.create();
-        Scanner scanner = new Scanner(new File(m_specFilePath));
+        Multimap<String, String> properties = LinkedListMultimap.create();
+        Scanner scanner = new Scanner(this.specFileContent);
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine().trim();
             if (line.startsWith("#")) {
@@ -149,44 +167,50 @@ public class RpmSpecParser {
                 continue;
             }
 
+            // Examine the line to see if it's a macro definition
+            for (String innerMacroPatterns : INNER_MACRO_PATTERNS) {
+                if (line.matches(innerMacroPatterns)) {
+                    String[] words = line.split("\\s+");
+                    if (words.length > 2) {
+                        StringBuilder value = new StringBuilder();
+                        for (int i = 2; i < words.length; ++i) {
+                            if (i != 2) {
+                                value.append(" ");
+                            }
+                            value.append(words[i]);
+                        }
+
+                        if (properties.containsKey(words[1])) {
+                            logger.debug("macro field:{} is duplicate", words[1]);
+                            continue;
+                        }
+                        properties.put(words[1], value.toString().trim());
+                        // Add a matcher pattern for it so that any references to it can be expanded
+                        StringBuilder macroMatchRegex = new StringBuilder(".*%\\{");
+                        StringBuilder macroReplaceRegex = new StringBuilder("%\\{");
+                        for (int i = 0; i < words[1].length(); ++i) {
+                            char ch = words[1].charAt(i);
+                            if (Character.isLetter(ch)) {
+                                String regex = String.format("[%c%c]", Character.toLowerCase(ch), Character.toUpperCase(ch));
+                                macroMatchRegex.append(regex);
+                                macroReplaceRegex.append(regex);
+                            } else {
+                                macroMatchRegex.append(ch);
+                                macroReplaceRegex.append(ch);
+                            }
+                        }
+                        macroMatchRegex.append("\\}.*");
+                        macroReplaceRegex.append("\\}");
+                        m_placeholderReferenceMatcherPatterns.put(Pattern.compile(macroMatchRegex.toString()), words[1]);
+                        m_placeholderReferenceReplacePatterns.put(macroMatchRegex.toString(), Pattern.compile(macroReplaceRegex.toString()));
+                    }
+                }
+            }
             // Examine the line to see if it's a field
             for (Map.Entry<Pattern, String> entry : m_fieldPatterns.entrySet()) {
                 Matcher matcher = entry.getKey().matcher(line);
                 if (matcher.matches() && matcher.groupCount() > 1) {
                     properties.put(matcher.group(1).toLowerCase(), matcher.group(2).trim());
-                }
-            }
-            // Examine the line to see if it's a macro definition
-            if (line.matches(MACRO_DEFINITION_PATTERN)) {
-                String[] words = line.split("\\s");
-                if (words.length > 2) {
-                    StringBuilder value = new StringBuilder();
-                    for (int i = 2; i < words.length; ++i) {
-                        if (i != 2) {
-                            value.append(" ");
-                        }
-                        value.append(words[i]);
-                    }
-                    assert !properties.containsKey(words[1]);
-                    properties.put(words[1], value.toString().trim());
-                    // Add a matcher pattern for it so that any references to it can be expanded
-                    StringBuilder macroMatchRegex = new StringBuilder(".*%\\{");
-                    StringBuilder macroReplaceRegex = new StringBuilder("%\\{");
-                    for (int i = 0; i < words[1].length(); ++i) {
-                        char ch = words[1].charAt(i);
-                        if (Character.isLetter(ch)) {
-                            String regex = String.format("[%c%c]", Character.toLowerCase(ch), Character.toUpperCase(ch));
-                            macroMatchRegex.append(regex);
-                            macroReplaceRegex.append(regex);
-                        } else {
-                            macroMatchRegex.append(ch);
-                            macroReplaceRegex.append(ch);
-                        }
-                    }
-                    macroMatchRegex.append("\\}.*");
-                    macroReplaceRegex.append("\\}");
-                    m_placeholderReferenceMatcherPatterns.put(Pattern.compile(macroMatchRegex.toString()), words[1]);
-                    m_placeholderReferenceReplacePatterns.put(macroMatchRegex.toString(), Pattern.compile(macroReplaceRegex.toString()));
                 }
             }
         }
@@ -210,9 +234,9 @@ public class RpmSpecParser {
         replacePatterns.putAll(m_fieldReferenceReplacePatterns);
         replacePatterns.putAll(m_placeholderReferenceReplacePatterns);
 
-        Multimap<String, String> newProperties = ArrayListMultimap.create();
+        Multimap<String, String> newProperties = LinkedListMultimap.create();
         for (Entry<String, String> property : properties.entries()) {
-            String newValue = expandReferences(property.getValue(), properties, matcherPatterns, replacePatterns);
+            String newValue = expandReferences(property.getValue(), properties, newProperties, matcherPatterns, replacePatterns);
             newProperties.put(property.getKey(), newValue);
         }
         properties.clear();
@@ -224,32 +248,58 @@ public class RpmSpecParser {
      * property value and replace these values if they are present.
      *
      * @param propertyValue   the value to search for any replacements
-     * @param properties      the properties to use to expand any values
+     * @param oldProperties   the properties to use to expand any values
+     * @param newProperties   the properties to use to expand any values
      * @param matcherPatterns patterns to find references to fields or macros
      * @param replacePatterns patters to replace references to fields or macros with the values
      */
-    private String expandReferences(String propertyValue, Multimap<String, String> properties,
+    private String expandReferences(String propertyValue, Multimap<String, String> oldProperties, Multimap<String, String> newProperties,
                                     Map<Pattern, String> matcherPatterns,
                                     Map<String, Pattern> replacePatterns) {
+        // optional macro
+        String newValue = propertyValue.replaceAll("\\%\\{\\?", "%{");
 
-        String newValue = propertyValue;
-
+        // replace build-in macros
+        for (Map.Entry<Pattern, String> macro : BUILD_IN_MACRO_VALUE_MAPPING.entrySet()) {
+            newValue = newValue.replaceAll(macro.getKey().toString(), macro.getValue());
+        }
         for (Map.Entry<Pattern, String> macro : matcherPatterns.entrySet()) {
-            Matcher matcher = macro.getKey().matcher(propertyValue);
+            Matcher matcher = macro.getKey().matcher(newValue);
             if (matcher.matches()) {
                 Pattern replacePattern = replacePatterns.get(macro.getKey().toString());
-                newValue = newValue.replaceAll(replacePattern.toString(), getProperty(properties, macro.getValue()));
+                String replaceValue = getProperty(oldProperties, newProperties, macro.getValue());
+                if (replaceValue == null) {
+                    Matcher findMatcher = Pattern.compile(macro.getValue()).matcher(newValue.toLowerCase());
+                    if (findMatcher.find()) {
+                        replaceValue = getProperty(oldProperties, newProperties, findMatcher.group(0));
+                    }
+                }
+                if (replaceValue == null) {
+                    logger.debug("replacePattern:{} cant find replaceVale", replacePattern.toString());
+                    continue;
+                } else if (replaceValue.contains("%")) {
+                    logger.debug("replaceVale:{} contains %, skip", replacePattern.toString());
+                    continue;
+                } else if (replaceValue.contains("$")) {
+                    logger.debug("replaceVale:{} contains $, skip", replacePattern.toString());
+                    continue;
+                } else if (replaceValue.endsWith("\\")) {
+                    logger.debug("replaceVale:{} end with \\, skip", replacePattern.toString());
+                    continue;
+                }
+                newValue = newValue.replaceAll(replacePattern.toString(), replaceValue);
             }
+        }
+        if (newValue.equalsIgnoreCase(propertyValue.replaceAll("\\%\\{\\?", "%{"))) {
+            newValue = propertyValue.replaceAll("\\%\\{\\?.*\\}", "");
         }
         return newValue;
     }
 
-    String getProperty(Multimap<String, String> properties, String key) {
-        Collection<String> collection = properties.get(key);
+    String getProperty(Multimap<String, String> oldProperties, Multimap<String, String> newProperties, String key) {
+        Collection<String> collection = newProperties.containsKey(key) ? newProperties.get(key) : oldProperties.get(key);
         if (collection.isEmpty())
             return null;
-        if (collection.size() != 1)
-            throw new RuntimeException("multiple values for key " + key);
 
         return collection.iterator().next();
     }

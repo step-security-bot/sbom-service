@@ -5,7 +5,7 @@ import org.assertj.core.api.Assertions;
 import org.computer.whunter.rpm.parser.RpmSpecParser;
 import org.junit.jupiter.api.Test;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Properties;
 
 public class RpmSpecParserTest {
@@ -13,7 +13,7 @@ public class RpmSpecParserTest {
     @Test
     public void testParserForProperties() {
         try {
-            RpmSpecParser parser = RpmSpecParser.createParser("src/test/resources/specs/389-ds-base.spec");
+            RpmSpecParser parser = RpmSpecParser.createParserByFile("src/test/resources/specs/389-ds-base.spec");
             Assertions.assertThat(parser).isNotNull();
 
             Multimap<String, String> multimap = parser.parse();
@@ -24,7 +24,7 @@ public class RpmSpecParserTest {
 
             checkMultimapResults(multimap);
             checkPropertiesResults(properties);
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             Assertions.fail(e.toString());
         }
     }
@@ -51,6 +51,10 @@ public class RpmSpecParserTest {
         Assertions.assertThat(properties.getProperty("requires")).isEqualTo("389-ds-base = 1.4.3.20-1");
         Assertions.assertThat(properties.getProperty("url")).isEqualTo("https://www.port389.org");
         Assertions.assertThat(properties.getProperty("who")).isEqualTo("opensourceway");
+        Assertions.assertThat(properties.getProperty("base_name1")).isEqualTo("antunit1");
+        Assertions.assertThat(properties.getProperty("base_name2")).isEqualTo("antunit2");
+        Assertions.assertThat(properties.getProperty("_hardened_build")).isEqualTo("1");
+        Assertions.assertThat(properties.getProperty("short_name")).isEqualTo("commons-beanutils");
         Assertions.assertThat(properties.getProperty("vendor")).isEqualTo("opensourceway himself");
     }
 
@@ -89,7 +93,7 @@ public class RpmSpecParserTest {
         Assertions.assertThat(multimap.get("provides").contains("svrcore-devel = 4.1.4")).isTrue();
         Assertions.assertThat(multimap.get("requires").size()).isEqualTo(20);
         Assertions.assertThat(multimap.get("requires").contains("389-ds-base-libs = 1.4.3.20-1")).isTrue();
-        Assertions.assertThat(multimap.get("requires").contains("python%{python3_pkgversion}-lib389 = 1.4.3.20-1")).isTrue();
+        Assertions.assertThat(multimap.get("requires").contains("python3-lib389 = 1.4.3.20-1")).isTrue();
         Assertions.assertThat(multimap.get("requires").contains("389-ds-base-libs = 1.4.3.20-1 pkgconfig nspr-devel nss-devel >= 3.34")).isTrue();
 
         Assertions.assertThat(multimap.get("%package").size()).isEqualTo(6);
@@ -98,6 +102,59 @@ public class RpmSpecParserTest {
         Assertions.assertThat(multimap.get("%package").contains("legacy-tools")).isTrue();
         Assertions.assertThat(multimap.get("%package").contains("snmp")).isTrue();
         Assertions.assertThat(multimap.get("%package").contains("-n cockpit-389-ds")).isTrue();
+        Assertions.assertThat(multimap.get("%package").contains("-n python3-lib389")).isTrue();
+    }
+
+    @Test
+    public void testParserForNestingProperties() {
+        try {
+            RpmSpecParser parser = RpmSpecParser.createParserByFile("src/test/resources/specs/apache-commons-beanutils.spec");
+            Assertions.assertThat(parser).isNotNull();
+
+            Multimap<String, String> multimap = parser.parse();
+            Properties properties = parser.toProperties(multimap);
+
+            Assertions.assertThat(properties.getProperty("name")).isEqualTo("apache-commons-beanutils");
+            Assertions.assertThat(properties.getProperty("source0")).isEqualTo("http://archive.apache.org/dist/commons/beanutils/source/commons-beanutils-1.9.4-src.tar.gz");
+        } catch (IOException e) {
+            Assertions.fail(e.toString());
+        }
+    }
+
+    @Test
+    public void testParserForGlobalProperties() {
+        try {
+            RpmSpecParser parser = RpmSpecParser.createParserByFile("src/test/resources/specs/volume_key.spec");
+            Assertions.assertThat(parser).isNotNull();
+
+            Multimap<String, String> multimap = parser.parse();
+            Properties properties = parser.toProperties(multimap);
+
+            Assertions.assertThat(properties.getProperty("python_pak_name")).isEqualTo("python3-volume_key");
+            Assertions.assertThat(properties.getProperty("name")).isEqualTo("volume_key");
+            Assertions.assertThat(properties.getProperty("source0")).isEqualTo("https://releases.pagure.org/volume_key/volume_key-0.3.12.tar.xz");
+            Assertions.assertThat(properties.getProperty("%package")).isEqualTo("-n python3-volume_key");
+        } catch (IOException e) {
+            Assertions.fail(e.toString());
+        }
+    }
+
+    @Test
+    public void testParserForFfmpegProperties() {
+        try {
+            RpmSpecParser parser = RpmSpecParser.createParserByFile("src/test/resources/specs/ffmpeg.spec");
+            Assertions.assertThat(parser).isNotNull();
+
+            Multimap<String, String> multimap = parser.parse();
+            Properties properties = parser.toProperties(multimap);
+
+            Assertions.assertThat(properties.getProperty("ffmpeg_license")).isEqualTo("LGPLv3+");
+            Assertions.assertThat(properties.getProperty("name")).isEqualTo("ffmpeg-cuda");
+            Assertions.assertThat(properties.getProperty("source0")).isEqualTo("http://ffmpeg.org/releases/ffmpeg-4.2.4.tar.xz");
+            Assertions.assertThat(multimap.get("%package").contains("-n libavdevice-cuda")).isTrue();
+        } catch (IOException e) {
+            Assertions.fail(e.toString());
+        }
     }
 
 }

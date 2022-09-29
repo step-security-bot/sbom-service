@@ -2,6 +2,7 @@ package org.opensourceway.sbom.clients.vcs.gitlab;
 
 import org.opensourceway.sbom.clients.vcs.VcsApi;
 import org.opensourceway.sbom.clients.vcs.gitlab.model.GitlabRepoInfo;
+import org.opensourceway.sbom.constants.SbomConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -11,6 +12,8 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 @Component
@@ -28,7 +31,10 @@ public class GitlabApi implements VcsApi {
     @Override
     public Mono<GitlabRepoInfo.RepoInfo> getRepoInfo(String org, String repo) {
         return createWebClient().get()
-                .uri(URI.create("%s/api/v4/projects/%s%%2f%s?license=true".formatted(defaultBaseUrl, "libeigen", "eigen")))
+                .uri(URI.create("%s/api/v4/projects/%s%s%s?license=true".formatted(defaultBaseUrl,
+                        org,
+                        URLEncoder.encode(SbomConstants.LINUX_FILE_SYSTEM_SEPARATOR, StandardCharsets.UTF_8),
+                        repo)))
                 .headers(httpHeaders -> {
                     if (!ObjectUtils.isEmpty(token)) {
                         httpHeaders.add("Authorization", "Bearer %s".formatted(token));
@@ -39,7 +45,6 @@ public class GitlabApi implements VcsApi {
                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(10))
                         .filter(throwable -> throwable instanceof WebClientResponseException.TooManyRequests))
                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(1)));
-
     }
 
 }

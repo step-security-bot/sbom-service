@@ -1,6 +1,8 @@
 val commonsLang3Version: String by project
 
 dependencies {
+    implementation(project(":utils"))
+
     implementation("org.apache.commons:commons-lang3:$commonsLang3Version")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
 
