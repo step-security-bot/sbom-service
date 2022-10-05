@@ -2,6 +2,7 @@ package org.opensourceway.sbom.openeuler.obs.impl;
 
 import com.google.common.collect.Multimap;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.computer.whunter.rpm.parser.RpmSpecParser;
 import org.opensourceway.sbom.clients.vcs.VcsApi;
@@ -16,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -42,14 +44,15 @@ public class RepoMetaParserImpl implements RepoMetaParser {
 
     public static final String ZIP_ROOT_FOLDER_NAME = "obs_meta-master";
 
-    public static final String OPENEULER_NEWEST_VERSION = "openEuler-22.03-LTS";
-
-    public static final String UNZIP_TARGET_FOLDER_PREFIX = ZIP_ROOT_FOLDER_NAME
+    public static final String UNZIP_TARGET_FOLDER_PREFIX_PATTERN = ZIP_ROOT_FOLDER_NAME
             .concat(SbomConstants.LINUX_FILE_SYSTEM_SEPARATOR)
-            .concat(OPENEULER_NEWEST_VERSION)
+            .concat("%s")
             .concat(SbomConstants.LINUX_FILE_SYSTEM_SEPARATOR);
 
     public static final String OPENEULER_META_FILE_NAME = "_service";
+
+    @Value("${openeuler.newest.versions}")
+    private String[] openEulerNewestVersion;
 
     @Autowired
     @Qualifier("giteeApi")
@@ -218,9 +221,21 @@ public class RepoMetaParserImpl implements RepoMetaParser {
         return Files.createTempDirectory(SbomRepoConstants.TMP_DIR_PREFIX);
     }
 
+    private boolean isTargetVersion(String filePath) {
+        if (ArrayUtils.isEmpty(openEulerNewestVersion) || StringUtils.isEmpty(filePath)) {
+            return false;
+        }
+        for (String targetVersion : openEulerNewestVersion) {
+            if (filePath.startsWith(UNZIP_TARGET_FOLDER_PREFIX_PATTERN.formatted(targetVersion))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean isTargetFile(ZipEntry zipEntry) {
         return (!zipEntry.isDirectory())
-                && zipEntry.getName().startsWith(UNZIP_TARGET_FOLDER_PREFIX)
+                && isTargetVersion(zipEntry.getName())
                 && zipEntry.getName().endsWith(OPENEULER_META_FILE_NAME);
     }
 
