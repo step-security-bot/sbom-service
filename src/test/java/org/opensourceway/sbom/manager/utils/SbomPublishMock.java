@@ -1,6 +1,7 @@
 package org.opensourceway.sbom.manager.utils;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.opensourceway.sbom.manager.model.vo.request.PublishSbomRequest;
 import org.opensourceway.sbom.manager.model.vo.response.PublishSbomResponse;
@@ -29,6 +30,7 @@ public class SbomPublishMock {
             .build();
 
     @Test
+    @Disabled
     public void mockSbomPublish() {
         logger.info("begin mock SBOM publish");
 
