@@ -136,6 +136,12 @@ public class RepoMetaParserImpl implements RepoMetaParser {
                         repoInfo.getRepoName(),
                         repoInfo.getBranch());
                 repoInfoIt.remove();
+            } catch (Exception e) {
+                logger.error("repo name:{}, repo branch:{} fetch repo build file info failed, and remove it, failed info:",
+                        repoInfo.getRepoName(),
+                        repoInfo.getBranch(),
+                        e);
+                repoInfoIt.remove();
             }
         }
     }
