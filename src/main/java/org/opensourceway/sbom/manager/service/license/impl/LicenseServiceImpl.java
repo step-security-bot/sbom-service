@@ -82,7 +82,7 @@ public class LicenseServiceImpl implements LicenseService {
 
     private Boolean isContainPackage(Package pkg, License license) {
         for (Package pkgs : license.getPackages()) {
-            if (pkgs.getName().equals(pkg.getName())) {
+            if (pkgs.getId().equals(pkg.getId())) {
                 return true;
             }
         }
@@ -195,11 +195,12 @@ public class LicenseServiceImpl implements LicenseService {
                 List<String> illegalLicenseList = response.getResult().getRepoLicenseIllegal();
                 List<String> licenseList = new ArrayList<>(illegalLicenseList);
                 licenseList.addAll(response.getResult().getRepoLicenseLegal());
+                Package pkg = packageRepository.findById(purlRef.getPkg().getId()).orElseThrow();
+                saveLicenseAndCopyrightForPackage(response, pkg);
                 licenseList.forEach(lic -> {
                     License license = licenseRepository.findBySpdxLicenseId(lic).orElse(new License());
                     license.setSpdxLicenseId(lic);
                     getLicenseIdAndUrl(license, licenseInfoMap, lic);
-                    Package pkg = packageRepository.findById(purlRef.getPkg().getId()).orElseThrow();
                     if (pkg.getLicenses() == null) {
                         pkg.setLicenses(new HashSet<>());
                     }
@@ -225,5 +226,15 @@ public class LicenseServiceImpl implements LicenseService {
             }
         }
         logger.info("The num of package not scanned license: {}", numOfNotScan);
+    }
+
+    private void saveLicenseAndCopyrightForPackage(ComplianceResponse response, Package pkg) {
+        if (response.getResult().getRepoCopyrightLegal().size() != 0) {
+            pkg.setCopyright(response.getResult().getRepoCopyrightLegal().get(0));
+        }
+        if (response.getResult().getRepoLicense().size() != 0) {
+            pkg.setLicenseConcluded(response.getResult().getRepoLicense().get(0));
+        }
+        packageRepository.save(pkg);
     }
 }
