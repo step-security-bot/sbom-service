@@ -73,6 +73,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -467,12 +469,35 @@ public class SbomServiceImpl implements SbomService {
 
     @Override
     public List<CopyrightVo> queryCopyrightByPackageId(String packageId) {
-        // TODO  Data is temporarily fixed
         CopyrightVo copyrightVo = new CopyrightVo();
-        copyrightVo.setOrganization("copyrightTmp");
-        copyrightVo.setStartYear("2000");
-        copyrightVo.setAdditionalInfo("XXXXXXX");
+        Package pkg = packageRepository.findById(UUID.fromString(packageId)).orElse(new Package());
+        String copyright = pkg.getCopyright();
+        if (copyright == null) {
+            logger.debug("can not get copyright for package {}.", pkg.getId());
+            return List.of(new CopyrightVo());
+        }
+        String pattern = SbomConstants.COPYRIGHT_REGULAR_EXPRESSION;
+        Pattern r = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
+        Matcher m = r.matcher(copyright);
+        if (m.find()) {
+            String organization = cleanRegex(m.group(5));
+            String startYear = cleanRegex(m.group(3)).split("\\W")[0];
+
+            copyrightVo.setOrganization(organization);
+            copyrightVo.setStartYear(startYear);
+            copyrightVo.setAdditionalInfo(copyright);
+        } else {
+            logger.error("copyright of package {} can not match regular expression.", pkg.getId());
+        }
         return List.of(copyrightVo);
+    }
+
+    public String cleanRegex(String s) {
+        String pattern = "^\\W*|\\W*$";
+        Pattern r = Pattern.compile(pattern);
+        Matcher m = r.matcher(s);
+        s = m.replaceAll("");
+        return s;
     }
 
 }

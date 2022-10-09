@@ -667,9 +667,9 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.licenseContent.[0].licenseUrl").value("https://xxx/licenses/License-test"))
                 .andExpect(jsonPath("$.licenseContent.[0].legal").value(false))
                 .andExpect(jsonPath("$.copyrightContent.length()").value(1))
-                .andExpect(jsonPath("$.copyrightContent.[0].organization").value("copyrightTmp"))
-                .andExpect(jsonPath("$.copyrightContent.[0].startYear").value("2000"))
-                .andExpect(jsonPath("$.copyrightContent.[0].additionalInfo").value("XXXXXXX"));
+                .andExpect(jsonPath("$.copyrightContent.[0].organization").value("Free Software Foundation, Inc"))
+                .andExpect(jsonPath("$.copyrightContent.[0].startYear").value("1989"))
+                .andExpect(jsonPath("$.copyrightContent.[0].additionalInfo").value("Copyright (c) 1989, 1991 Free Software Foundation, Inc."));
 
     }
 }
