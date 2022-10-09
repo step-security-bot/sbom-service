@@ -82,7 +82,7 @@ public class OpenEulerMetaParserTest {
         assertThat(repoInfoSet.size()).isEqualTo(7);
 
         List<RepoInfoVo> repoInfoList = repoInfoSet.stream().toList();
-        assertThat(repoInfoList.get(0).getDownloadLocation()).isEqualTo("https://gitee.com/src-openeuler/three-eight-nine-ds-base.git");
+        assertThat(repoInfoList.get(0).getDownloadLocation()).isEqualTo("https://gitee.com/src-openeuler/three-eight-nine-ds-base/tree/openEuler-22.03-LTS");
         assertThat(repoInfoList.get(0).getSpecDownloadUrl()).isEqualTo("https://gitee.com/src-openeuler/three-eight-nine-ds-base/raw/openEuler-22.03-LTS/389-ds-base.spec");
         assertThat(repoInfoList.get(0).getUpstreamDownloadUrls().size()).isEqualTo(2);
         assertThat(repoInfoList.get(0).getUpstreamDownloadUrls().contains("https://gitee.com/src-openeuler/three-eight-nine-ds-base/raw/openEuler-22.03-LTS/jemalloc.yaml")).isTrue();
@@ -92,13 +92,13 @@ public class OpenEulerMetaParserTest {
         assertThat(repoInfoList.get(0).getPackageNames().get(3)).isEqualTo("389-ds-base-snmp");
         assertThat(repoInfoList.get(0).getPackageNames().get(4)).isEqualTo("python3-lib389");
 
-        assertThat(repoInfoList.get(1).getDownloadLocation()).isEqualTo("https://gitee.com/src-openeuler/CUnit.git");
+        assertThat(repoInfoList.get(1).getDownloadLocation()).isEqualTo("https://gitee.com/src-openeuler/CUnit/tree/openEuler-22.03-LTS");
         assertThat(repoInfoList.get(1).getSpecDownloadUrl()).isEqualTo("https://gitee.com/src-openeuler/CUnit/raw/openEuler-22.03-LTS/CUnit.spec");
         assertThat(repoInfoList.get(1).getUpstreamDownloadUrls().size()).isEqualTo(1);
         assertThat(repoInfoList.get(1).getPatchInfo()).isNull();
         assertThat(repoInfoList.get(1).getPackageNames().size()).isEqualTo(3);
 
-        assertThat(repoInfoList.get(2).getDownloadLocation()).isEqualTo("https://gitee.com/src-openeuler/texlive-split-m.git");
+        assertThat(repoInfoList.get(2).getDownloadLocation()).isEqualTo("https://gitee.com/src-openeuler/texlive-split-m/tree/openEuler-22.03-LTS");
         assertThat(repoInfoList.get(2).getUpstreamDownloadUrls().size()).isEqualTo(1);
         assertThat(repoInfoList.get(2).getUpstreamDownloadUrls().contains("https://gitee.com/src-openeuler/texlive-split-m/raw/openEuler-22.03-LTS/texlive-split-m.yaml")).isTrue();
         assertThat(repoInfoList.get(2).getPackageNames().size()).isEqualTo(140);
