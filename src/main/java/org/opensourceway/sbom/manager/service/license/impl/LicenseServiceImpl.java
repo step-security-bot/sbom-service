@@ -82,7 +82,7 @@ public class LicenseServiceImpl implements LicenseService {
 
     private Boolean isContainPackage(Package pkg, License license) {
         for (Package pkgs : license.getPackages()) {
-            if (pkgs.getName().equals(pkg.getName())) {
+            if (pkgs.getId().equals(pkg.getId())) {
                 return true;
             }
         }
