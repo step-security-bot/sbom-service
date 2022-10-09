@@ -130,7 +130,8 @@ public class RepoMetaParserImpl implements RepoMetaParser {
                 repoInfo.setDownloadLocation(SbomRepoConstants.OPENEULER_REPO_SOURCE_URL_PATTERN
                         .formatted(giteeApi.getDefaultBaseUrl(),
                                 SbomRepoConstants.OPENEULER_REPO_ORG,
-                                repoInfo.getRepoName()));
+                                repoInfo.getRepoName(),
+                                repoInfo.getBranch()));
             } catch (WebClientResponseException.NotFound e) {
                 logger.warn("repo name:{}, repo branch:{} can't be found in Gitee, and remove it",
                         repoInfo.getRepoName(),

@@ -13,6 +13,6 @@ public class SbomRepoConstants {
 
     public static final String YAML_FILE_NAME_REGEX = ".*(\\.yaml)";
 
-    public static final String OPENEULER_REPO_SOURCE_URL_PATTERN = "%s/%s/%s.git";
+    public static final String OPENEULER_REPO_SOURCE_URL_PATTERN = "%s/%s/%s/tree/%s";
 
 }
