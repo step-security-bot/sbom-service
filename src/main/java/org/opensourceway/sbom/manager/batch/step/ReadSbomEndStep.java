@@ -29,14 +29,17 @@ public class ReadSbomEndStep implements Tasklet {
     public RepeatStatus execute(@NotNull StepContribution contribution, @NotNull ChunkContext chunkContext) {
         ExecutionContext jobContext = ExecutionContextUtils.getJobContext(contribution);
         UUID rawSbomId = (UUID) jobContext.get(BatchContextConstants.BATCH_RAW_SBOM_ID_KEY);
-        logger.info("start ReadSbomEndStep rawSbomId:{}", rawSbomId);
+        UUID sbomId = jobContext.containsKey(BatchContextConstants.BATCH_SBOM_ID_KEY) ?
+                (UUID) jobContext.get(BatchContextConstants.BATCH_SBOM_ID_KEY) : null;
+
+        logger.info("start ReadSbomEndStep sbomId:{}, rawSbomId:{}", sbomId, rawSbomId);
 
         rawSbomRepository.findById(rawSbomId).ifPresent(rawSbom -> {
             rawSbom.setTaskStatus(SbomConstants.TASK_STATUS_FINISH);
             rawSbomRepository.save(rawSbom);
         });
 
-        logger.info("finish ReadSbomEndStep");
+        logger.info("finish ReadSbomEndStep sbomId:{}, rawSbomId:{}", sbomId, rawSbomId);
         return RepeatStatus.FINISHED;
     }
 

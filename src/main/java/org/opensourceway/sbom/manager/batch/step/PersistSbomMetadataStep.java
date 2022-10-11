@@ -34,8 +34,9 @@ public class PersistSbomMetadataStep implements Tasklet {
 
     @Override
     public RepeatStatus execute(@NotNull StepContribution contribution, @NotNull ChunkContext chunkContext) {
-        logger.info("start PersistSbomMetadataStep");
         ExecutionContext jobContext = ExecutionContextUtils.getJobContext(contribution);
+        UUID rawSbomId = (UUID) jobContext.get(BatchContextConstants.BATCH_RAW_SBOM_ID_KEY);
+        logger.info("start PersistSbomMetadataStep rawSbomId:{}", rawSbomId);
 
         String productName = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_NAME_KEY);
         SbomSpecification specification = (SbomSpecification) jobContext.get(BatchContextConstants.BATCH_SBOM_SPEC_KEY);
@@ -50,7 +51,6 @@ public class PersistSbomMetadataStep implements Tasklet {
         Sbom sbom = sbomReader.persistSbom(productName, sbomDocument);
 
         // update task status
-        UUID rawSbomId = (UUID) jobContext.get(BatchContextConstants.BATCH_RAW_SBOM_ID_KEY);
         rawSbomRepository.findById(rawSbomId).ifPresent(rawSbom -> {
             rawSbom.setTaskStatus(SbomConstants.TASK_STATUS_FINISH_PARSE);
             rawSbomRepository.save(rawSbom);
@@ -59,7 +59,7 @@ public class PersistSbomMetadataStep implements Tasklet {
         // update context
         jobContext.put(BatchContextConstants.BATCH_SBOM_ID_KEY, sbom.getId());
         jobContext.remove(BatchContextConstants.BATCH_SBOM_DOCUMENT_KEY);
-        logger.info("finish PersistSbomMetadataStep, sbom id:{}", sbom.getId().toString());
+        logger.info("finish PersistSbomMetadataStep rawSbomId:{}, sbom id:{}", rawSbomId, sbom.getId().toString());
         return RepeatStatus.FINISHED;
     }
 

@@ -35,12 +35,12 @@ public class PackageWithChecksumProcessor implements ItemProcessor<Package, List
     public List<List<ExternalPurlRef>> process(Package pkg) {
         UUID sbomId = this.jobContext.containsKey(BatchContextConstants.BATCH_SBOM_ID_KEY) ?
                 (UUID) this.jobContext.get(BatchContextConstants.BATCH_SBOM_ID_KEY) : null;
-        logger.info("start PackageWithChecksumProcessor sbomId:{}", sbomId);
+        logger.info("start PackageWithChecksumProcessor sbomId:{}, pkg id:{}", sbomId, pkg.getId().toString());
 
         List<List<ExternalPurlRef>> resultList = checksumService.extractGAVByChecksumRef(pkg.getId(),
                 ReferenceCategory.EXTERNAL_MANAGER.name(), SbomConstants.ExternalPurlRef_TYPE_CHECKSUM);
 
-        logger.info("finish PackageWithChecksumProcessor resultSet size:{}", resultList.size());
+        logger.info("finish PackageWithChecksumProcessor sbomId:{}, resultSet size:{}", sbomId, resultList.size());
         return resultList;
     }
 

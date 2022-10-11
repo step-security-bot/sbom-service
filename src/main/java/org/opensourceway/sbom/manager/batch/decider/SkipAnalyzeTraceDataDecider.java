@@ -13,11 +13,13 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.job.flow.FlowExecutionStatus;
 import org.springframework.batch.core.job.flow.JobExecutionDecider;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public class SkipAnalyzeTraceDataDecider implements JobExecutionDecider {
 
@@ -33,18 +35,20 @@ public class SkipAnalyzeTraceDataDecider implements JobExecutionDecider {
     @NotNull
     @Override
     public FlowExecutionStatus decide(JobExecution jobExecution, @Nullable StepExecution stepExecution) {
-        logger.info("start SkipAnalyzeTraceDataDecider");
-        String productName = jobExecution.getExecutionContext().getString(BatchContextConstants.BATCH_SBOM_PRODUCT_NAME_KEY);
+        ExecutionContext jobContext = jobExecution.getExecutionContext();
+        UUID rawSbomId = (UUID) jobContext.get(BatchContextConstants.BATCH_RAW_SBOM_ID_KEY);
+        String productName = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_NAME_KEY);
+        logger.info("start SkipAnalyzeTraceDataDecider rawSbomId:{}, productName:{}", rawSbomId, productName);
 
         Optional<Product> productOptional = productRepository.findByName(productName);
 
         if (productOptional.isPresent()
                 && NEED_ANALYZE_TRACE_DATA_PRODUCT_LIST.contains(
                 StringUtils.lowerCase(String.valueOf(productOptional.get().getAttribute().get(BatchContextConstants.BATCH_PRODUCT_TYPE_KEY))))) {
-            logger.info("SkipAnalyzeTraceDataDecider to inorder");
+            logger.info("SkipAnalyzeTraceDataDecider to inorder, rawSbomId:{}", rawSbomId);
             return new FlowExecutionStatus(BatchFlowExecConstants.FLOW_EXECUTION_STATUS_OF_INORDER);
         } else {
-            logger.info("SkipAnalyzeTraceDataDecider to skip");
+            logger.info("SkipAnalyzeTraceDataDecider to skip, rawSbomId:{}", rawSbomId);
             return new FlowExecutionStatus(BatchFlowExecConstants.FLOW_EXECUTION_STATUS_OF_SKIP);
         }
     }

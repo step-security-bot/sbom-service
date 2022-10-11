@@ -515,7 +515,7 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.*", hasSize(4)))
                 .andExpect(jsonPath("$.[0].name").value("version"))
                 .andExpect(jsonPath("$.[0].label").value("版本号"))
-                .andExpect(jsonPath("$.[0].valueType").value("enum([{\"label\":\"22.03-LTS\",\"value\":\"22.03-LTS\"}])"))
+                .andExpect(jsonPath("$.[0].valueType").value("enum([{\"label\":\"openEuler-22.03-LTS\",\"value\":\"openEuler-22.03-LTS\"}])"))
                 .andExpect(jsonPath("$.[0].ord").value(1))
                 .andExpect(jsonPath("$.[3].name").value("arch"))
                 .andExpect(jsonPath("$.[3].label").value("系统架构"))
@@ -538,7 +538,7 @@ public class PkgQueryControllerTests {
     @Test
     public void queryProductByAttrsForOpenEuler1() throws Exception {
         Map<String, String> attributes = CollectionUtils.newHashMap(0);
-        attributes.put("version", "22.03-LTS");
+        attributes.put("version", "openEuler-22.03-LTS");
         attributes.put("imageFormat", "ISO");
         attributes.put("imageType", "everything");
         attributes.put("arch", "x86_64");
@@ -562,7 +562,7 @@ public class PkgQueryControllerTests {
         attributes.put("arch", "x86_64");
         attributes.put("imageType", "everything");
         attributes.put("imageFormat", "ISO");
-        attributes.put("version", "22.03-LTS");
+        attributes.put("version", "openEuler-22.03-LTS");
 
         this.mockMvc
                 .perform(post("/sbom-api/queryProduct/%s".formatted(TestConstants.OPENEULER_PRODUCT_TYPE_NAME))
@@ -580,7 +580,7 @@ public class PkgQueryControllerTests {
     @Test
     public void queryProductByAttrsForOpenEulerError() throws Exception {
         Map<String, String> attributes = CollectionUtils.newHashMap(0);
-        attributes.put("version", "22.03-LTS");
+        attributes.put("version", "openEuler-22.03-LTS");
         attributes.put("imageFormat", "ISO");
         attributes.put("imageType", "everything");
 

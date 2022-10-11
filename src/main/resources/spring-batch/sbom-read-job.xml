@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:beans="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/batch https://www.springframework.org/schema/batch/spring-batch.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean class="org.springframework.batch.core.scope.StepScope">
+        <property name="proxyTargetClass" value="true"/>
+    </bean>
 
     <job id="readSbomJob" xmlns="http://www.springframework.org/schema/batch">
         <step id="selectWaitRawSbomTask">
@@ -32,10 +37,17 @@
         <!-- In org.opensourceway.sbom.manager.batch.job.JobConfiguration.restartSbomReadJob, use this step id decide rawSbom record's new taskStatus -->
         <step id="resolveMavenDepTask" next="sbomConsumers">
             <tasklet>
-                <chunk reader="packageWithChecksumListReader"
-                       processor="packageWithChecksumListProcessor"
+                <chunk processor="packageWithChecksumListProcessor"
                        writer="packageWithChecksumListWriter"
-                       commit-interval="3"/>
+                       commit-interval="3">
+                    <reader>
+                        <beans:bean id="packageWithChecksumListReader"
+                                    class="org.opensourceway.sbom.manager.batch.reader.checksum.PackageWithChecksumListReader"
+                                    scope="step">
+                            <beans:constructor-arg ref="checksumServiceImpl"/>
+                        </beans:bean>
+                    </reader>
+                </chunk>
             </tasklet>
         </step>
 
@@ -43,10 +55,16 @@
             <flow>
                 <step id="extractOssIndex">
                     <tasklet>
-                        <chunk reader="extractOssIndexReader"
-                               processor="extractOssIndexProcessor"
+                        <chunk processor="extractOssIndexProcessor"
                                writer="extractOssIndexWriter"
                                commit-interval="2" retry-limit="3">
+                            <reader>
+                                <beans:bean id="extractOssIndexReader"
+                                            class="org.opensourceway.sbom.manager.batch.reader.vul.ExternalPurlRefListReader"
+                                            scope="step">
+                                    <beans:constructor-arg ref="ossIndexServiceImpl"/>
+                                </beans:bean>
+                            </reader>
                             <retryable-exception-classes>
                                 <include class="java.lang.Exception"/>
                             </retryable-exception-classes>
@@ -57,11 +75,17 @@
             <flow>
                 <step id="extractCveManger">
                     <tasklet>
-                        <chunk reader="extractCveManagerReader"
-                               processor="extractCveManagerProcessor"
+                        <chunk processor="extractCveManagerProcessor"
                                writer="extractCveManagerWriter"
                                commit-interval="2" retry-limit="3">
                             <!-- retry-limit: 1(first execution) + 2(twice retry) = 3-->
+                            <reader>
+                                <beans:bean id="extractCveManagerReader"
+                                            class="org.opensourceway.sbom.manager.batch.reader.vul.ExternalPurlRefListReader"
+                                            scope="step">
+                                    <beans:constructor-arg ref="cveManagerServiceImpl"/>
+                                </beans:bean>
+                            </reader>
                             <retryable-exception-classes>
                                 <include class="java.lang.Exception"/>
                             </retryable-exception-classes>
@@ -72,10 +96,17 @@
             <flow>
                 <step id="extractLicense">
                     <tasklet>
-                        <chunk reader="extractLicenseReader"
-                               processor="extractLicenseProcessor"
+                        <chunk processor="extractLicenseProcessor"
                                writer="extractLicenseWriter"
-                               commit-interval="2"/>
+                               commit-interval="2">
+                            <reader>
+                                <beans:bean id="extractLicenseReader"
+                                            class="org.opensourceway.sbom.manager.batch.reader.license.ExternalPurlRefListReader"
+                                            scope="step">
+                                    <beans:constructor-arg ref="licenseServiceImpl"/>
+                                </beans:bean>
+                            </reader>
+                        </chunk>
                     </tasklet>
                 </step>
             </flow>
@@ -113,10 +144,6 @@
     <bean id="taskExecutor" class="org.springframework.core.task.SimpleAsyncTaskExecutor"/>
 
     <!-- checksum Service -->
-    <bean id="packageWithChecksumListReader"
-          class="org.opensourceway.sbom.manager.batch.reader.checksum.PackageWithChecksumListReader">
-        <constructor-arg ref="checksumServiceImpl"/>
-    </bean>
     <bean id="packageWithChecksumListProcessor"
           class="org.opensourceway.sbom.manager.batch.processor.checksum.PackageWithChecksumProcessor"/>
     <bean id="packageWithChecksumListWriter"
@@ -125,10 +152,6 @@
     </bean>
 
     <!-- OssIndex CVE Service -->
-    <bean id="extractOssIndexReader"
-          class="org.opensourceway.sbom.manager.batch.reader.vul.ExternalPurlRefListReader">
-        <constructor-arg ref="ossIndexServiceImpl"/>
-    </bean>
     <bean id="extractOssIndexProcessor"
           class="org.opensourceway.sbom.manager.batch.processor.vul.ExtractOssIndexProcessor"/>
     <bean id="extractOssIndexWriter"
@@ -138,10 +161,6 @@
     <!-- OssIndex CVE Service -->
 
     <!-- CVE Manager CVE Service -->
-    <bean id="extractCveManagerReader"
-          class="org.opensourceway.sbom.manager.batch.reader.vul.ExternalPurlRefListReader">
-        <constructor-arg ref="cveManagerServiceImpl"/>
-    </bean>
     <bean id="extractCveManagerProcessor"
           class="org.opensourceway.sbom.manager.batch.processor.vul.ExtractCveManagerProcessor"/>
     <bean id="extractCveManagerWriter"
@@ -154,10 +173,6 @@
           class="org.opensourceway.sbom.manager.batch.step.CollectStatisticsStep"/>
 
     <!-- License Service -->
-    <bean id="extractLicenseReader"
-          class="org.opensourceway.sbom.manager.batch.reader.license.ExternalPurlRefListReader">
-        <constructor-arg ref="licenseServiceImpl"/>
-    </bean>
     <bean id="extractLicenseProcessor"
           class="org.opensourceway.sbom.manager.batch.processor.license.ExtractLicensesProcessor"/>
     <bean id="extractLicenseWriter"

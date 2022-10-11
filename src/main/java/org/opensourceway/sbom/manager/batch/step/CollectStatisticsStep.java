@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class CollectStatisticsStep implements Tasklet {
@@ -37,10 +38,12 @@ public class CollectStatisticsStep implements Tasklet {
     private ProductRepository productRepository;
 
     @Override
-    public RepeatStatus execute(@NotNull StepContribution contribution, @NotNull ChunkContext chunkContext) throws Exception {
-        logger.info("start CollectStatisticsStep");
-
+    public RepeatStatus execute(@NotNull StepContribution contribution, @NotNull ChunkContext chunkContext) {
         ExecutionContext jobContext = ExecutionContextUtils.getJobContext(contribution);
+        UUID sbomId = jobContext.containsKey(BatchContextConstants.BATCH_SBOM_ID_KEY) ?
+                (UUID) jobContext.get(BatchContextConstants.BATCH_SBOM_ID_KEY) : null;
+        logger.info("start CollectStatisticsStep sbomId:{}", sbomId);
+
         String productName = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_NAME_KEY);
         Product product = productRepository.findByName(productName)
                 .orElseThrow(() -> new RuntimeException("can't find %s's product metadata".formatted(productName)));
@@ -56,7 +59,7 @@ public class CollectStatisticsStep implements Tasklet {
         product.addProductStatistics(statistics);
         productRepository.save(product);
 
-        logger.info("finish CollectStatisticsStep");
+        logger.info("finish CollectStatisticsStep sbomId:{}", sbomId);
         return RepeatStatus.FINISHED;
     }
 

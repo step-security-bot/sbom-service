@@ -16,14 +16,17 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 
+import java.util.UUID;
+
 public class ParseSbomMetadataStep implements Tasklet {
 
     private static final Logger logger = LoggerFactory.getLogger(ParseSbomMetadataStep.class);
 
     @Override
     public RepeatStatus execute(@NotNull StepContribution contribution, @NotNull ChunkContext chunkContext) throws Exception {
-        logger.info("start ParseSbomMetadataStep");
         ExecutionContext jobContext = ExecutionContextUtils.getJobContext(contribution);
+        UUID rawSbomId = (UUID) jobContext.get(BatchContextConstants.BATCH_RAW_SBOM_ID_KEY);
+        logger.info("start ParseSbomMetadataStep rawSbomId:{}", rawSbomId);
 
         String productName = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_NAME_KEY);
         SbomSpecification specification = (SbomSpecification) jobContext.get(BatchContextConstants.BATCH_SBOM_SPEC_KEY);
@@ -37,7 +40,7 @@ public class ParseSbomMetadataStep implements Tasklet {
         jobContext.put(BatchContextConstants.BATCH_SBOM_DOCUMENT_KEY, document);
         jobContext.remove(BatchContextConstants.BATCH_RAW_SBOM_BYTES_KEY);
 
-        logger.info("finish ParseSbomMetadataStep");
+        logger.info("finish ParseSbomMetadataStep rawSbomId:{}", rawSbomId);
         return RepeatStatus.FINISHED;
     }
 
