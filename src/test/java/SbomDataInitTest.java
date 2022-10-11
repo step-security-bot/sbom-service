@@ -174,7 +174,7 @@ public class SbomDataInitTest {
 
     @Test
     @Order(3)
-    public void insertLicense() {
+    public void insertLicenseAndCopyright() {
         Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
         assertThat(sbom).isNotNull();
         Package pkg = sbom.getPackages().stream()
@@ -182,6 +182,13 @@ public class SbomDataInitTest {
                 .findFirst().orElse(null);
         assertThat(pkg).isNotNull();
         insertLicense("License-test", pkg);
+        insertCopyright(pkg);
+    }
+
+    private void insertCopyright(Package pkg) {
+        pkg.setCopyright("Copyright (c) 1989, 1991 Free Software Foundation, Inc.");
+        packageRepository.save(pkg);
+        assertThat(pkg.getCopyright()).isEqualTo("Copyright (c) 1989, 1991 Free Software Foundation, Inc.");
     }
 
     private void insertLicense(String lic, Package pkg) {
@@ -207,7 +214,7 @@ public class SbomDataInitTest {
 
     private Boolean isContainLicense(Package pkg, License license) {
         for (Package pkgs : license.getPackages()) {
-            if (pkgs.getName().equals(pkg.getName())) {
+            if (pkgs.getId().equals(pkg.getId())) {
                 return true;
             }
         }

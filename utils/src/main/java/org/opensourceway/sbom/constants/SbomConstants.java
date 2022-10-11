@@ -55,4 +55,6 @@ public class SbomConstants {
 
     public static final String LINUX_FILE_SYSTEM_SEPARATOR = "/";
 
+    public static final String COPYRIGHT_REGULAR_EXPRESSION = "(?!.*(?:\\{|\\}|\\);))(?:(copyright)[ \\t]*(?:(©|\\(c\\)|&#(?:169|xa9;)|©)[ \\t]+)?)(?:((?:((?:(?:19|20)[0-9]{2}))[^\\w\\n]*)*)([ \\t,\\w]*))";
+
 }

@@ -12,6 +12,9 @@ public class LicenseAndCopyright implements Serializable {
     @JsonProperty("is_sca")
     private String isSca;
 
+    @JsonProperty("repo_license")
+    private List<String> repoLicense;
+
     @JsonProperty("repo_license_legal")
     private List<String> repoLicenseLegal;
 
@@ -31,6 +34,15 @@ public class LicenseAndCopyright implements Serializable {
     public void setIsSca(String isSca) {
         this.isSca = isSca;
     }
+
+    public List<String> getRepoLicense() {
+        return repoLicense;
+    }
+
+    public void setRepoLicense(List<String> repoLicense) {
+        this.repoLicense = repoLicense;
+    }
+
 
     public List<String> getRepoLicenseLegal() {
         return repoLicenseLegal;
