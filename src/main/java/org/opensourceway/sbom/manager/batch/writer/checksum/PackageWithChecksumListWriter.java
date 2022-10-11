@@ -40,7 +40,7 @@ public class PackageWithChecksumListWriter implements ItemWriter<List<List<Exter
 
             getChecksumService().persistExternalGAVRef(externalPurlRefList);
         }
-        logger.info("finish PackageWithChecksumListWriter");
+        logger.info("finish PackageWithChecksumListWriter sbomId:{}", sbomId);
     }
 
     @Override

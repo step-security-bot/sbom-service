@@ -1,5 +1,6 @@
 package org.opensourceway.sbom.manager.batch.processor.vul;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
@@ -37,11 +38,14 @@ public class ExtractCveManagerProcessor implements ItemProcessor<List<ExternalPu
     public Set<Pair<ExternalPurlRef, Object>> process(List<ExternalPurlRef> chunk) {
         UUID sbomId = this.jobContext.containsKey(BatchContextConstants.BATCH_SBOM_ID_KEY) ?
                 (UUID) this.jobContext.get(BatchContextConstants.BATCH_SBOM_ID_KEY) : null;
-        logger.info("start ExtractCveManagerProcessor sbomId:{}, chunk size:{}", sbomId, chunk.size());
+        logger.info("start ExtractCveManagerProcessor sbomId:{}, chunk size:{}, first item id:{}",
+                sbomId,
+                chunk.size(),
+                CollectionUtils.isEmpty(chunk) ? "" : chunk.get(0).getId().toString());
 
         Set<Pair<ExternalPurlRef, Object>> resultSet = cveManagerService.extractVulForPurlRefChunk(sbomId, chunk);
 
-        logger.info("finish ExtractCveManagerProcessor resultSet size:{}", resultSet.size());
+        logger.info("finish ExtractCveManagerProcessor sbomId:{}, resultSet size:{}", sbomId, resultSet.size());
         return resultSet;
     }
 

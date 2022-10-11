@@ -272,7 +272,7 @@ public class OssIndexServiceImpl extends AbstractVulService {
                             resultSet.add(Pair.of(purlRef, responseVul));
                         }));
             } catch (Exception e) {
-                logger.error("failed to extract vulnerabilities from OssIndex for sbom {}", sbomId);
+                logger.error("failed to extract vulnerabilities from OssIndex for sbom {}", sbomId, e);
                 reportVulFetchFailure(sbomId);
                 throw e;
             }

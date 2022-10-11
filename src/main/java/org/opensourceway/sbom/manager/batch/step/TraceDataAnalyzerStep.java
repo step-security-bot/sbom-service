@@ -15,6 +15,8 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.UUID;
+
 public class TraceDataAnalyzerStep implements Tasklet {
 
     private static final Logger logger = LoggerFactory.getLogger(TraceDataAnalyzerStep.class);
@@ -24,8 +26,9 @@ public class TraceDataAnalyzerStep implements Tasklet {
 
     @Override
     public RepeatStatus execute(@NotNull StepContribution contribution, @NotNull ChunkContext chunkContext) {
-        logger.info("start TraceDataAnalyzerStep");
         ExecutionContext jobContext = ExecutionContextUtils.getJobContext(contribution);
+        UUID rawSbomId = (UUID) jobContext.get(BatchContextConstants.BATCH_RAW_SBOM_ID_KEY);
+        logger.info("start TraceDataAnalyzerStep rawSbomId:{}", rawSbomId);
 
         String productName = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_NAME_KEY);
         SbomSpecification specification = (SbomSpecification) jobContext.get(BatchContextConstants.BATCH_SBOM_SPEC_KEY);
@@ -38,7 +41,7 @@ public class TraceDataAnalyzerStep implements Tasklet {
         // byte[] sbomData = traceDataAnalyzer.analyze(productName, traceData);
         // ExecutionContextUtils.getExecutionContext(contribution).put(BatchContextConstants.BATCH_RAW_SBOM_BYTES_KEY,sbomData);
 
-        logger.info("finish TraceDataAnalyzerStep");
+        logger.info("finish TraceDataAnalyzerStep rawSbomId:{}", rawSbomId);
         return RepeatStatus.FINISHED;
     }
 }

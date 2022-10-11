@@ -1,5 +1,6 @@
 package org.opensourceway.sbom.manager.batch.processor.license;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.opensourceway.sbom.constants.BatchContextConstants;
@@ -34,11 +35,14 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
     public Set<Pair<ExternalPurlRef, Object>> process(List<ExternalPurlRef> chunk) {
         UUID sbomId = this.jobContext.containsKey(BatchContextConstants.BATCH_SBOM_ID_KEY) ?
                 (UUID) this.jobContext.get(BatchContextConstants.BATCH_SBOM_ID_KEY) : null;
-        logger.info("start ExtractLicenseProcessor sbomId:{}, chunk size:{}", sbomId, chunk.size());
+        logger.info("start ExtractLicenseProcessor sbomId:{}, chunk size:{}, first item id:{}",
+                sbomId,
+                chunk.size(),
+                CollectionUtils.isEmpty(chunk) ? "" : chunk.get(0).getId().toString());
 
         Set<Pair<ExternalPurlRef, Object>> resultSet = licenseService.extractLicenseForPurlRefChunk(sbomId, chunk);
 
-        logger.info("finish ExtractLicenseProcessor resultSet size:{}", resultSet.size());
+        logger.info("finish ExtractLicenseProcessor sbomId:{}, resultSet size:{}", sbomId, resultSet.size());
         return resultSet;
     }
 

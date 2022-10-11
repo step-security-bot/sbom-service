@@ -17,6 +17,7 @@ import org.springframework.batch.item.ItemWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public class ExternalPurlRefListWriter implements ItemWriter<Set<Pair<ExternalPurlRef, Object>>>, StepExecutionListener {
 
@@ -37,13 +38,15 @@ public class ExternalPurlRefListWriter implements ItemWriter<Set<Pair<ExternalPu
 
     @Override
     public void write(List<? extends Set<Pair<ExternalPurlRef, Object>>> chunks) {
-        logger.info("start ExternalPurlRefListWriter service name:{}, chunk size:{}", getLicenseService().getClass().getName(), chunks.size());
+        UUID sbomId = this.jobContext.containsKey(BatchContextConstants.BATCH_SBOM_ID_KEY) ?
+                (UUID) this.jobContext.get(BatchContextConstants.BATCH_SBOM_ID_KEY) : null;
+        logger.info("start ExternalPurlRefListWriter service name:{}, sbomId:{}, chunk size:{}", getLicenseService().getClass().getSimpleName(), sbomId, chunks.size());
         for (Set<Pair<ExternalPurlRef, Object>> externalLicenseRefSet : chunks) {
 
             getLicenseService().persistExternalLicenseRefChunk(externalLicenseRefSet,
                     (Map<String, LicenseNameAndUrl>) jobContext.get(BatchContextConstants.BATCH_LICENSE_INFO_MAP));
         }
-        logger.info("finish ExternalPurlRefListWriter");
+        logger.info("finish ExternalPurlRefListWriter sbomId:{}", sbomId);
     }
 
     @Override
