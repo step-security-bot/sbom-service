@@ -18,8 +18,14 @@ public class BatchContextConstants {
 
     public final static String BATCH_JOB_RESTART_COUNTER_KEY = "BATCH_JOB_RESTART_COUNTER";
 
+    public final static String BATCH_READER_STEP_REMAINING_SIZE_KEY = "BATCH_READER_STEP_REMAINING_SIZE";
+
     public final static String BATCH_PRODUCT_TYPE_KEY = "productType";
 
     public final static String BATCH_LICENSE_INFO_MAP = "licenseInfoMap";
+
+    public final static String BUILD_IN_BATCH_CHUNK_FAILED_KEY = "sb_rollback_exception";
+
+    public final static String BUILD_IN_BATCH_CHUNK_FAILED_INPUT_KEY = "INPUTS";
 
 }
