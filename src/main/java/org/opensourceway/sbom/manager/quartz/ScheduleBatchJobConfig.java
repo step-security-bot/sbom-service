@@ -61,7 +61,7 @@ public class ScheduleBatchJobConfig {
                 .forJob(fetchOpenEulerRepoMetaJobDetail())
                 .withIdentity("fetchOpenEulerRepoMeta")
                 .startNow()
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 35 14 ? * SAT *"))
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 10 11 ? * SAT *"))
                 .build();
     }
 

@@ -96,15 +96,15 @@ public class RepoMetaRepositoryTest {
     @Test
     @Order(4)
     public void selectRepoMetaByPackageNameTest() {
-        Optional<RepoMeta> repoMetaOptional = repoMetaRepository.queryRepoMetaByPackageName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
+        Optional<RepoMeta> repoMetaOptional = repoMetaRepository.queryRepoMetaByPackageName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME, "openEuler-22.03-LTS",
                 "389-ds-base");
         assertThat(repoMetaOptional.isPresent()).isTrue();
 
-        repoMetaOptional = repoMetaRepository.queryRepoMetaByPackageName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
+        repoMetaOptional = repoMetaRepository.queryRepoMetaByPackageName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME, "openEuler-22.03-LTS",
                 "389-ds-base-devel");
         assertThat(repoMetaOptional.isPresent()).isTrue();
 
-        repoMetaOptional = repoMetaRepository.queryRepoMetaByPackageName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
+        repoMetaOptional = repoMetaRepository.queryRepoMetaByPackageName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME, "openEuler-22.03-LTS",
                 "389-ds-base-XXX");
         assertThat(repoMetaOptional.isPresent()).isFalse();
     }

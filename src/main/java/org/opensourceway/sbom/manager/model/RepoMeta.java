@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Entity
 @Table(indexes = {
-        @Index(name = "repo_name_uk", columnList = "product_type, repo_name", unique = true)
+        @Index(name = "repo_name_uk", columnList = "product_type, repo_name, branch", unique = true)
 })
 public class RepoMeta {
 
