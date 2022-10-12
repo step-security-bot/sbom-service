@@ -368,12 +368,12 @@ public class SbomServiceImpl implements SbomService {
                 result = result.stream()
                         .filter(ref -> VersionUtil.inRange(ref.getPurl().getVersion(), startVersion, endVersion))
                         .toList();
-            // 下限为空，上限非空，version <= endVersion
+                // 下限为空，上限非空，version <= endVersion
             } else if (StringUtils.isEmpty(startVersion)) {
                 result = result.stream()
                         .filter(ref -> VersionUtil.lessThanOrEqualTo(ref.getPurl().getVersion(), endVersion))
                         .toList();
-            // 上限为空，下限非空，startVersion <= version
+                // 上限为空，下限非空，startVersion <= version
             } else {
                 result = result.stream()
                         .filter(ref -> VersionUtil.greaterThanOrEqualTo(ref.getPurl().getVersion(), startVersion))
@@ -487,7 +487,7 @@ public class SbomServiceImpl implements SbomService {
             copyrightVo.setStartYear(startYear);
             copyrightVo.setAdditionalInfo(copyright);
         } else {
-            logger.error("copyright of package {} can not match regular expression.", pkg.getId());
+            logger.error("copyright of package:{} can not match regular expression, copyright:{}.", pkg.getId(), copyright);
         }
         return List.of(copyrightVo);
     }

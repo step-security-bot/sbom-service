@@ -13,40 +13,36 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-public class ExternalPurlRefListWriter implements ItemWriter<Set<Pair<ExternalPurlRef, Object>>>, StepExecutionListener {
+public class ExtractLicenseWriter implements ItemWriter<Set<Pair<ExternalPurlRef, Object>>>, StepExecutionListener {
 
-    private static final Logger logger = LoggerFactory.getLogger(ExternalPurlRefListWriter.class);
+    private static final Logger logger = LoggerFactory.getLogger(ExtractLicenseWriter.class);
 
-    private final LicenseService licenseService;
+    @Autowired
+    @Qualifier("licenseServiceImpl")
+    private LicenseService licenseService;
+
     private StepExecution stepExecution;
+
     private ExecutionContext jobContext;
-
-
-    public ExternalPurlRefListWriter(LicenseService licenseService) {
-        this.licenseService = licenseService;
-    }
-
-    public LicenseService getLicenseService() {
-        return licenseService;
-    }
 
     @Override
     public void write(List<? extends Set<Pair<ExternalPurlRef, Object>>> chunks) {
         UUID sbomId = this.jobContext.containsKey(BatchContextConstants.BATCH_SBOM_ID_KEY) ?
                 (UUID) this.jobContext.get(BatchContextConstants.BATCH_SBOM_ID_KEY) : null;
-        logger.info("start ExternalPurlRefListWriter service name:{}, sbomId:{}, chunk size:{}", getLicenseService().getClass().getSimpleName(), sbomId, chunks.size());
+        logger.info("start ExtractLicenseWriter sbomId:{}, chunk size:{}", sbomId, chunks.size());
         for (Set<Pair<ExternalPurlRef, Object>> externalLicenseRefSet : chunks) {
-
-            getLicenseService().persistExternalLicenseRefChunk(externalLicenseRefSet,
+            licenseService.persistExternalLicenseRefChunk(externalLicenseRefSet,
                     (Map<String, LicenseNameAndUrl>) jobContext.get(BatchContextConstants.BATCH_LICENSE_INFO_MAP));
         }
-        logger.info("finish ExternalPurlRefListWriter sbomId:{}", sbomId);
+        logger.info("finish ExtractLicenseWriter sbomId:{}", sbomId);
     }
 
     @Override
