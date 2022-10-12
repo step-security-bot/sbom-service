@@ -1,10 +1,10 @@
 package org.opensourceway.sbom.analyzer.parser;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.commons.lang3.StringUtils;
 import org.opensourceway.sbom.analyzer.model.HttpSniffData;
 import org.opensourceway.sbom.analyzer.model.ProcessIdentifier;
-import org.opensourceway.sbom.analyzer.utils.PackageGenerator;
+import org.opensourceway.sbom.analyzer.pkggen.PackageGenerator;
+import org.opensourceway.sbom.clients.vcs.VcsEnum;
 import org.opensourceway.sbom.utils.Mapper;
 import org.ossreviewtoolkit.model.CuratedPackage;
 import org.slf4j.Logger;
@@ -12,12 +12,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
@@ -32,9 +34,15 @@ public class HttpParser implements Parser {
     private static final Logger logger = LoggerFactory.getLogger(HttpParser.class);
 
     @Autowired
-    private PackageGenerator packageGenerator;
+    private Map<String, PackageGenerator> packageGenerators;
 
     private static final String HTTP_SNIFF_LOG = "sslsniff.log";
+
+    @PostConstruct
+    private void appendPackageGenerators() {
+        PackageGenerator vcsPackageGenerator = packageGenerators.get("vcs");
+        Arrays.stream(VcsEnum.values()).forEach(vcsEnum -> packageGenerators.put(vcsEnum.getVcsHost(), vcsPackageGenerator));
+    }
 
     @Override
     public Set<CuratedPackage> parse(Path workspace, List<ProcessIdentifier> allProcess) {
@@ -66,29 +74,14 @@ public class HttpParser implements Parser {
         String path = wrapper.path();
         path = resolveCache(path);
         String url = "https://" + host + path;
-        for (String suffix : Arrays.asList(".tar.gz", ".tgz", ".tar.xz", ".zip", ".tar", ".gz", ".xz", ".tar.bz2", ".tbz2")) {
+        for (String suffix : Arrays.asList(".tar.gz", ".tar.bz2", ".tar.xz", ".zip", ".tar", ".tgz", ".gz", ".xz", ".tbz2")) {
             path = path.replace(suffix, "");
         }
 
-        String dirPattern = "/(.*?)/(.*?)/.*/(\\D*([.\\-_\\da-zA-Z]*))/.*";
-        String packagePattern = "/(.*?)/(.*?)/.*/(\\D*([.\\-_\\da-zA-Z]*))";
-        for (String pattern : Arrays.asList(dirPattern, packagePattern)) {
-            Matcher matcher = Pattern.compile(pattern).matcher(path);
-            if (matcher.matches()) {
-                String org = matcher.group(1);
-                String repo = matcher.group(2);
-                String tag = matcher.group(3);
-                String version = matcher.group(4);
-                if (Pattern.compile("[a-zA-Z]*").matcher(tag).matches()) {
-                    continue;
-                }
-                if (Stream.of(org, repo, tag, version).allMatch(StringUtils::isNotEmpty)) {
-                    return packageGenerator.generatePackageFromVcs(host, org, repo, version, "", tag, url);
-                }
-            }
+        if (Objects.isNull(packageGenerators.get(host))) {
+            return null;
         }
-
-        return null;
+        return packageGenerators.get(host).generatePackage(host, path, url);
     }
 
     private HostPathWrapper getHostPath(String data) {

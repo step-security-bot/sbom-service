@@ -27,7 +27,7 @@ ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, label = EXCLUDED.label, value_type = EXCLUDED.value_type, ord = EXCLUDED.ord, product_type = EXCLUDED.product_type;
 
 INSERT INTO product_config(id, name, label, value_type, ord, product_type)
-VALUES('5263c064-4d04-4232-a717-eb84499b5f5f', 'arch', '系统架构', 'enum([{"label":"aarch64","value":"aarch64"},{"label":"x86 64","value":"x86_64"}])', 4, 'openEuler')
+VALUES('5263c064-4d04-4232-a717-eb84499b5f5f', 'arch', '系统架构', 'enum([{"label":"aarch64","value":"aarch64"},{"label":"x86_64","value":"x86_64"}])', 4, 'openEuler')
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, label = EXCLUDED.label, value_type = EXCLUDED.value_type, ord = EXCLUDED.ord, product_type = EXCLUDED.product_type;
 
@@ -49,7 +49,7 @@ ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, label = EXCLUDED.label, value_type = EXCLUDED.value_type, ord = EXCLUDED.ord, product_type = EXCLUDED.product_type;
 
 INSERT INTO product_config(id, name, label, value_type, ord, product_type)
-VALUES('75e5459b-b969-49e7-9d68-f2f346eb2120', 'arch', '系统架构', 'enum([{"label":"aarch64","value":"aarch64"},{"label":"x86 64","value":"x86_64"}])', 4, 'MindSpore')
+VALUES('75e5459b-b969-49e7-9d68-f2f346eb2120', 'arch', '系统架构', 'enum([{"label":"aarch64","value":"aarch64"},{"label":"x86_64","value":"x86_64"}])', 4, 'MindSpore')
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, label = EXCLUDED.label, value_type = EXCLUDED.value_type, ord = EXCLUDED.ord, product_type = EXCLUDED.product_type;
 
@@ -59,7 +59,20 @@ ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, label = EXCLUDED.label, value_type = EXCLUDED.value_type, ord = EXCLUDED.ord, product_type = EXCLUDED.product_type;
 
 -- openGauss
+INSERT INTO product_config(id, name, label, value_type, ord, product_type)
+VALUES('527a8727-2d7e-4db4-b138-acb33405e447', 'version', '版本号', 'enum([{"label":"3.1.0","value":"3.1.0"}])', 1, 'openGauss')
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, label = EXCLUDED.label, value_type = EXCLUDED.value_type, ord = EXCLUDED.ord, product_type = EXCLUDED.product_type;
 
+INSERT INTO product_config(id, name, label, value_type, ord, product_type)
+VALUES('243452d3-da07-4fab-ad74-8767629528fa', 'os', '操作系统', 'enum([{"label":"CentOS","value":"CentOS"}, {"label":"openEuler","value":"openEuler"}])', 2, 'openGauss')
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, label = EXCLUDED.label, value_type = EXCLUDED.value_type, ord = EXCLUDED.ord, product_type = EXCLUDED.product_type;
+
+INSERT INTO product_config(id, name, label, value_type, ord, product_type)
+VALUES('c589facd-4ac6-441d-b8fa-a787ea60c18e', 'arch', '系统架构', 'enum([{"label":"aarch64","value":"aarch64"},{"label":"x86_64","value":"x86_64"}])', 3, 'openGauss')
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, label = EXCLUDED.label, value_type = EXCLUDED.value_type, ord = EXCLUDED.ord, product_type = EXCLUDED.product_type;
 
 -- Insert openEuler products
 INSERT INTO product(id, name, attribute)
@@ -102,8 +115,15 @@ VALUES('d81e9cf4-f793-4ca1-9602-91cb4d59b419', '/opt/repo-data/openEuler-22.03-L
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
 
+-- Insert MindSpore products
 INSERT INTO product(id, name, attribute)
 VALUES('e686d5ba-cd30-41e7-b97a-a3481bb6e0a2', 'mindspore-1.8.0-cp37-cp37m-linux_x86_64.whl', '{"productType": "MindSpore", "version": "1.8.0","platform": "CPU", "os": "Linux", "arch": "x86_64", "language": "Python 3.7.0"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+-- Insert openGauss products
+INSERT INTO product(id, name, attribute)
+VALUES('6c1bca0c-b8f2-40f5-90fe-75a376430748', 'openGauss-3.1.0-CentOS-64bit', '{"productType": "openGauss", "version": "3.1.0", "os": "CentOS", "arch": "x86_64"}'::jsonb)
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
 
