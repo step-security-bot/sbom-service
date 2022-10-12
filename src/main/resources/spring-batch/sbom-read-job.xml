@@ -101,10 +101,8 @@
                                commit-interval="2">
                             <reader>
                                 <beans:bean id="extractLicenseReader"
-                                            class="org.opensourceway.sbom.manager.batch.reader.license.ExternalPurlRefListReader"
-                                            scope="step">
-                                    <beans:constructor-arg ref="licenseServiceImpl"/>
-                                </beans:bean>
+                                            class="org.opensourceway.sbom.manager.batch.reader.license.ExtractLicenseReader"
+                                            scope="step"/>
                             </reader>
                         </chunk>
                     </tasklet>
@@ -176,9 +174,7 @@
     <bean id="extractLicenseProcessor"
           class="org.opensourceway.sbom.manager.batch.processor.license.ExtractLicensesProcessor"/>
     <bean id="extractLicenseWriter"
-          class="org.opensourceway.sbom.manager.batch.writer.license.ExternalPurlRefListWriter">
-        <constructor-arg ref="licenseServiceImpl"/>
-    </bean>
+          class="org.opensourceway.sbom.manager.batch.writer.license.ExtractLicenseWriter"/>
 
     <bean id="readSbomEndStep"
           class="org.opensourceway.sbom.manager.batch.step.ReadSbomEndStep"/>

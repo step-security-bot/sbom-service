@@ -23,6 +23,7 @@ import org.springframework.batch.core.step.item.Chunk;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -34,11 +35,13 @@ import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
-public class ExternalPurlRefListReader implements ItemReader<List<ExternalPurlRef>>, StepExecutionListener, ChunkListener {
+public class ExtractLicenseReader implements ItemReader<List<ExternalPurlRef>>, StepExecutionListener, ChunkListener {
 
-    private static final Logger logger = LoggerFactory.getLogger(ExternalPurlRefListReader.class);
+    private static final Logger logger = LoggerFactory.getLogger(ExtractLicenseReader.class);
 
-    private final LicenseService licenseService;
+    @Autowired
+    @Qualifier("licenseServiceImpl")
+    private LicenseService licenseService;
 
     @Autowired
     SbomRepository sbomRepository;
@@ -54,16 +57,8 @@ public class ExternalPurlRefListReader implements ItemReader<List<ExternalPurlRe
 
     private ChunkContext chunkContext;
 
-    public ExternalPurlRefListReader(LicenseService licenseService) {
-        this.licenseService = licenseService;
-    }
-
-    public LicenseService getLicenseService() {
-        return licenseService;
-    }
-
     private void initMapper(UUID sbomId) {
-        if (!getLicenseService().needRequest()) {
+        if (!licenseService.needRequest()) {
             logger.warn("license client does not request");
             return;
         }
@@ -84,7 +79,7 @@ public class ExternalPurlRefListReader implements ItemReader<List<ExternalPurlRe
                 .filter(externalPurlRef -> externalPurlRef.getCategory().equals("PACKAGE_MANAGER"))
                 .toList();
 
-        this.chunks = ListUtils.partition(externalPurlRefs, getLicenseService().getBulkRequestSize())
+        this.chunks = ListUtils.partition(externalPurlRefs, licenseService.getBulkRequestSize())
                 .stream()
                 .map(ArrayList::new)// can't use ArrayList.subList(can't restart)
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));// can't use unmodifiableList(can't remove)
