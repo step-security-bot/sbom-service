@@ -519,7 +519,7 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.[0].ord").value(1))
                 .andExpect(jsonPath("$.[3].name").value("arch"))
                 .andExpect(jsonPath("$.[3].label").value("系统架构"))
-                .andExpect(jsonPath("$.[3].valueType").value("enum([{\"label\":\"aarch64\",\"value\":\"aarch64\"},{\"label\":\"x86 64\",\"value\":\"x86_64\"}])"))
+                .andExpect(jsonPath("$.[3].valueType").value("enum([{\"label\":\"aarch64\",\"value\":\"aarch64\"},{\"label\":\"x86_64\",\"value\":\"x86_64\"}])"))
                 .andExpect(jsonPath("$.[3].ord").value(4));
     }
 

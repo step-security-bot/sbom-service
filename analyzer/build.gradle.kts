@@ -1,5 +1,6 @@
 val commonsLang3Version: String by project
 val commonsIoVersion: String by project
+val packageUrlJavaVersion: String by project
 
 repositories {
     exclusiveContent {
@@ -35,6 +36,7 @@ dependencies {
     implementation("commons-io:commons-io:$commonsIoVersion")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.gradle:gradle-tooling-api:${gradle.gradleVersion}")
+    implementation("com.github.package-url:packageurl-java:$packageUrlJavaVersion")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
