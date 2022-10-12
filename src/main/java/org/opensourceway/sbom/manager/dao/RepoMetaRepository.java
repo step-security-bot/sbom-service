@@ -20,10 +20,14 @@ public interface RepoMetaRepository extends JpaRepository<RepoMeta, UUID> {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     List<RepoMeta> deleteByProductType(String productType);
 
+    @Modifying(flushAutomatically = true)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    List<RepoMeta> deleteByProductTypeAndBranch(String productType, String branch);
+
     Optional<RepoMeta> findByProductTypeAndRepoNameAndBranch(String productType, String repoName, String branch);
 
-    @Query(value = "SELECT * FROM repo_meta WHERE product_type = :productType AND :packageName = ANY(package_names)",
+    @Query(value = "SELECT * FROM repo_meta WHERE product_type = :productType AND branch = :branch AND :packageName = ANY(package_names)",
             nativeQuery = true)
-    Optional<RepoMeta> queryRepoMetaByPackageName(@Param("productType") String productType, @Param("packageName") String packageName);
+    Optional<RepoMeta> queryRepoMetaByPackageName(@Param("productType") String productType, @Param("branch") String branch, @Param("packageName") String packageName);
 
 }
