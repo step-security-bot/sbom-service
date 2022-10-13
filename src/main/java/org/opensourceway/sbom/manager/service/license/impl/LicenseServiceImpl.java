@@ -91,7 +91,7 @@ public class LicenseServiceImpl implements LicenseService {
     }
 
 
-    private String getPurlsForLicense(PackageUrlVo packageUrlVo, Product product) {
+    public String getPurlsForLicense(PackageUrlVo packageUrlVo, Product product) {
         String purl = "";
         String productType = String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_TYPE_KEY));
         try {
@@ -120,7 +120,7 @@ public class LicenseServiceImpl implements LicenseService {
                     packageUrlVo.getVersion(), null, null)).canonicalize();
         } else {
             return (new PackageURL("gitee", SbomRepoConstants.OPENEULER_REPO_ORG, packageUrlVo.getName(),
-                    product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_TYPE_KEY) + "-" + product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY),
+                    (String) product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY),
                     null, null)).canonicalize();
 
         }

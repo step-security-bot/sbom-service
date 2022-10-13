@@ -8,6 +8,9 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.opensourceway.sbom.clients.license.impl.LicenseClientImpl;
+import org.opensourceway.sbom.clients.license.vo.ComplianceResponse;
+import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.TestConstants;
 import org.opensourceway.sbom.manager.dao.LicenseRepository;
@@ -15,6 +18,7 @@ import org.opensourceway.sbom.manager.dao.ProductRepository;
 import org.opensourceway.sbom.manager.dao.ProductTypeRepository;
 import org.opensourceway.sbom.manager.dao.RawSbomRepository;
 import org.opensourceway.sbom.manager.dao.SbomRepository;
+import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
@@ -32,6 +36,7 @@ import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
 import org.opensourceway.sbom.manager.model.vo.VulnerabilityVo;
 import org.opensourceway.sbom.manager.model.vo.request.PublishSbomRequest;
 import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
+import org.opensourceway.sbom.manager.service.license.impl.LicenseServiceImpl;
 import org.opensourceway.sbom.manager.utils.TestCommon;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -73,6 +78,12 @@ class SbomServiceTest {
 
     @Autowired
     private LicenseRepository licenseRepository;
+
+    @Autowired
+    private LicenseServiceImpl licenseServiceImpl;
+
+    @Autowired
+    private LicenseClientImpl licenseClientImpl;
 
     private static String packageId = null;
 
@@ -359,6 +370,25 @@ class SbomServiceTest {
         assertThat(licenses.get(0).getName()).isEqualTo("License for test");
         assertThat(licenses.get(0).getUrl()).isEqualTo("https://xxx/licenses/License-test");
         assertThat(licenses.get(0).getIsLegal()).isEqualTo(false);
+    }
+
+    @Test
+    public void queryLicenseAndCopyrightByPurl() throws JsonProcessingException {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Product product = productRepository.findBySbomId(sbom.getId());
+        assertThat(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY)).isEqualTo("openEuler-22.03-LTS");
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-eb661a27c2fb073c"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+        ExternalPurlRef externalPurlRef = pkg.getExternalPurlRefs().get(0);
+        String purl = licenseServiceImpl.getPurlsForLicense(externalPurlRef.getPurl(), product);
+        assertThat(purl).isEqualTo("pkg:gitee/src-openeuler/capstone@openEuler-22.03-LTS");
+        ComplianceResponse[] responseArr = licenseClientImpl.getComplianceResponse(List.of(purl));
+        assertThat(responseArr.length).isEqualTo(1);
+        assertThat(responseArr[0].getPurl()).isEqualTo(purl);
+        assertThat(responseArr[0].getResult().getIsSca()).isEqualTo("true");
     }
 
     @Test
