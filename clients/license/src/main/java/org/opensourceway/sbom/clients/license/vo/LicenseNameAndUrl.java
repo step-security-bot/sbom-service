@@ -1,5 +1,8 @@
 package org.opensourceway.sbom.clients.license.vo;
 
+import com.fasterxml.jackson.annotation.JsonClassDescription;
+
+@JsonClassDescription
 public class LicenseNameAndUrl {
     private String name;
 
