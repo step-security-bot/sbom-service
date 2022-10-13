@@ -159,6 +159,6 @@ ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
 
 INSERT INTO product(id, name, attribute)
-VALUES('11111111-1111-41e7-b97a-a3481bb6e777', 'repodataTest', '{"arg":"7"}'::jsonb)
+VALUES('11111111-1111-41e7-b97a-a3481bb6e777', 'repodataTest', '{"arch": "x86_64", "version": "openEuler-22.03-LTS", "imageType": "everything-test", "imageFormat": "ISO", "productType": "openEuler"}'::jsonb)
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
