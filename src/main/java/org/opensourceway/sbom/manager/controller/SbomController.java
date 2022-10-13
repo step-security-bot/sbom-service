@@ -21,6 +21,8 @@ import org.opensourceway.sbom.manager.model.vo.request.PublishSbomRequest;
 import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
 import org.opensourceway.sbom.manager.model.vo.response.PublishSbomResponse;
 import org.opensourceway.sbom.manager.service.SbomService;
+import org.opensourceway.sbom.manager.service.repo.RepoService;
+import org.opensourceway.sbom.openeuler.obs.vo.RepoInfoVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +53,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Controller
@@ -61,6 +64,9 @@ public class SbomController {
 
     @Autowired
     private SbomService sbomService;
+
+    @Autowired
+    private RepoService repoService;
 
     @PostMapping("/publishSbomFile")
     public @ResponseBody ResponseEntity publishSbomFile(@RequestBody PublishSbomRequest publishSbomRequest) {
@@ -521,6 +527,32 @@ public class SbomController {
 
         logger.info("query package statistics result: {}", vo);
         return ResponseEntity.status(HttpStatus.OK).body(vo);
+    }
+
+    private Boolean isFetchRepoMetaRunning = Boolean.FALSE;
+
+    @GetMapping("/fetchOpenEulerRepoMeta")
+    public @ResponseBody ResponseEntity fetchOpenEulerRepoMeta() {
+        if (isFetchRepoMetaRunning) {
+            logger.warn("start manual launch fetch-openEuler-repo-meta, has job running");
+            return ResponseEntity.status(HttpStatus.OK).body("Running");
+        } else {
+            this.isFetchRepoMetaRunning = Boolean.TRUE;
+            logger.info("start manual launch fetch-openEuler-repo-meta");
+        }
+
+        long start = System.currentTimeMillis();
+        try {
+            Set<RepoInfoVo> result = repoService.fetchOpenEulerRepoMeta();
+            logger.info("fetch-openEuler-repo-meta result size:{}", result.size());
+        } catch (Exception e) {
+            logger.error("manual launch fetch-openEuler-repo-meta job failed", e);
+        } finally {
+            this.isFetchRepoMetaRunning = Boolean.FALSE;
+        }
+
+        logger.info("finish manual launch fetch-openEuler-repo-meta job, coast:{} ms", System.currentTimeMillis() - start);
+        return ResponseEntity.status(HttpStatus.OK).body("OK");
     }
 
 }

@@ -1,5 +1,6 @@
 package org.opensourceway.sbom.manager.dao;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -96,17 +97,17 @@ public class RepoMetaRepositoryTest {
     @Test
     @Order(4)
     public void selectRepoMetaByPackageNameTest() {
-        Optional<RepoMeta> repoMetaOptional = repoMetaRepository.queryRepoMetaByPackageName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME, "openEuler-22.03-LTS",
+        List<RepoMeta> repoMetaList = repoMetaRepository.queryRepoMetaByPackageName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME, "openEuler-22.03-LTS",
                 "389-ds-base");
-        assertThat(repoMetaOptional.isPresent()).isTrue();
+        assertThat(CollectionUtils.isNotEmpty(repoMetaList)).isTrue();
 
-        repoMetaOptional = repoMetaRepository.queryRepoMetaByPackageName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME, "openEuler-22.03-LTS",
+        repoMetaList = repoMetaRepository.queryRepoMetaByPackageName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME, "openEuler-22.03-LTS",
                 "389-ds-base-devel");
-        assertThat(repoMetaOptional.isPresent()).isTrue();
+        assertThat(CollectionUtils.isNotEmpty(repoMetaList)).isTrue();
 
-        repoMetaOptional = repoMetaRepository.queryRepoMetaByPackageName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME, "openEuler-22.03-LTS",
+        repoMetaList = repoMetaRepository.queryRepoMetaByPackageName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME, "openEuler-22.03-LTS",
                 "389-ds-base-XXX");
-        assertThat(repoMetaOptional.isPresent()).isFalse();
+        assertThat(CollectionUtils.isNotEmpty(repoMetaList)).isFalse();
     }
 
     @Test

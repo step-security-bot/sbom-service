@@ -7,6 +7,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.opensourceway.sbom.clients.license.LicenseClient;
 import org.opensourceway.sbom.clients.license.vo.ComplianceResponse;
 import org.opensourceway.sbom.clients.license.vo.LicenseNameAndUrl;
+import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.dao.LicenseRepository;
 import org.opensourceway.sbom.manager.dao.PackageRepository;
@@ -92,7 +93,7 @@ public class LicenseServiceImpl implements LicenseService {
 
     private String getPurlsForLicense(PackageUrlVo packageUrlVo, Product product) {
         String purl = "";
-        String productType = String.valueOf(product.getAttribute().get("productType"));
+        String productType = String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_TYPE_KEY));
         try {
 
             if (SbomConstants.PRODUCT_MINDSPORE_NAME.equals(productType)) {
@@ -119,7 +120,7 @@ public class LicenseServiceImpl implements LicenseService {
                     packageUrlVo.getVersion(), null, null)).canonicalize();
         } else {
             return (new PackageURL("gitee", SbomRepoConstants.OPENEULER_REPO_ORG, packageUrlVo.getName(),
-                    product.getAttribute().get("productType") + "-" + product.getAttribute().get("version"),
+                    product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_TYPE_KEY) + "-" + product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY),
                     null, null)).canonicalize();
 
         }
