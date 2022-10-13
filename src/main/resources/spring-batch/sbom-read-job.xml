@@ -98,12 +98,34 @@
                     <tasklet>
                         <chunk processor="extractLicenseProcessor"
                                writer="extractLicenseWriter"
-                               commit-interval="2">
+                               commit-interval="2" retry-limit="2">
                             <reader>
                                 <beans:bean id="extractLicenseReader"
                                             class="org.opensourceway.sbom.manager.batch.reader.license.ExtractLicenseReader"
                                             scope="step"/>
                             </reader>
+                            <retryable-exception-classes>
+                                <include class="java.lang.Exception"/>
+                            </retryable-exception-classes>
+                        </chunk>
+                    </tasklet>
+                </step>
+            </flow>
+
+            <flow>
+                <step id="supplySourceInfo">
+                    <tasklet>
+                        <chunk processor="supplySourceInfoProcessor"
+                               writer="supplySourceInfoWriter"
+                               commit-interval="2" retry-limit="2">
+                            <reader>
+                                <beans:bean id="supplySourceInfoReader"
+                                            class="org.opensourceway.sbom.manager.batch.reader.sourceinfo.SupplySourceInfoReader"
+                                            scope="step"/>
+                            </reader>
+                            <retryable-exception-classes>
+                                <include class="java.lang.Exception"/>
+                            </retryable-exception-classes>
                         </chunk>
                     </tasklet>
                 </step>
@@ -166,6 +188,11 @@
         <constructor-arg ref="cveManagerServiceImpl"/>
     </bean>
     <!-- CVE Manager CVE Service -->
+
+    <bean id="supplySourceInfoProcessor"
+          class="org.opensourceway.sbom.manager.batch.processor.sourceinfo.SupplySourceInfoProcessor"/>
+    <bean id="supplySourceInfoWriter"
+          class="org.opensourceway.sbom.manager.batch.writer.sourceinfo.SupplySourceInfoWriter"/>
 
     <bean id="collectStatisticsStep"
           class="org.opensourceway.sbom.manager.batch.step.CollectStatisticsStep"/>
