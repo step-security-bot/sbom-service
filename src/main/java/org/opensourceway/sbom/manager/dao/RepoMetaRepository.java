@@ -28,6 +28,6 @@ public interface RepoMetaRepository extends JpaRepository<RepoMeta, UUID> {
 
     @Query(value = "SELECT * FROM repo_meta WHERE product_type = :productType AND branch = :branch AND :packageName = ANY(package_names)",
             nativeQuery = true)
-    Optional<RepoMeta> queryRepoMetaByPackageName(@Param("productType") String productType, @Param("branch") String branch, @Param("packageName") String packageName);
+    List<RepoMeta> queryRepoMetaByPackageName(@Param("productType") String productType, @Param("branch") String branch, @Param("packageName") String packageName);
 
 }
