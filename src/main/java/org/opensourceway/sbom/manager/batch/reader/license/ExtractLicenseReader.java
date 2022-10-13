@@ -137,7 +137,7 @@ public class ExtractLicenseReader implements ItemReader<List<ExternalPurlRef>>, 
             remainingSize += CollectionUtils.size(retryInputs.getItems());
             logger.info("restore failed chunks, failed chunks size:{}, first element pkg id:{}",
                     retryInputs.getItems().size(),
-                    retryInputs.getItems().get(0).get(0).getPkg().getId());
+                    retryInputs.getItems().stream().findFirst().map(list -> list.get(0)).map(ExternalPurlRef::getPkg).map(Package::getId).map(UUID::toString).orElse(""));
         }
 
         stepExecution.getExecutionContext().putInt(BatchContextConstants.BATCH_READER_STEP_REMAINING_SIZE_KEY, remainingSize);
