@@ -311,7 +311,7 @@ public class SbomController {
                                                                  @RequestParam("binaryType") String binaryType,
                                                                  @RequestParam("type") String type,
                                                                  @RequestParam(name = "namespace", required = false) String namespace,
-                                                                 @RequestParam(name = "name", required = false) String name,
+                                                                 @RequestParam(name = "name") String name,
                                                                  @RequestParam(name = "version", required = false) String version,
                                                                  @RequestParam(required = false) String startVersion,
                                                                  @RequestParam(required = false) String endVersion,

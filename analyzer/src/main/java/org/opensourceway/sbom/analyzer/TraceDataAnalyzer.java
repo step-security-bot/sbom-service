@@ -138,7 +138,7 @@ public class TraceDataAnalyzer {
     }
 
     private String getTaskId(Path workspace) throws IOException {
-        try (Stream<Path> filePathStream = Files.walk(workspace)){
+        try (Stream<Path> filePathStream = Files.walk(workspace)) {
             return filePathStream
                     .filter(Files::isRegularFile)
                     .map(Path::getFileName)
