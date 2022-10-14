@@ -58,6 +58,7 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 @Component
 public class TraceDataAnalyzer {
@@ -83,23 +84,22 @@ public class TraceDataAnalyzer {
 
     private static final String PROJECT_SCOPE = "compile";
 
-    public byte[] analyze(String productName, String fileName, InputStream inputStream) {
+    public byte[] analyze(String productName, InputStream inputStream) {
         Path workspace = null;
         try {
-            logger.info("start to analyze {}", fileName);
+            logger.info("start to analyze {}", productName);
 
-            String taskId = Path.of(fileName).getFileName().toString().split("_")[0];
-            workspace = Files.createTempDirectory(PROJECT_MANAGER_TYPE + "-" + taskId + "-");
+            workspace = Files.createTempDirectory(PROJECT_MANAGER_TYPE + "-" + productName + "-");
 
-            parseTraceData(taskId, inputStream, workspace);
+            parseTraceData(inputStream, workspace);
             OrtResult ortResult = ortAnalyze(workspace);
             SpdxDocument spdxDocument = ortSpdxReport(ortResult, productName);
             byte[] sbomBytes = Mapper.jsonSbomMapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(spdxDocument);
 
-            logger.info("successfully analyzed {}", fileName);
+            logger.info("successfully analyzed {}", productName);
             return sbomBytes;
         } catch (IOException e) {
-            logger.error("failed to analyze {}", fileName, e);
+            logger.error("failed to analyze {}", productName, e);
             throw new RuntimeException(e);
         } finally {
             if (Objects.nonNull(workspace)) {
@@ -108,12 +108,12 @@ public class TraceDataAnalyzer {
         }
     }
 
-    private void parseTraceData(String taskId, InputStream inputStream, Path workspace) throws IOException {
+    private void parseTraceData(InputStream inputStream, Path workspace) throws IOException {
         logger.info("start to parse trace data");
 
         FileUtil.extractTarGzipArchive(inputStream, workspace.toString());
 
-        List<ProcessIdentifier> allProcess = processParser.getAllProcess(workspace, taskId);
+        List<ProcessIdentifier> allProcess = processParser.getAllProcess(workspace, getTaskId(workspace));
         Set<CuratedPackage> httpPackages = httpParser.parse(workspace, allProcess);
         Set<CuratedPackage> http2Packages = http2Parser.parse(workspace, allProcess);
         Set<CuratedPackage> otherPackages = collectedInfoParser.parse(workspace, allProcess);
@@ -135,6 +135,19 @@ public class TraceDataAnalyzer {
         Mapper.jsonMapper.writerWithDefaultPrettyPrinter().writeValue(outputPath.toFile(), ortResult);
 
         logger.info("successfully parse trace data");
+    }
+
+    private String getTaskId(Path workspace) throws IOException {
+        try (Stream<Path> filePathStream = Files.walk(workspace)){
+            return filePathStream
+                    .filter(Files::isRegularFile)
+                    .map(Path::getFileName)
+                    .map(Path::toString)
+                    .filter(fileName -> fileName.endsWith("_sbom_tracer.sh"))
+                    .findAny()
+                    .map(fileName -> fileName.split("_")[0])
+                    .orElseThrow(() -> new RuntimeException("Can't find *_sbom_tracer.sh"));
+        }
     }
 
     private OrtResult ortAnalyze(Path workspace) {

@@ -430,7 +430,7 @@ public class SbomServiceImpl implements SbomService {
 
     @Override
     public void persistSbomFromTraceData(String productName, String fileName, InputStream inputStream) throws IOException {
-        byte[] sbomContent = traceDataAnalyzer.analyze(productName, fileName, inputStream);
+        byte[] sbomContent = traceDataAnalyzer.analyze(productName, inputStream);
         readSbomFile(productName, productName + ".spdx.json", sbomContent);
     }
 

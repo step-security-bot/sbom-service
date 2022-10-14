@@ -9,7 +9,6 @@ import org.opensourceway.sbom.constants.BatchFlowExecConstants;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.dao.PackageRepository;
 import org.opensourceway.sbom.manager.dao.ProductRepository;
-import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
 import org.slf4j.Logger;
@@ -22,10 +21,10 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.item.Chunk;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -115,6 +114,10 @@ public class SupplySourceInfoReader implements ItemReader<List<Package>>, StepEx
 
     @Override
     public ExitStatus afterStep(@NotNull StepExecution stepExecution) {
+        if (ObjectUtils.isEmpty(this.chunks)) {
+            return null;
+        }
+
         int remainingSize = this.chunks.size();
 
         if (StringUtils.equals(ExitStatus.FAILED.getExitCode(), stepExecution.getExitStatus().getExitCode())
