@@ -639,11 +639,11 @@ public class PkgQueryControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
                 .andExpect(jsonPath("$.criticalVulCount").value(0))
-                .andExpect(jsonPath("$.highVulCount").value(1))
+                .andExpect(jsonPath("$.highVulCount").value(2))
                 .andExpect(jsonPath("$.mediumVulCount").value(2))
                 .andExpect(jsonPath("$.lowVulCount").value(0))
                 .andExpect(jsonPath("$.noneVulCount").value(0))
-                .andExpect(jsonPath("$.unknownVulCount").value(1));
+                .andExpect(jsonPath("$.unknownVulCount").value(0));
     }
 
     @Test

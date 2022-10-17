@@ -117,6 +117,7 @@ public class SbomDataInitTest {
         Vulnerability vul_4 = insertVulnerability("CVE-2022-00002-test", "OSS_INDEX");
         insertVulRef(vul_4, VulRefSource.NVD.name(), "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00002-test");
         insertVulRef(vul_4, VulRefSource.GITHUB.name(), "https://github.com/xxx/xxx/security/advisories/xxx");
+        insertVulScore(vul_4, VulScoringSystem.CVSS2.name(), 7.5, "AV:N/AC:L/Au:N/C:P/I:P/A:P");
 
         Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
         assertThat(sbom).isNotNull();
