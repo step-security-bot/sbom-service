@@ -24,8 +24,6 @@ public class BatchContextConstants {
 
     public final static String BATCH_PRODUCT_VERSION_KEY = "version";
 
-    public final static String BATCH_LICENSE_INFO_MAP = "licenseInfoMap";
-
     public final static String BUILD_IN_BATCH_CHUNK_FAILED_KEY = "sb_rollback_exception";
 
     public final static String BUILD_IN_BATCH_CHUNK_FAILED_INPUT_KEY = "INPUTS";

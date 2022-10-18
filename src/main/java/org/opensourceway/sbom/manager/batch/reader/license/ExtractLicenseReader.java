@@ -4,8 +4,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.opensourceway.sbom.clients.license.LicenseClient;
-import org.opensourceway.sbom.clients.license.vo.LicenseNameAndUrl;
 import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.manager.dao.SbomRepository;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
@@ -29,7 +27,6 @@ import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -45,9 +42,6 @@ public class ExtractLicenseReader implements ItemReader<List<ExternalPurlRef>>, 
 
     @Autowired
     SbomRepository sbomRepository;
-
-    @Autowired
-    private LicenseClient licenseClient;
 
     private List<List<ExternalPurlRef>> chunks;
 
@@ -89,11 +83,6 @@ public class ExtractLicenseReader implements ItemReader<List<ExternalPurlRef>>, 
         if (remainingSize > 0 && remainingSize < this.chunks.size()) {
             this.chunks = this.chunks.subList(this.chunks.size() - remainingSize, this.chunks.size());
         }
-
-        Map<String, LicenseNameAndUrl> licenseInfoMap;
-        // TODO move map to service
-        licenseInfoMap = licenseClient.getLicensesInfo();
-        jobContext.put(BatchContextConstants.BATCH_LICENSE_INFO_MAP, licenseInfoMap);
 
         logger.info("ExternalPurlRefListReader:{} use sbomId:{}, get externalPurlRefs size:{}, chunks size:{}",
                 this,

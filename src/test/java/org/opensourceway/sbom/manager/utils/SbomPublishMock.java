@@ -51,7 +51,7 @@ public class SbomPublishMock {
         if (sbomResponse.getSuccess()) {
             logger.info("get SBOM response success, content size:{}", sbomResponse.getSbomContent().length());
         } else {
-            Assertions.fail("get SBOM response failed, errorInfo:{}", sbomResponse.getErrorInfo());
+            Assertions.fail("get SBOM response failed, errorInfo:%s", sbomResponse.getErrorInfo());
         }
 
         WebClient sbomClient = WebClient.builder()
@@ -74,7 +74,7 @@ public class SbomPublishMock {
         if (publishResponse.getSuccess()) {
             logger.info("publish SBOM response success, taskId:{}", publishResponse.getTaskId());
         } else {
-            Assertions.fail("publish SBOM response failed, errorInfo:{}", publishResponse.getErrorInfo());
+            Assertions.fail("publish SBOM response failed, errorInfo:%s", publishResponse.getErrorInfo());
         }
         logger.info("finish mock SBOM publish");
     }

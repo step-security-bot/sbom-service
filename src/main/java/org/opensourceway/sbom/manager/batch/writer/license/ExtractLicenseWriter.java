@@ -2,7 +2,6 @@ package org.opensourceway.sbom.manager.batch.writer.license;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
-import org.opensourceway.sbom.clients.license.vo.LicenseNameAndUrl;
 import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.service.license.LicenseService;
@@ -17,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -39,8 +37,7 @@ public class ExtractLicenseWriter implements ItemWriter<Set<Pair<ExternalPurlRef
                 (UUID) this.jobContext.get(BatchContextConstants.BATCH_SBOM_ID_KEY) : null;
         logger.info("start ExtractLicenseWriter sbomId:{}, chunk size:{}", sbomId, chunks.size());
         for (Set<Pair<ExternalPurlRef, Object>> externalLicenseRefSet : chunks) {
-            licenseService.persistExternalLicenseRefChunk(externalLicenseRefSet,
-                    (Map<String, LicenseNameAndUrl>) jobContext.get(BatchContextConstants.BATCH_LICENSE_INFO_MAP));
+            licenseService.persistExternalLicenseRefChunk(externalLicenseRefSet);
         }
         logger.info("finish ExtractLicenseWriter sbomId:{}", sbomId);
     }
