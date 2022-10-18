@@ -4,6 +4,7 @@ import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.opensourceway.sbom.cache.constant.CacheConstants;
 import org.opensourceway.sbom.clients.license.LicenseClient;
 import org.opensourceway.sbom.clients.license.vo.ComplianceResponse;
 import org.opensourceway.sbom.clients.license.vo.LicenseNameAndUrl;
@@ -18,6 +19,7 @@ import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.service.license.LicenseService;
+import org.opensourceway.sbom.manager.utils.cache.LicenseInfoMapCache;
 import org.opensourceway.sbom.openeuler.obs.SbomRepoConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +58,9 @@ public class LicenseServiceImpl implements LicenseService {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private LicenseInfoMapCache licenseInfoMapCache;
+
     @Value("${isScan}")
     private Boolean isScan;
 
@@ -68,18 +73,6 @@ public class LicenseServiceImpl implements LicenseService {
             throw e;
         }
     }
-
-    private void getLicenseIdAndUrl(License license, Map<String, LicenseNameAndUrl> licenseInfoMap, String lic) {
-        if (licenseInfoMap.get(lic) != null) {
-            if (licenseInfoMap.get(lic).getName() != null) {
-                license.setName(licenseInfoMap.get(lic).getName());
-            }
-            if (licenseInfoMap.get(lic).getUrl() != null) {
-                license.setUrl(licenseInfoMap.get(lic).getUrl());
-            }
-        }
-    }
-
 
     private Boolean isContainPackage(Package pkg, License license) {
         for (Package pkgs : license.getPackages()) {
@@ -187,7 +180,7 @@ public class LicenseServiceImpl implements LicenseService {
     }
 
     @Override
-    public void persistExternalLicenseRefChunk(Set<Pair<ExternalPurlRef, Object>> externalLicenseRefSet, Map<String, LicenseNameAndUrl> licenseInfoMap) {
+    public void persistExternalLicenseRefChunk(Set<Pair<ExternalPurlRef, Object>> externalLicenseRefSet) {
         int numOfNotScan = 0;
         for (Pair<ExternalPurlRef, Object> externalLicenseRefPair : externalLicenseRefSet) {
             ExternalPurlRef purlRef = externalLicenseRefPair.getLeft();
@@ -199,9 +192,7 @@ public class LicenseServiceImpl implements LicenseService {
                 Package pkg = packageRepository.findById(purlRef.getPkg().getId()).orElseThrow();
                 saveLicenseAndCopyrightForPackage(response, pkg);
                 licenseList.forEach(lic -> {
-                    License license = licenseRepository.findBySpdxLicenseId(lic).orElse(new License());
-                    license.setSpdxLicenseId(lic);
-                    getLicenseIdAndUrl(license, licenseInfoMap, lic);
+                    License license = licenseRepository.findBySpdxLicenseId(lic).orElse(generateNewLicense(lic));
                     if (pkg.getLicenses() == null) {
                         pkg.setLicenses(new HashSet<>());
                     }
@@ -237,5 +228,19 @@ public class LicenseServiceImpl implements LicenseService {
             pkg.setLicenseConcluded(response.getResult().getRepoLicense().get(0));
         }
         packageRepository.save(pkg);
+    }
+
+    private License generateNewLicense(String lic) {
+        License license = new License();
+        license.setSpdxLicenseId(lic);
+
+        // use cache
+        Map<String, LicenseNameAndUrl> licenseInfoMap = licenseInfoMapCache.getLicenseInfoMap(CacheConstants.LICENSE_INFO_MAP_CACHE_KEY_DEFAULT_VALUE);
+        if (licenseInfoMap != null && licenseInfoMap.containsKey(lic)) {
+            LicenseNameAndUrl licenseInfo = licenseInfoMap.get(lic);
+            license.setName(licenseInfo.getName());
+            license.setUrl(licenseInfo.getUrl());
+        }
+        return license;
     }
 }
