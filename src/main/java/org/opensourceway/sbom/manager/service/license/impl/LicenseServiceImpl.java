@@ -7,7 +7,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.opensourceway.sbom.cache.constant.CacheConstants;
 import org.opensourceway.sbom.clients.license.LicenseClient;
 import org.opensourceway.sbom.clients.license.vo.ComplianceResponse;
-import org.opensourceway.sbom.clients.license.vo.LicenseNameAndUrl;
+import org.opensourceway.sbom.clients.license.vo.LicenseInfo;
 import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.dao.LicenseRepository;
@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -235,11 +236,11 @@ public class LicenseServiceImpl implements LicenseService {
         license.setSpdxLicenseId(lic);
 
         // use cache
-        Map<String, LicenseNameAndUrl> licenseInfoMap = licenseInfoMapCache.getLicenseInfoMap(CacheConstants.LICENSE_INFO_MAP_CACHE_KEY_DEFAULT_VALUE);
-        if (licenseInfoMap != null && licenseInfoMap.containsKey(lic)) {
-            LicenseNameAndUrl licenseInfo = licenseInfoMap.get(lic);
+        Map<String, LicenseInfo> licenseInfoMap = licenseInfoMapCache.getLicenseInfoMap(CacheConstants.LICENSE_INFO_MAP_CACHE_KEY_DEFAULT_VALUE);
+        if (!ObjectUtils.isEmpty(licenseInfoMap) && licenseInfoMap.containsKey(lic)) {
+            LicenseInfo licenseInfo = licenseInfoMap.get(lic);
             license.setName(licenseInfo.getName());
-            license.setUrl(licenseInfo.getUrl());
+            license.setUrl(licenseInfo.getReference());
         }
         return license;
     }

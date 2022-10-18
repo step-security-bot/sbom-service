@@ -1,6 +1,8 @@
 package org.opensourceway.sbom.clients.license.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -14,15 +16,19 @@ import org.apache.hc.core5.io.CloseMode;
 import org.opensourceway.sbom.clients.license.LicenseClient;
 import org.opensourceway.sbom.clients.license.vo.ComplianceResponse;
 import org.opensourceway.sbom.clients.license.vo.LicenseInfo;
-import org.opensourceway.sbom.clients.license.vo.LicenseNameAndUrl;
+import org.opensourceway.sbom.clients.license.vo.LicensesJson;
 import org.opensourceway.sbom.utils.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MimeTypeUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
@@ -30,11 +36,11 @@ import reactor.util.retry.Retry;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class LicenseClientImpl implements LicenseClient {
@@ -44,29 +50,23 @@ public class LicenseClientImpl implements LicenseClient {
     @Value("${compliance3.api.url}")
     private String defaultBaseUrl;
 
-    @Value("${opensource.api.url}")
+    @Value("${spdx.license.url}")
     private String licenseInfoBaseUrl;
-
-    // format the license info from json to map type
-    private Map<String, LicenseNameAndUrl> FormatLicenseInfos(LicenseInfo[] licenseInfos) {
-        Map<String, LicenseNameAndUrl> licenseInfoMap = new HashMap<>();
-
-        Arrays.stream(licenseInfos).forEach(licenseInfo -> {
-            LicenseNameAndUrl licenseNameAndUrl = new LicenseNameAndUrl();
-
-            licenseNameAndUrl.setName(licenseInfo.getName());
-            if (licenseInfo.getText().size() == 0) {
-                licenseNameAndUrl.setUrl(null);
-            } else {
-                licenseNameAndUrl.setUrl(licenseInfo.getText().get(0).getUrl());
-            }
-            licenseInfoMap.put(licenseInfo.getId(), licenseNameAndUrl);
-        });
-        return licenseInfoMap;
-    }
 
     private WebClient createWebClient(String defaultBaseUrl) {
         return WebClient.create(defaultBaseUrl);
+    }
+
+    private WebClient createWebClientForPlainText(String defaultBaseUrl) {
+        return WebClient.builder()
+                .baseUrl(defaultBaseUrl)
+                .exchangeStrategies(ExchangeStrategies.builder().codecs(configurer -> {
+                            ObjectMapper mapper = new ObjectMapper();
+                            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                            configurer.customCodecs().register(new Jackson2JsonDecoder(
+                                    mapper, MimeTypeUtils.parseMimeType(MediaType.TEXT_PLAIN_VALUE)));
+                        }).build())
+                .build();
     }
 
     @Override
@@ -97,15 +97,20 @@ public class LicenseClientImpl implements LicenseClient {
 
     // get a json which has the info and url for all the licenses
     @Override
-    public Map<String, LicenseNameAndUrl> getLicensesInfo() {
-        WebClient client = createWebClient(licenseInfoBaseUrl);
-        LicenseInfo[] licenseInfos = client.get()
+    public Map<String, LicenseInfo> getLicensesInfo() {
+        WebClient client = createWebClientForPlainText(licenseInfoBaseUrl);
+        LicensesJson licensesJson = client.get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/licenses/licenses.json")
+                        .path("/spdx/license-list-data/master/json/licenses.json")
                         .build()
                 )
-                .retrieve().bodyToMono(LicenseInfo[].class).block();
-        return FormatLicenseInfos(licenseInfos);
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(LicensesJson.class)
+                .retryWhen(Retry.backoff(3, Duration.ofSeconds(1)))
+                .block();
+        return ObjectUtils.isEmpty(licensesJson) ? Map.of() :
+                licensesJson.getLicenses().stream().collect(Collectors.toMap(LicenseInfo::getLicenseId, Function.identity()));
     }
 
     // request api to scan the licenses in repo
