@@ -94,7 +94,7 @@
                 </step>
             </flow>
             <flow>
-                <step id="extractLicense">
+                <step id="extractLicense" next="fillUpLicense">
                     <tasklet>
                         <chunk processor="extractLicenseProcessor"
                                writer="extractLicenseWriter"
@@ -109,6 +109,9 @@
                             </retryable-exception-classes>
                         </chunk>
                     </tasklet>
+                </step>
+                <step id="fillUpLicense">
+                    <tasklet ref="fillUpLicenseStep"/>
                 </step>
             </flow>
 
@@ -202,6 +205,9 @@
           class="org.opensourceway.sbom.manager.batch.processor.license.ExtractLicensesProcessor"/>
     <bean id="extractLicenseWriter"
           class="org.opensourceway.sbom.manager.batch.writer.license.ExtractLicenseWriter"/>
+
+    <bean id="fillUpLicenseStep"
+          class="org.opensourceway.sbom.manager.batch.step.FillUpLicenseStep"/>
 
     <bean id="readSbomEndStep"
           class="org.opensourceway.sbom.manager.batch.step.ReadSbomEndStep"/>

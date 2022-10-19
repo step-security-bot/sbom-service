@@ -465,8 +465,9 @@ public class SbomController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body("Success");
     }
 
-    @GetMapping("/queryProductStatistics/{productName}")
+    @GetMapping("/queryProductStatistics/{*productName}")
     public @ResponseBody ResponseEntity queryProductStatisticsByProductName(@PathVariable String productName) {
+        productName = productName.substring(1);
         logger.info("query product statistics by product name: {}", productName);
         ProductStatistics productStatistics;
         try {
@@ -487,10 +488,11 @@ public class SbomController {
         return ResponseEntity.status(HttpStatus.OK).body(productStatistics);
     }
 
-    @GetMapping("/queryProductVulTrend/{productName}")
+    @GetMapping("/queryProductVulTrend/{*productName}")
     public @ResponseBody ResponseEntity queryProductVulTrendByProductNameAndTimeRange(@PathVariable String productName,
                                                                                       @RequestParam(required = false, defaultValue = "0") Long startTimestamp,
                                                                                       @RequestParam(required = false, defaultValue = "0") Long endTimestamp) {
+        productName = productName.substring(1);
         logger.info("query product vulnerability trend by product name: {}, time range: [{}, {}]", productName, startTimestamp, endTimestamp);
         List<VulCountVo> vulCountVos;
         try {

@@ -1,26 +1,38 @@
 package org.opensourceway.sbom.clients.license.vo;
 
 
+import com.fasterxml.jackson.annotation.JsonClassDescription;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.io.Serializable;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonClassDescription
 public class LicenseInfo implements Serializable {
 
-    private String id;
+    private String licenseId;
 
     private String name;
 
-    private List<LicenseInfoText> text;
+    private String reference;
 
-    public String getId() {
-        return id;
+    private Boolean isDeprecatedLicenseId;
+
+    private String detailsUrl;
+
+    private Integer referenceNumber;
+
+    private List<String> seeAlso;
+
+    private Boolean isOsiApproved;
+
+    public String getLicenseId() {
+        return licenseId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setLicenseId(String licenseId) {
+        this.licenseId = licenseId;
     }
 
     public String getName() {
@@ -31,12 +43,51 @@ public class LicenseInfo implements Serializable {
         this.name = name;
     }
 
-    public List<LicenseInfoText> getText() {
-        return text;
+    public String getReference() {
+        return reference;
     }
 
-    public void setText(List<LicenseInfoText> text) {
-        this.text = text;
+    public void setReference(String reference) {
+        this.reference = reference;
     }
 
+    public Boolean getDeprecatedLicenseId() {
+        return isDeprecatedLicenseId;
+    }
+
+    public void setDeprecatedLicenseId(Boolean deprecatedLicenseId) {
+        isDeprecatedLicenseId = deprecatedLicenseId;
+    }
+
+    public String getDetailsUrl() {
+        return detailsUrl;
+    }
+
+    public void setDetailsUrl(String detailsUrl) {
+        this.detailsUrl = detailsUrl;
+    }
+
+    public Integer getReferenceNumber() {
+        return referenceNumber;
+    }
+
+    public void setReferenceNumber(Integer referenceNumber) {
+        this.referenceNumber = referenceNumber;
+    }
+
+    public List<String> getSeeAlso() {
+        return seeAlso;
+    }
+
+    public void setSeeAlso(List<String> seeAlso) {
+        this.seeAlso = seeAlso;
+    }
+
+    public Boolean getOsiApproved() {
+        return isOsiApproved;
+    }
+
+    public void setOsiApproved(Boolean osiApproved) {
+        isOsiApproved = osiApproved;
+    }
 }

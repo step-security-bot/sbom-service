@@ -10,6 +10,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.net.URI;
+
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -71,6 +73,17 @@ public class StatisticsControllerTests {
     }
 
     @Test
+    public void queryProductStatisticsOpenEulerUpdate() throws Exception {
+        this.mockMvc
+                .perform(get(URI.create("/sbom-api/queryProductStatistics//openEuler-22.03-LTS/update/x86_64"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string(containsString("product statistics of /openEuler-22.03-LTS/update/x86_64 doesn't exist")));
+    }
+
+    @Test
     public void queryProductVulTrend() throws Exception {
         this.mockMvc
                 .perform(get("/sbom-api/queryProductVulTrend/%s".formatted(TestConstants.SAMPLE_PRODUCT_NAME))
@@ -123,6 +136,20 @@ public class StatisticsControllerTests {
     public void queryProductVulTrendNotExists() throws Exception {
         this.mockMvc
                 .perform(get("/sbom-api/queryProductVulTrend/%s".formatted(TestConstants.SAMPLE_PRODUCT_NAME + "Error"))
+                        .param("startTimestamp", "1663150600000")
+                        .param("endTimestamp", "1663250600000")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    public void queryProductVulTrendOpenEulerUpdate() throws Exception {
+        this.mockMvc
+                .perform(get(URI.create("/sbom-api/queryProductVulTrend//openEuler-22.03-LTS/update/x86_64"))
                         .param("startTimestamp", "1663150600000")
                         .param("endTimestamp", "1663250600000")
                         .contentType(MediaType.APPLICATION_JSON)

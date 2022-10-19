@@ -3,7 +3,7 @@ package org.opensourceway.sbom.manager.utils.cache;
 import org.opensourceway.sbom.cache.config.CacheProperties;
 import org.opensourceway.sbom.cache.constant.CacheConstants;
 import org.opensourceway.sbom.clients.license.LicenseClient;
-import org.opensourceway.sbom.clients.license.vo.LicenseNameAndUrl;
+import org.opensourceway.sbom.clients.license.vo.LicenseInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,10 +38,10 @@ public class LicenseInfoMapCache {
      * get licenseInfoMap value from remote licenses.json
      *
      * @param key cacheKey(not used)，use default fixed key
-     * @return {@link Map}<{@link String}, {@link LicenseNameAndUrl}>
+     * @return {@link Map}<{@link String}, {@link LicenseInfo}>
      */
     @Cacheable(value = {CacheConstants.LICENSE_INFO_MAP_CACHE_NAME}, key = CacheConstants.DEFAULT_CACHE_KEY_PATTERN)
-    public Map<String, LicenseNameAndUrl> getLicenseInfoMap(String key) {
+    public Map<String, LicenseInfo> getLicenseInfoMap(String key) {
         logger.info("load license info map from remote for cache");
         return licenseClient.getLicensesInfo();
     }
