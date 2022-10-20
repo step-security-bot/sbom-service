@@ -1,7 +1,9 @@
 package org.opensourceway.sbom.manager.service.checksum.impl;
 
 import org.opensourceway.sbom.clients.sonatype.SonatypeClient;
+import org.opensourceway.sbom.clients.sonatype.vo.Docs;
 import org.opensourceway.sbom.clients.sonatype.vo.GAVInfo;
+import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.dao.ExternalPurlRefRepository;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.service.checksum.ChecksumService;
@@ -52,19 +54,25 @@ public class ChecksumServiceImpl implements ChecksumService {
                 throw new RuntimeException(e);
             }
             if (gavInfo.getResponse().getNumFound() != 0) {
-                if (gavId.contains(gavInfo.getResponse().getDocs().get(0).getId())) {
+                Docs checksumDocs;
+                if (SbomConstants.CHECKSUM_SKIP_GROUP.equals(gavInfo.getResponse().getDocs().get(0).getGroup()) && gavInfo.getResponse().getNumFound() > 1) {
+                    checksumDocs = gavInfo.getResponse().getDocs().get(1);
+                } else {
+                    checksumDocs = gavInfo.getResponse().getDocs().get(0);
+                }
+                if (gavId.contains(checksumDocs.getId())) {
                     logger.debug("GAV of checksum {} has already existed", externalPurl.getPurl().getName());
                     externalPurlRefsTORemove.add(externalPurl);
                 } else {
-                    String group = gavInfo.getResponse().getDocs().get(0).getGroup();
-                    String artifact = gavInfo.getResponse().getDocs().get(0).getArtifact();
-                    String version = gavInfo.getResponse().getDocs().get(0).getVersion();
+                    String group = checksumDocs.getGroup();
+                    String artifact = checksumDocs.getArtifact();
+                    String version = checksumDocs.getVersion();
                     externalPurl.getPurl().setNamespace(group);
                     externalPurl.getPurl().setName(artifact);
                     externalPurl.getPurl().setVersion(version);
                     externalPurl.setType("purl");
                     externalPurlRefsTOChange.add(externalPurl);
-                    gavId.add(gavInfo.getResponse().getDocs().get(0).getId());
+                    gavId.add(checksumDocs.getId());
                     logger.debug("get GAV from checksum for {}", externalPurl.getPurl().getName());
                 }
             } else {
