@@ -1,5 +1,6 @@
 package org.opensourceway.sbom.manager.model.spdx;
 
+import com.fasterxml.jackson.annotation.JsonClassDescription;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.opensourceway.sbom.manager.model.sbom.SbomDocument;
@@ -8,6 +9,7 @@ import java.io.Serializable;
 import java.util.List;
 
 
+@JsonClassDescription
 public class SpdxDocument implements SbomDocument, Serializable {
 
     public SpdxDocument(String spdxId) {

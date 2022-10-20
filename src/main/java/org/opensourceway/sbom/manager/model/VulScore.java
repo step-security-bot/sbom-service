@@ -47,6 +47,12 @@ public class VulScore {
     private String vector;
 
     /**
+     * Severity of a vulnerability calculated by the scoring system.
+     */
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String severity;
+
+    /**
      * Vulnerability that a score belongs to.
      */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -84,6 +90,14 @@ public class VulScore {
 
     public void setVector(String vector) {
         this.vector = vector;
+    }
+
+    public String getSeverity() {
+        return severity;
+    }
+
+    public void setSeverity(String severity) {
+        this.severity = severity;
     }
 
     public Vulnerability getVulnerability() {

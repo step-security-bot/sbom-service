@@ -63,8 +63,6 @@ public interface SbomService {
 
     Product queryProductByFullAttributes(Map<String, ?> attributes) throws JsonProcessingException;
 
-    PageVo<VulnerabilityVo> queryVulnerabilityByPackageId(String packageId, Pageable pageable);
-
     void persistSbomFromTraceData(String productName, String fileName, InputStream inputStream) throws IOException;
 
     ProductStatistics queryProductStatistics(String productName);
@@ -76,4 +74,6 @@ public interface SbomService {
     List<LicenseVo> queryLicenseByPackageId(String packageId);
 
     List<CopyrightVo> queryCopyrightByPackageId(String packageId);
+
+    PageVo<VulnerabilityVo> queryVulnerability(String productName, String packageId, String severity, Pageable pageable);
 }

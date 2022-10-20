@@ -24,6 +24,7 @@ import org.opensourceway.sbom.manager.model.Vulnerability;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
 import org.opensourceway.sbom.manager.service.vul.AbstractVulService;
+import org.opensourceway.sbom.manager.utils.CvssSeverity;
 import org.opensourceway.sbom.manager.utils.PurlUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -221,13 +222,14 @@ public class OssIndexServiceImpl extends AbstractVulService {
         } else {
             vulScoringSystem = VulScoringSystem.CVSS2;
         }
-        VulScore vulScoreCvss3 = existVulScores.getOrDefault(
+        VulScore vulScore = existVulScores.getOrDefault(
                 Pair.of(vulScoringSystem.name(), ossIndexVulnerability.getCvssScore()), new VulScore());
-        vulScoreCvss3.setScoringSystem(vulScoringSystem.name());
-        vulScoreCvss3.setScore(ossIndexVulnerability.getCvssScore());
-        vulScoreCvss3.setVector(ossIndexVulnerability.getCvssVector());
-        vulScoreCvss3.setVulnerability(vulnerability);
-        vulScores.add(vulScoreCvss3);
+        vulScore.setScoringSystem(vulScoringSystem.name());
+        vulScore.setScore(ossIndexVulnerability.getCvssScore());
+        vulScore.setVector(ossIndexVulnerability.getCvssVector());
+        vulScore.setVulnerability(vulnerability);
+        vulScore.setSeverity(CvssSeverity.calculateCvssSeverity(vulScoringSystem, ossIndexVulnerability.getCvssScore()).name());
+        vulScores.add(vulScore);
 
         return vulScores;
     }
