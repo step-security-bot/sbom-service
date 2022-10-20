@@ -89,8 +89,7 @@ public enum CvssSeverity {
         List<VulScore> scores = vul.getVulScores();
 
         if (scores.size() == 1) {
-            cvssSeverity = CvssSeverity.calculateCvssSeverity(
-                    VulScoringSystem.valueOf(scores.get(0).getScoringSystem()), scores.get(0).getScore());
+            cvssSeverity = CvssSeverity.valueOf(scores.get(0).getSeverity());
         } else if (scores.size() > 1) {
             VulScore cvss3 = scores.stream()
                     .filter(score -> StringUtils.equals(score.getScoringSystem(), VulScoringSystem.CVSS3.name()))
@@ -102,9 +101,9 @@ public enum CvssSeverity {
                     .orElse(null);
 
             if (Objects.nonNull(cvss3)) {
-                cvssSeverity = CvssSeverity.calculateCvssSeverity(VulScoringSystem.CVSS3, cvss3.getScore());
+                cvssSeverity = CvssSeverity.valueOf(cvss3.getSeverity());
             } else if (Objects.nonNull(cvss2)) {
-                cvssSeverity = CvssSeverity.calculateCvssSeverity(VulScoringSystem.CVSS2, cvss2.getScore());
+                cvssSeverity = CvssSeverity.valueOf(cvss2.getSeverity());
             }
         }
 

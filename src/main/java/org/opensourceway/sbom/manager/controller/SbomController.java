@@ -401,6 +401,10 @@ public class SbomController {
         }
     }
 
+    /**
+     * @deprecated Use {@link #queryVulnerability} instead.
+     */
+    @Deprecated
     @GetMapping("/queryPackageVulnerability/{packageId}")
     public @ResponseBody ResponseEntity queryVulnerabilityByPackageId(@PathVariable("packageId") String packageId,
                                                                       @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
@@ -409,7 +413,7 @@ public class SbomController {
         PageVo<VulnerabilityVo> vulnerabilities;
         Pageable pageable = PageRequest.of(page, size);
         try {
-            vulnerabilities = sbomService.queryVulnerabilityByPackageId(packageId, pageable);
+            vulnerabilities = sbomService.queryVulnerability(null, packageId, null, pageable);
         } catch (RuntimeException e) {
             logger.error("query package vulnerability error: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
@@ -557,4 +561,28 @@ public class SbomController {
         return ResponseEntity.status(HttpStatus.OK).body("OK");
     }
 
+    @GetMapping("/queryVulnerability/{*productName}")
+    public @ResponseBody ResponseEntity queryVulnerability(@PathVariable String productName,
+                                                           @RequestParam(required = false) String severity,
+                                                           @RequestParam(required = false) String packageId,
+                                                           @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+                                                           @RequestParam(name = "size", required = false, defaultValue = "15") Integer size) {
+        productName = productName.substring(1);
+        logger.info("query vulnerability by product name: {}, severity: {}, packageId: {}", productName, severity, packageId);
+
+        PageVo<VulnerabilityVo> vulnerabilities;
+        Pageable pageable = PageRequest.of(page, size);
+        try {
+            vulnerabilities = sbomService.queryVulnerability(productName, packageId, severity, pageable);
+        } catch (RuntimeException e) {
+            logger.error("query vulnerability error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("query vulnerability error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("query vulnerability error");
+        }
+
+        logger.info("query vulnerability result: {}", Objects.isNull(vulnerabilities) ? 0 : vulnerabilities.getTotalElements());
+        return ResponseEntity.status(HttpStatus.OK).body(vulnerabilities);
+    }
 }

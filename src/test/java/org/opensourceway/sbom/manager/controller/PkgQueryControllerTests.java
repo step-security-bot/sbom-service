@@ -12,6 +12,7 @@ import org.opensourceway.sbom.manager.model.Sbom;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.manager.model.vo.PackageWithStatisticsVo;
 import org.opensourceway.sbom.manager.service.SbomService;
+import org.opensourceway.sbom.manager.utils.CvssSeverity;
 import org.opensourceway.sbom.manager.utils.JsonContainsMatcher;
 import org.opensourceway.sbom.utils.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -606,7 +607,8 @@ public class PkgQueryControllerTests {
         assertThat(pkg).isNotNull();
 
         this.mockMvc
-                .perform(get("/sbom-api/queryPackageVulnerability/%s".formatted(pkg.getId().toString()))
+                .perform(get("/sbom-api/queryVulnerability/%s".formatted(TestConstants.SAMPLE_PRODUCT_NAME))
+                        .param("packageId", pkg.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -618,6 +620,74 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.number").value(0))
                 .andExpect(jsonPath("$.numberOfElements").value(3))
                 .andExpect(jsonPath("$.empty").value(false))
+                .andExpect(jsonPath("$.size").value(15))
+                .andExpect(jsonPath("$.first").value(true));
+    }
+
+    @Test
+    public void queryVulnerabilityByProductName() throws Exception {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+
+        this.mockMvc
+                .perform(get("/sbom-api/queryVulnerability/%s".formatted(TestConstants.SAMPLE_PRODUCT_NAME))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.numberOfElements").value(3))
+                .andExpect(jsonPath("$.empty").value(false))
+                .andExpect(jsonPath("$.size").value(15))
+                .andExpect(jsonPath("$.first").value(true));
+    }
+
+    @Test
+    public void queryVulnerabilityByProductNameAndHighSeverity() throws Exception {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+
+        this.mockMvc
+                .perform(get("/sbom-api/queryVulnerability/%s".formatted(TestConstants.SAMPLE_PRODUCT_NAME))
+                        .param("severity", CvssSeverity.HIGH.name())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.numberOfElements").value(1))
+                .andExpect(jsonPath("$.empty").value(false))
+                .andExpect(jsonPath("$.size").value(15))
+                .andExpect(jsonPath("$.first").value(true));
+    }
+
+    @Test
+    public void queryVulnerabilityByProductNameAndLowSeverity() throws Exception {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+
+        this.mockMvc
+                .perform(get("/sbom-api/queryVulnerability/%s".formatted(TestConstants.SAMPLE_PRODUCT_NAME))
+                        .param("severity", CvssSeverity.LOW.name())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.totalElements").value(0))
+                .andExpect(jsonPath("$.totalPages").value(0))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.numberOfElements").value(0))
+                .andExpect(jsonPath("$.empty").value(true))
                 .andExpect(jsonPath("$.size").value(15))
                 .andExpect(jsonPath("$.first").value(true));
     }
@@ -639,11 +709,11 @@ public class PkgQueryControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
                 .andExpect(jsonPath("$.criticalVulCount").value(0))
-                .andExpect(jsonPath("$.highVulCount").value(2))
+                .andExpect(jsonPath("$.highVulCount").value(1))
                 .andExpect(jsonPath("$.mediumVulCount").value(2))
                 .andExpect(jsonPath("$.lowVulCount").value(0))
                 .andExpect(jsonPath("$.noneVulCount").value(0))
-                .andExpect(jsonPath("$.unknownVulCount").value(0));
+                .andExpect(jsonPath("$.unknownVulCount").value(1));
     }
 
     @Test

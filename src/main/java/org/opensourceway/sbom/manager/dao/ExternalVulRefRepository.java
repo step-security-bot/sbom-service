@@ -16,36 +16,64 @@ public interface ExternalVulRefRepository extends JpaRepository<ExternalVulRef, 
             nativeQuery = true)
     List<ExternalVulRef> findBySbomId(UUID sbomId);
 
-    @Query(value = "with all_vul as ( " +
-            "select evf.*, v.vul_id v_vul_id, v.source from external_vul_ref evf join vulnerability v on evf.vul_id = v.id  " +
-            "where evf.pkg_id = :packageId " +
-            "), oss_index as ( " +
-            "select * from all_vul where source = 'OSS_INDEX' " +
-            "), cve_manager_dup as ( " +
-            "select * from all_vul where source = 'CVE_MANAGER' and v_vul_id in (select v_vul_id from oss_index) " +
-            "), uni_vul as ( " +
-            "select * from all_vul where id not in (select id from cve_manager_dup) " +
-            "), vul_with_max_scoring_system as ( " +
-            "select vul_id, max(scoring_system) ss from vul_score vs where vs.vul_id in (select vul_id from all_vul) group by vul_id " +
-            "), uni_vul_score as ( " +
-            "select vs.* from vul_score vs join vul_with_max_scoring_system tmp on vs.vul_id = tmp.vul_id and vs.scoring_system = tmp.ss " +
-            ") " +
-            "select uv.* from uni_vul uv join uni_vul_score uvs on uv.vul_id = uvs.vul_id order by uvs.score desc, uv.v_vul_id desc, uvs.scoring_system desc",
-            countQuery = "with all_vul as ( " +
-                    "select evf.*, v.vul_id v_vul_id, v.source from external_vul_ref evf join vulnerability v on evf.vul_id = v.id  " +
-                    "where evf.pkg_id = :packageId " +
-                    "), oss_index as ( " +
-                    "select * from all_vul where source = 'OSS_INDEX' " +
-                    "), cve_manager_dup as ( " +
-                    "select * from all_vul where source = 'CVE_MANAGER' and v_vul_id in (select v_vul_id from oss_index) " +
-                    "), uni_vul as ( " +
-                    "select * from all_vul where id not in (select id from cve_manager_dup) " +
-                    "), vul_with_max_scoring_system as ( " +
-                    "select vul_id, max(scoring_system) ss from vul_score vs where vs.vul_id in (select vul_id from all_vul) group by vul_id " +
-                    "), uni_vul_score as ( " +
-                    "select vs.* from vul_score vs join vul_with_max_scoring_system tmp on vs.vul_id = tmp.vul_id and vs.scoring_system = tmp.ss " +
-                    ") " +
-                    "select count(1) from uni_vul uv join uni_vul_score uvs on uv.vul_id = uvs.vul_id",
+    @Query(value = """
+            WITH all_vul AS (
+            SELECT evf.*, v.vul_id v_vul_id, v.source FROM external_vul_ref evf join vulnerability v on evf.vul_id = v.id
+            WHERE (CAST(:packageId AS UUID) IS NULL AND evf.pkg_id IN (
+                SELECT id FROM package WHERE sbom_id = (
+                    SELECT id FROM sbom WHERE product_id = (
+                        SELECT id FROM product WHERE name = :productName))))
+            OR (CAST(:packageId AS UUID) IS NOT NULL AND evf.pkg_id = CAST(:packageId AS UUID))
+            ), oss_index AS (
+            SELECT * FROM all_vul WHERE source = 'OSS_INDEX'
+            ), cve_manager_dup AS (
+            SELECT * FROM all_vul WHERE source = 'CVE_MANAGER' AND v_vul_id in (SELECT v_vul_id FROM oss_index)
+            ), uni_vul AS (
+            SELECT *, coalesce(
+            (SELECT vs.severity FROM vul_score vs WHERE vs.vul_id = v.vul_id AND vs.scoring_system = 'CVSS3'),
+            (SELECT vs.severity FROM vul_score vs WHERE vs.vul_id = v.vul_id AND vs.scoring_system = 'CVSS2'),
+            'UNKNOWN'
+            ) severity, coalesce(
+            (SELECT vs.score FROM vul_score vs WHERE vs.vul_id = v.vul_id AND vs.scoring_system = 'CVSS3'),
+            (SELECT vs.score FROM vul_score vs WHERE vs.vul_id = v.vul_id AND vs.scoring_system = 'CVSS2')
+            ) score, coalesce(
+            (SELECT vs.scoring_system FROM vul_score vs WHERE vs.vul_id = v.vul_id AND vs.scoring_system = 'CVSS3'),
+            (SELECT vs.scoring_system FROM vul_score vs WHERE vs.vul_id = v.vul_id AND vs.scoring_system = 'CVSS2')
+            ) scoring_system FROM all_vul v WHERE id NOT IN (SELECT id FROM cve_manager_dup)
+            )
+            SELECT * FROM uni_vul uv WHERE :severity IS NULL OR uv.severity = :severity
+            ORDER BY uv.score DESC NULLS LAST, uv.v_vul_id DESC, uv.scoring_system DESC NULLS LAST
+            """,
+            countQuery = """
+            WITH all_vul AS (
+            SELECT evf.*, v.vul_id v_vul_id, v.source FROM external_vul_ref evf join vulnerability v on evf.vul_id = v.id
+            WHERE (CAST(:packageId AS UUID) IS NULL AND evf.pkg_id IN (
+                SELECT id FROM package WHERE sbom_id = (
+                    SELECT id FROM sbom WHERE product_id = (
+                        SELECT id FROM product WHERE name = :productName))))
+            OR (CAST(:packageId AS UUID) IS NOT NULL AND evf.pkg_id = CAST(:packageId AS UUID))
+            ), oss_index AS (
+            SELECT * FROM all_vul WHERE source = 'OSS_INDEX'
+            ), cve_manager_dup AS (
+            SELECT * FROM all_vul WHERE source = 'CVE_MANAGER' AND v_vul_id in (SELECT v_vul_id FROM oss_index)
+            ), uni_vul AS (
+            SELECT *, coalesce(
+            (SELECT vs.severity FROM vul_score vs WHERE vs.vul_id = v.vul_id AND vs.scoring_system = 'CVSS3'),
+            (SELECT vs.severity FROM vul_score vs WHERE vs.vul_id = v.vul_id AND vs.scoring_system = 'CVSS2'),
+            'UNKNOWN'
+            ) severity, coalesce(
+            (SELECT vs.score FROM vul_score vs WHERE vs.vul_id = v.vul_id AND vs.scoring_system = 'CVSS3'),
+            (SELECT vs.score FROM vul_score vs WHERE vs.vul_id = v.vul_id AND vs.scoring_system = 'CVSS2')
+            ) score, coalesce(
+            (SELECT vs.scoring_system FROM vul_score vs WHERE vs.vul_id = v.vul_id AND vs.scoring_system = 'CVSS3'),
+            (SELECT vs.scoring_system FROM vul_score vs WHERE vs.vul_id = v.vul_id AND vs.scoring_system = 'CVSS2')
+            ) scoring_system FROM all_vul v WHERE id NOT IN (SELECT id FROM cve_manager_dup)
+            )
+            SELECT COUNT(1) FROM uni_vul uv WHERE :severity IS NULL OR uv.severity = :severity
+            """,
             nativeQuery = true)
-    Page<ExternalVulRef> findByPackageId(@Param("packageId") UUID packageId, Pageable pageable);
+    Page<ExternalVulRef> findByProductNameAndPackageIdAndSeverity(@Param("productName") String productName,
+                                                                  @Param("packageId") UUID packageId,
+                                                                  @Param("severity") String severity,
+                                                                  Pageable pageable);
 }

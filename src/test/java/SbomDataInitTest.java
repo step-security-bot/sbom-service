@@ -26,6 +26,7 @@ import org.opensourceway.sbom.manager.model.VulReference;
 import org.opensourceway.sbom.manager.model.VulScore;
 import org.opensourceway.sbom.manager.model.VulScoringSystem;
 import org.opensourceway.sbom.manager.model.Vulnerability;
+import org.opensourceway.sbom.manager.utils.CvssSeverity;
 import org.opensourceway.sbom.manager.utils.PurlUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -117,7 +118,6 @@ public class SbomDataInitTest {
         Vulnerability vul_4 = insertVulnerability("CVE-2022-00002-test", "OSS_INDEX");
         insertVulRef(vul_4, VulRefSource.NVD.name(), "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00002-test");
         insertVulRef(vul_4, VulRefSource.GITHUB.name(), "https://github.com/xxx/xxx/security/advisories/xxx");
-        insertVulScore(vul_4, VulScoringSystem.CVSS2.name(), 7.5, "AV:N/AC:L/Au:N/C:P/I:P/A:P");
 
         Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
         assertThat(sbom).isNotNull();
@@ -152,6 +152,7 @@ public class SbomDataInitTest {
         vulScore.setScore(score);
         vulScore.setVector(vector);
         vulScore.setVulnerability(vul);
+        vulScore.setSeverity(CvssSeverity.calculateCvssSeverity(VulScoringSystem.valueOf(scoringSystem), score).name());
         vulScoreRepository.save(vulScore);
     }
 
@@ -209,7 +210,6 @@ public class SbomDataInitTest {
         license.setUrl("https://xxx/licenses/License-test");
         license.setIsLegal(false);
         License licenseRet = licenseRepository.save(license);
-        packageRepository.save(pkg);
         assertThat(licenseRet.getPackages().size()).isEqualTo(1);
     }
 

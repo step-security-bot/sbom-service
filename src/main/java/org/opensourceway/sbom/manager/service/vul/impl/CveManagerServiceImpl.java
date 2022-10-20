@@ -23,6 +23,7 @@ import org.opensourceway.sbom.manager.model.Vulnerability;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
 import org.opensourceway.sbom.manager.service.vul.AbstractVulService;
+import org.opensourceway.sbom.manager.utils.CvssSeverity;
 import org.opensourceway.sbom.manager.utils.PurlUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -175,6 +176,7 @@ public class CveManagerServiceImpl extends AbstractVulService {
         vulScoreCvss2.setScore(cveManagerVulnerability.getCvss2Score());
         vulScoreCvss2.setVector(cveManagerVulnerability.getCvss2Vector());
         vulScoreCvss2.setVulnerability(vulnerability);
+        vulScoreCvss2.setSeverity(CvssSeverity.calculateCvssSeverity(VulScoringSystem.CVSS2, cveManagerVulnerability.getCvss2Score()).name());
         vulScores.add(vulScoreCvss2);
 
         VulScore vulScoreCvss3 = existVulScores.getOrDefault(
@@ -183,6 +185,7 @@ public class CveManagerServiceImpl extends AbstractVulService {
         vulScoreCvss3.setScore(cveManagerVulnerability.getCvss3Score());
         vulScoreCvss3.setVector(cveManagerVulnerability.getCvss3Vector());
         vulScoreCvss3.setVulnerability(vulnerability);
+        vulScoreCvss3.setSeverity(CvssSeverity.calculateCvssSeverity(VulScoringSystem.CVSS3, cveManagerVulnerability.getCvss3Score()).name());
         vulScores.add(vulScoreCvss3);
 
         return vulScores;

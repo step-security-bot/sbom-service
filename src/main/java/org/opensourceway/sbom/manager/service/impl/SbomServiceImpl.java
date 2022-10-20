@@ -421,14 +421,6 @@ public class SbomServiceImpl implements SbomService {
     }
 
     @Override
-    public PageVo<VulnerabilityVo> queryVulnerabilityByPackageId(String packageId, Pageable pageable) {
-        Page<ExternalVulRef> result = externalVulRefRepository.findByPackageId(UUID.fromString(packageId), pageable);
-        return new PageVo<>(new PageImpl<>(result.stream().map(VulnerabilityVo::fromExternalVulRef).toList(),
-                result.getPageable(),
-                result.getTotalElements()));
-    }
-
-    @Override
     public void persistSbomFromTraceData(String productName, String fileName, InputStream inputStream) throws IOException {
         byte[] sbomContent = traceDataAnalyzer.analyze(productName, inputStream);
         readSbomFile(productName, productName + ".spdx.json", sbomContent);
@@ -498,6 +490,15 @@ public class SbomServiceImpl implements SbomService {
         Matcher m = r.matcher(s);
         s = m.replaceAll("");
         return s;
+    }
+
+    @Override
+    public PageVo<VulnerabilityVo> queryVulnerability(String productName, String packageId, String severity, Pageable pageable) {
+        Page<ExternalVulRef> result = externalVulRefRepository.findByProductNameAndPackageIdAndSeverity(
+                productName, Objects.isNull(packageId) ? null : UUID.fromString(packageId), severity, pageable);
+        return new PageVo<>(new PageImpl<>(result.stream().map(VulnerabilityVo::fromExternalVulRef).toList(),
+                result.getPageable(),
+                result.getTotalElements()));
     }
 
 }

@@ -37,13 +37,13 @@ import org.opensourceway.sbom.manager.model.vo.VulnerabilityVo;
 import org.opensourceway.sbom.manager.model.vo.request.PublishSbomRequest;
 import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
 import org.opensourceway.sbom.manager.service.license.impl.LicenseServiceImpl;
+import org.opensourceway.sbom.manager.utils.CvssSeverity;
 import org.opensourceway.sbom.manager.utils.TestCommon;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -318,42 +318,245 @@ class SbomServiceTest {
                 .findFirst().orElse(null);
         assertThat(pkg).isNotNull();
 
-        PageVo<VulnerabilityVo> result = sbomService.queryVulnerabilityByPackageId(pkg.getId().toString(), PageRequest.of(0, 15));
+        PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
+                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), null, PageRequest.of(0, 15));
         assertThat(result).isNotEmpty();
         assertThat(result.getTotalElements()).isEqualTo(3);
         assertThat(result.getTotalPages()).isEqualTo(1);
 
-        assertThat(result.getContent().get(2).getVulId()).isEqualTo("CVE-2022-00000-test");
-        assertThat(result.getContent().get(2).getScoringSystem()).isEqualTo("CVSS3");
-        assertThat(result.getContent().get(2).getScore()).isEqualTo(5.3);
-        assertThat(result.getContent().get(2).getVector()).isEqualTo("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N");
-        assertThat(result.getContent().get(2).getPurl()).isEqualTo("pkg:pypi/asttokens@2.0.5");
-        assertThat(result.getContent().get(2).getReferences().size()).isEqualTo(2);
-        assertThat(result.getContent().get(2).getReferences().get(0).getFirst()).isEqualTo("NVD");
-        assertThat(result.getContent().get(2).getReferences().get(0).getSecond()).isEqualTo("http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00000-test");
-        assertThat(result.getContent().get(2).getReferences().get(1).getFirst()).isEqualTo("OSS_INDEX");
-        assertThat(result.getContent().get(2).getReferences().get(1).getSecond()).isEqualTo("https://ossindex.sonatype.org/vulnerability/sonatype-2022-00000-test");
+        assertVulWithMediumSeverity(result.getContent().get(1));
+        assertVulWithHighSeverity(result.getContent().get(0));
+        assertVulWithUnknownSeverity(result.getContent().get(2));
+    }
 
-        assertThat(result.getContent().get(0).getVulId()).isEqualTo("CVE-2022-00001-test");
-        assertThat(result.getContent().get(0).getScoringSystem()).isEqualTo("CVSS2");
-        assertThat(result.getContent().get(0).getScore()).isEqualTo(9.8);
-        assertThat(result.getContent().get(0).getVector()).isEqualTo("(AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H)");
-        assertThat(result.getContent().get(0).getPurl()).isEqualTo("pkg:pypi/asttokens@2.0.5");
-        assertThat(result.getContent().get(0).getReferences().size()).isEqualTo(1);
-        assertThat(result.getContent().get(0).getReferences().get(0).getFirst()).isEqualTo("NVD");
-        assertThat(result.getContent().get(0).getReferences().get(0).getSecond()).isEqualTo("http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00001-test");
+    @Test
+    public void queryVulnerabilityByPackageIdAndHighSeverity() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
 
-        assertThat(result.getContent().get(1).getVulId()).isEqualTo("CVE-2022-00002-test");
-        assertThat(result.getContent().get(1).getScoringSystem()).isEqualTo("CVSS2");
-        assertThat(result.getContent().get(1).getScore()).isEqualTo(7.5);
-        assertThat(result.getContent().get(1).getVector()).isEqualTo("AV:N/AC:L/Au:N/C:P/I:P/A:P");
-        assertThat(result.getContent().get(1).getPurl()).isEqualTo("pkg:pypi/asttokens@2.0.5");
-        assertThat(result.getContent().get(1).getReferences().size()).isEqualTo(2);
-        assertThat(result.getContent().get(1).getReferences().get(0).getFirst()).isEqualTo("NVD");
-        assertThat(result.getContent().get(1).getReferences().get(0).getSecond()).isEqualTo("http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00002-test");
-        assertThat(result.getContent().get(1).getReferences().get(1).getFirst()).isEqualTo("GITHUB");
-        assertThat(result.getContent().get(1).getReferences().get(1).getSecond()).isEqualTo("https://github.com/xxx/xxx/security/advisories/xxx");
+        PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
+                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), CvssSeverity.HIGH.name(), PageRequest.of(0, 15));
+        assertThat(result).isNotEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getTotalPages()).isEqualTo(1);
 
+        assertVulWithHighSeverity(result.getContent().get(0));
+    }
+
+    @Test
+    public void queryVulnerabilityByPackageIdAndMediumSeverity() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+
+        PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
+                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), CvssSeverity.MEDIUM.name(), PageRequest.of(0, 15));
+        assertThat(result).isNotEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getTotalPages()).isEqualTo(1);
+
+        assertVulWithMediumSeverity(result.getContent().get(0));
+    }
+
+    @Test
+    public void queryVulnerabilityByPackageIdAndUnknownSeverity() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+
+        PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
+                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), CvssSeverity.UNKNOWN.name(), PageRequest.of(0, 15));
+        assertThat(result).isNotEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getTotalPages()).isEqualTo(1);
+
+        assertVulWithUnknownSeverity(result.getContent().get(0));
+    }
+
+    @Test
+    public void queryVulnerabilityByPackageIdAndLowSeverity() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+
+        PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
+                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), CvssSeverity.LOW.name(), PageRequest.of(0, 15));
+        assertThat(result.getTotalElements()).isEqualTo(0);
+        assertThat(result.getTotalPages()).isEqualTo(0);
+    }
+
+    @Test
+    public void queryVulnerabilityByPackageIdAndNoneSeverity() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+
+        PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
+                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), CvssSeverity.NONE.name(), PageRequest.of(0, 15));
+        assertThat(result.getTotalElements()).isEqualTo(0);
+        assertThat(result.getTotalPages()).isEqualTo(0);
+    }
+
+    @Test
+    public void queryVulnerabilityByPackageIdAndCriticalSeverity() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+
+        PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
+                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), CvssSeverity.CRITICAL.name(), PageRequest.of(0, 15));
+        assertThat(result.getTotalElements()).isEqualTo(0);
+        assertThat(result.getTotalPages()).isEqualTo(0);
+    }
+
+    @Test
+    public void queryVulnerabilityByProductName() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+
+        PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
+                TestConstants.SAMPLE_PRODUCT_NAME, null, null, PageRequest.of(0, 15));
+        assertThat(result).isNotEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(3);
+        assertThat(result.getTotalPages()).isEqualTo(1);
+
+        assertVulWithMediumSeverity(result.getContent().get(1));
+        assertVulWithHighSeverity(result.getContent().get(0));
+        assertVulWithUnknownSeverity(result.getContent().get(2));
+    }
+
+    @Test
+    public void queryVulnerabilityByProductNameAndHighSeverity() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+
+        PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
+                TestConstants.SAMPLE_PRODUCT_NAME, null, CvssSeverity.HIGH.name(), PageRequest.of(0, 15));
+        assertThat(result).isNotEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getTotalPages()).isEqualTo(1);
+
+        assertVulWithHighSeverity(result.getContent().get(0));
+    }
+
+    @Test
+    public void queryVulnerabilityByProductNameAndMediumSeverity() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+
+        PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
+                TestConstants.SAMPLE_PRODUCT_NAME, null, CvssSeverity.MEDIUM.name(), PageRequest.of(0, 15));
+        assertThat(result).isNotEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getTotalPages()).isEqualTo(1);
+
+        assertVulWithMediumSeverity(result.getContent().get(0));
+    }
+
+    @Test
+    public void queryVulnerabilityByProductNameAndUnknownSeverity() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+
+        PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
+                TestConstants.SAMPLE_PRODUCT_NAME, null, CvssSeverity.UNKNOWN.name(), PageRequest.of(0, 15));
+        assertThat(result).isNotEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getTotalPages()).isEqualTo(1);
+
+        assertVulWithUnknownSeverity(result.getContent().get(0));
+    }
+
+    @Test
+    public void queryVulnerabilityByProductNameAndLowSeverity() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+
+        PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
+                TestConstants.SAMPLE_PRODUCT_NAME, null, CvssSeverity.LOW.name(), PageRequest.of(0, 15));
+        assertThat(result.getTotalElements()).isEqualTo(0);
+        assertThat(result.getTotalPages()).isEqualTo(0);
+    }
+
+    @Test
+    public void queryVulnerabilityByProductNameAndNoneSeverity() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+
+        PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
+                TestConstants.SAMPLE_PRODUCT_NAME, null, CvssSeverity.NONE.name(), PageRequest.of(0, 15));
+        assertThat(result.getTotalElements()).isEqualTo(0);
+        assertThat(result.getTotalPages()).isEqualTo(0);
+    }
+
+    @Test
+    public void queryVulnerabilityByProductNameAndCriticalSeverity() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+
+        PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
+                TestConstants.SAMPLE_PRODUCT_NAME, null, CvssSeverity.CRITICAL.name(), PageRequest.of(0, 15));
+        assertThat(result.getTotalElements()).isEqualTo(0);
+        assertThat(result.getTotalPages()).isEqualTo(0);
+    }
+    
+    private void assertVulWithMediumSeverity(VulnerabilityVo vo) {
+        assertThat(vo.getVulId()).isEqualTo("CVE-2022-00000-test");
+        assertThat(vo.getScoringSystem()).isEqualTo("CVSS3");
+        assertThat(vo.getScore()).isEqualTo(5.3);
+        assertThat(vo.getVector()).isEqualTo("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N");
+        assertThat(vo.getSeverity()).isEqualTo(CvssSeverity.MEDIUM.name());
+        assertThat(vo.getPurl()).isEqualTo("pkg:pypi/asttokens@2.0.5");
+        assertThat(vo.getReferences().size()).isEqualTo(2);
+        assertThat(vo.getReferences().get(0).getFirst()).isEqualTo("NVD");
+        assertThat(vo.getReferences().get(0).getSecond()).isEqualTo("http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00000-test");
+        assertThat(vo.getReferences().get(1).getFirst()).isEqualTo("OSS_INDEX");
+        assertThat(vo.getReferences().get(1).getSecond()).isEqualTo("https://ossindex.sonatype.org/vulnerability/sonatype-2022-00000-test");
+    }
+
+    private void assertVulWithHighSeverity(VulnerabilityVo vo) {
+        assertThat(vo.getVulId()).isEqualTo("CVE-2022-00001-test");
+        assertThat(vo.getScoringSystem()).isEqualTo("CVSS2");
+        assertThat(vo.getScore()).isEqualTo(9.8);
+        assertThat(vo.getVector()).isEqualTo("(AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H)");
+        assertThat(vo.getSeverity()).isEqualTo(CvssSeverity.HIGH.name());
+        assertThat(vo.getPurl()).isEqualTo("pkg:pypi/asttokens@2.0.5");
+        assertThat(vo.getReferences().size()).isEqualTo(1);
+        assertThat(vo.getReferences().get(0).getFirst()).isEqualTo("NVD");
+        assertThat(vo.getReferences().get(0).getSecond()).isEqualTo("http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00001-test");
+    }
+
+    private void assertVulWithUnknownSeverity(VulnerabilityVo vo) {
+        assertThat(vo.getVulId()).isEqualTo("CVE-2022-00002-test");
+        assertThat(vo.getScoringSystem()).isNull();
+        assertThat(vo.getScore()).isNull();
+        assertThat(vo.getVector()).isNull();
+        assertThat(vo.getSeverity()).isEqualTo(CvssSeverity.UNKNOWN.name());
+        assertThat(vo.getPurl()).isEqualTo("pkg:pypi/asttokens@2.0.5");
+        assertThat(vo.getReferences().size()).isEqualTo(2);
+        assertThat(vo.getReferences().get(0).getFirst()).isEqualTo("NVD");
+        assertThat(vo.getReferences().get(0).getSecond()).isEqualTo("http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00002-test");
+        assertThat(vo.getReferences().get(1).getFirst()).isEqualTo("GITHUB");
+        assertThat(vo.getReferences().get(1).getSecond()).isEqualTo("https://github.com/xxx/xxx/security/advisories/xxx");
     }
 
     @Test
