@@ -90,7 +90,22 @@ public class ChecksumToGAVTest {
         externalPurlRefList.add(externalPurlRef2);
         externalPurlRefList.add(externalPurlRef3);
         pkg.setExternalPurlRefs(externalPurlRefList);
-        sbom.setPackages(List.of(pkg));
+
+        Package pkg1 = new Package();
+        pkg1.setName("test");
+        pkg1.setSbom(sbom);
+        List<ExternalPurlRef> externalPurlRefList1 = new ArrayList<>();
+        ExternalPurlRef externalPurlRef4 = new ExternalPurlRef();
+        externalPurlRef4.setType(SbomConstants.ExternalPurlRef_TYPE_CHECKSUM);
+        externalPurlRef4.setCategory(ReferenceCategory.EXTERNAL_MANAGER.name());
+        PackageUrlVo packageUrlVo4 = new PackageUrlVo("pkg", "maven", "sha1",
+                "5af35056b4d257e4b64b9e8069c0746e8b08629f", "1.0.0", null, null);
+        externalPurlRef4.setPurl(packageUrlVo4);
+        externalPurlRef4.setPkg(pkg1);
+        externalPurlRefList1.add(externalPurlRef4);
+        pkg1.setExternalPurlRefs(externalPurlRefList1);
+
+        sbom.setPackages(List.of(pkg, pkg1));
         productRepository.save(product);
 
     }
@@ -101,7 +116,7 @@ public class ChecksumToGAVTest {
         initChecksumSbom();
         Sbom sbom = sbomRepository.findByProductName(TestConstants.PUBLISH_TEST_CHECKSUM_NAME).orElse(null);
         assertThat(sbom).isNotNull();
-        assertThat(sbom.getPackages().size()).isEqualTo(1);
+        assertThat(sbom.getPackages().size()).isEqualTo(2);
         assertThat(sbom.getPackages().get(0).getExternalPurlRefs().size()).isEqualTo(3);
     }
 
@@ -122,5 +137,17 @@ public class ChecksumToGAVTest {
         assertThat(pkg.getExternalPurlRefs().get(0).getPurl().getNamespace()).isEqualTo("org.apache.hbase");
         assertThat(pkg.getExternalPurlRefs().get(0).getPurl().getName()).isEqualTo("hbase-common");
         assertThat(pkg.getExternalPurlRefs().get(0).getPurl().getVersion()).isEqualTo("2.0.0-alpha4");
+
+        Package pkg1 = packageRepository.findBySbomIdAndSpdxId(sbom.getId(), null).get(1);
+        List<List<ExternalPurlRef>> externalPurlRefList1 = checksumServiceImpl.extractGAVByChecksumRef(pkg1.getId(),
+                ReferenceCategory.EXTERNAL_MANAGER.name(),
+                SbomConstants.ExternalPurlRef_TYPE_CHECKSUM);
+        Assertions.assertThat(externalPurlRefList1.get(0).size()).isEqualTo(1);
+        Assertions.assertThat(externalPurlRefList1.get(1).size()).isEqualTo(0);
+        checksumServiceImpl.persistExternalGAVRef(externalPurlRefList1);
+        assertThat(pkg1.getExternalPurlRefs().size()).isEqualTo(1);
+        assertThat(pkg1.getExternalPurlRefs().get(0).getPurl().getNamespace()).isEqualTo("log4j");
+        assertThat(pkg1.getExternalPurlRefs().get(0).getPurl().getName()).isEqualTo("log4j");
+        assertThat(pkg1.getExternalPurlRefs().get(0).getPurl().getVersion()).isEqualTo("1.2.17");
     }
 }
