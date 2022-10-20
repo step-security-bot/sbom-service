@@ -309,10 +309,6 @@ public class OpenEulerMetaParserTest {
         temp.setSpecDownloadUrl("https://gitee.com/src-openeuler/atkmm/raw/openEuler-22.03-LTS/atkmm.spec");
         repoInfoSet.add(temp);
 
-        temp = new RepoInfoVo("grilo", "openEuler-22.03-LTS");
-        temp.setSpecDownloadUrl("https://gitee.com/src-openeuler/grilo/raw/openEuler-22.03-LTS/grilo.spec");
-        repoInfoSet.add(temp);
-
         temp = new RepoInfoVo("python-psycopg2", "openEuler-22.03-LTS");
         temp.setSpecDownloadUrl("https://gitee.com/src-openeuler/python-psycopg2/raw/openEuler-22.03-LTS/python-psycopg2.spec");
         repoInfoSet.add(temp);
@@ -323,7 +319,7 @@ public class OpenEulerMetaParserTest {
 
         repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfoSet);
 
-        assertThat(repoInfoSet.size()).isEqualTo(4);
+        assertThat(repoInfoSet.size()).isEqualTo(3);
     }
 
     /**
@@ -444,8 +440,24 @@ public class OpenEulerMetaParserTest {
 
         List<RepoInfoVo> repoInfoList = repoInfoSet.stream().toList();
         assertThat(repoInfoList.get(0).getPackageNames().get(0)).isEqualTo("perl-List-MoreUtils-XS");
-        assertThat(repoInfoList.get(0).getPackageNames().get(1)).isEqualTo("perl-List-MoreUtils-XS-_help");
+        assertThat(repoInfoList.get(0).getPackageNames().get(1)).isEqualTo("perl-List-MoreUtils-XS-help");
         assertThat(repoInfoList.get(1).getPackageNames().get(0)).isEqualTo("security-tool");
+    }
+
+    @Test
+    public void specPackageHelpMacroTest() {
+        Set<RepoInfoVo> repoInfoSet = new LinkedHashSet<>();
+
+        RepoInfoVo temp = new RepoInfoVo("grilo", "openEuler-22.03-LTS");
+        temp.setSpecDownloadUrl("https://gitee.com/src-openeuler/grilo/raw/openEuler-22.03-LTS/grilo.spec");
+        repoInfoSet.add(temp);
+
+        repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfoSet);
+
+        List<RepoInfoVo> repoInfoList = repoInfoSet.stream().toList();
+        assertThat(repoInfoList.get(0).getPackageNames().get(0)).isEqualTo("grilo");
+        assertThat(repoInfoList.get(0).getPackageNames().get(1)).isEqualTo("grilo-devel");
+        assertThat(repoInfoList.get(0).getPackageNames().get(2)).isEqualTo("grilo-help");
     }
 
 }
