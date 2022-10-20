@@ -175,6 +175,8 @@ public class RepoMetaParserImpl implements RepoMetaParser {
                     } else if (StringUtils.equalsIgnoreCase(key, "%package")) {
                         if (StringUtils.contains(value, "-n")) {
                             repoInfo.addPackageName(value.split("-n", 2)[1].trim());
+                        } else if (StringUtils.equalsIgnoreCase(value, "_help")) {
+                            repoInfo.addPackageName(rootPackageName + "-help");
                         } else {
                             repoInfo.addPackageName(rootPackageName + "-" + value);
                         }

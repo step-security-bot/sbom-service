@@ -534,6 +534,7 @@ public class SbomController {
     private Boolean isFetchRepoMetaRunning = Boolean.FALSE;
 
     @GetMapping("/fetchOpenEulerRepoMeta")
+    @Deprecated
     public @ResponseBody ResponseEntity fetchOpenEulerRepoMeta() {
         if (isFetchRepoMetaRunning) {
             logger.warn("start manual launch fetch-openEuler-repo-meta, has job running");
