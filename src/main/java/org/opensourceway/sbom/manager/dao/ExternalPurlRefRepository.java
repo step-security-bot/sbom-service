@@ -18,4 +18,13 @@ public interface ExternalPurlRefRepository extends JpaRepository<ExternalPurlRef
     @Query(value = "SELECT A.* FROM external_purl_ref A, package B WHERE A.pkg_id = B.id AND B.sbom_id = :sbomId",
             nativeQuery = true)
     List<ExternalPurlRef> findBySbomId(UUID sbomId);
+
+    @Query(value = "SELECT * FROM external_purl_ref WHERE category = 'PACKAGE_MANAGER' \n" +
+            "	AND pkg_id IN (\n" +
+            "		SELECT pkg.ID FROM sbom_element_relationship ser, package pkg WHERE\n" +
+            "			ser.sbom_id = :sbomId AND ser.sbom_id = pkg.sbom_id \n" +
+            "			AND ser.element_id = :elementId AND ser.related_element_id = pkg.spdx_id)",
+            nativeQuery = true)
+    List<ExternalPurlRef> queryRelationPackageRef(UUID sbomId,String elementId);
+
 }

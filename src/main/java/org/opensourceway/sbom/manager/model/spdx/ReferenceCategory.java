@@ -13,6 +13,8 @@ public enum ReferenceCategory {
 
     EXTERNAL_MANAGER,
 
+    RELATIONSHIP_MANAGER,
+
     PERSISTENT_ID,
 
     OTHER;
@@ -20,7 +22,8 @@ public enum ReferenceCategory {
     public static final List<ReferenceCategory> BINARY_TYPE = List.of(
             ReferenceCategory.PACKAGE_MANAGER,
             ReferenceCategory.PROVIDE_MANAGER,
-            ReferenceCategory.EXTERNAL_MANAGER
+            ReferenceCategory.EXTERNAL_MANAGER,
+            ReferenceCategory.RELATIONSHIP_MANAGER
     );
 
     public static ReferenceCategory findReferenceCategory(String categoryStr) {
