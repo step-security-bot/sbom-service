@@ -14,6 +14,8 @@ public class BinaryManagementVo implements Serializable {
 
     private List<ExternalPurlRef> externalList = Collections.emptyList();
 
+    private List<ExternalPurlRef> relationshipList = Collections.emptyList();
+
     public List<ExternalPurlRef> getPackageList() {
         return packageList;
     }
@@ -36,5 +38,13 @@ public class BinaryManagementVo implements Serializable {
 
     public void setExternalList(List<ExternalPurlRef> externalList) {
         this.externalList = externalList;
+    }
+
+    public List<ExternalPurlRef> getRelationshipList() {
+        return relationshipList;
+    }
+
+    public void setRelationshipList(List<ExternalPurlRef> relationshipList) {
+        this.relationshipList = relationshipList;
     }
 }

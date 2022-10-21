@@ -66,7 +66,7 @@
       "versionInfo": "0:1.57.0-1.oe2203"
     },
     {
-      "SPDXID": "SPDXRef-52d1c8db88fd0f5b",
+      "SPDXID": "SPDXRef-rpm-cassandra-java-driver-3.4.0",
       "name": "cassandra-java-driver",
       "licenseConcluded": "ASL 2.0",
       "checksums": [
@@ -640,7 +640,7 @@
       "versionInfo": "2:2.138-4.oe2203"
     },
     {
-      "SPDXID": "SPDXRef-7e21a5448cc97405",
+      "SPDXID": "SPDXRef-rpm-flink-1.12.7",
       "name": "flink",
       "licenseConcluded": "Apache License v2.0",
       "checksums": [
@@ -701,7 +701,7 @@
       "versionInfo": "0:1.12.7-2.oe2203"
     },
     {
-      "SPDXID": "SPDXRef-c498f21c816585f1",
+      "SPDXID": "SPDXRef-rpm-hadoop-3.1-common-3.1.4",
       "name": "hadoop-3.1-common",
       "licenseConcluded": "Apache-2.0 and MIT and BSD-2-Clause and EPL and Zlib and MPL-2.0",
       "checksums": [
@@ -1157,7 +1157,7 @@
       "versionInfo": "0:3.1.4-4.oe2203"
     },
     {
-      "SPDXID": "SPDXRef-a3f765c97df09328",
+      "SPDXID": "SPDXRef-rpm-hive-3.1.2",
       "name": "hive",
       "licenseConcluded": "Apache-2.0 and Python-2.0 and MPL-2.0 and BSD and ICU",
       "checksums": [
@@ -2500,7 +2500,7 @@
       "versionInfo": "0:1.3.17-5.oe2203"
     },
     {
-      "SPDXID": "SPDXRef-880740efc4fe15d4",
+      "SPDXID": "SPDXRef-rpm-kafka-2.6.0",
       "name": "kafka",
       "licenseConcluded": "Apache License, Version 2.0",
       "checksums": [
@@ -2910,7 +2910,7 @@
       "versionInfo": "0:2.6.0-2.oe2203"
     },
     {
-      "SPDXID": "SPDXRef-9ed14e47f8e7d656",
+      "SPDXID": "SPDXRef-rpm-spark-3.2.0",
       "name": "spark",
       "licenseConcluded": "Apache License v2.0",
       "checksums": [
@@ -3686,7 +3686,7 @@
       "versionInfo": "0:3.2.0-2.oe2203"
     },
     {
-      "SPDXID": "SPDXRef-d3dc7e4532da68b5",
+      "SPDXID": "SPDXRef-rpm-storm-1.2.4",
       "name": "storm",
       "licenseConcluded": "Apache-2.0",
       "checksums": [
@@ -4437,7 +4437,7 @@
       "versionInfo": "0:1.2.4-1.oe2203"
     },
     {
-      "SPDXID": "SPDXRef-7cd901b283e9dc67",
+      "SPDXID": "SPDXRef-rpm-zookeeper-3.6.2",
       "name": "zookeeper",
       "licenseConcluded": "Apache-2.0 and OpenSSL and SSLeay and MIT and BSD",
       "checksums": [
@@ -4626,6 +4626,48 @@
       "sourceInfo": "acquired package info from repodata DB: repodata/f344a955efaed1bd8fffc33ce0e7412fd4794215424588cfcfa5a49b166c099a-primary.sqlite.bz2",
       "supplier": "Organization: http://openeuler.org",
       "versionInfo": "0:3.6.2-2.4.oe2203"
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-rpm-hive-3.1.2",
+      "relationshipType": "RUNTIME_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-rpm-zookeeper-3.6.2"
+    },
+    {
+      "spdxElementId": "SPDXRef-rpm-hive-3.1.2",
+      "relationshipType": "RUNTIME_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-rpm-kafka-2.6.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-rpm-hive-3.1.2",
+      "relationshipType": "RUNTIME_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-rpm-bash-5.1.8"
+    },
+    {
+      "spdxElementId": "SPDXRef-rpm-hive-3.1.2",
+      "relationshipType": "RUNTIME_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-rpm-flink-1.12.7"
+    },
+    {
+      "spdxElementId": "SPDXRef-rpm-hive-3.1.2",
+      "relationshipType": "RUNTIME_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-rpm-cassandra-java-driver-3.4.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-rpm-hadoop-3.1-common-3.1.4",
+      "relationshipType": "RUNTIME_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-rpm-hive-3.1.2"
+    },
+    {
+      "spdxElementId": "SPDXRef-rpm-spark-3.2.0",
+      "relationshipType": "RUNTIME_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-rpm-hive-3.1.2"
+    },
+    {
+      "spdxElementId": "SPDXRef-rpm-storm-1.2.4",
+      "relationshipType": "RUNTIME_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-rpm-hive-3.1.2"
     }
   ]
 }

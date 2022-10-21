@@ -1,6 +1,7 @@
 package org.opensourceway.sbom.manager.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.opensourceway.sbom.analyzer.TraceDataAnalyzer;
@@ -316,6 +317,10 @@ public class SbomServiceImpl implements SbomService {
 
         if (referenceCategory == null || referenceCategory == ReferenceCategory.EXTERNAL_MANAGER) {
             vo.setExternalList(externalPurlRefRepository.queryPackageRef(packageUUID, ReferenceCategory.EXTERNAL_MANAGER.name(), ReferenceType.PURL.getType()));
+        }
+
+        if (referenceCategory == null || referenceCategory == ReferenceCategory.RELATIONSHIP_MANAGER) {
+            packageRepository.findById(packageUUID).ifPresentOrElse(pkg -> vo.setRelationshipList(externalPurlRefRepository.queryRelationPackageRef(pkg.getSbom().getId(), pkg.getSpdxId())), () -> vo.setRelationshipList(Lists.newArrayList()));
         }
         return vo;
     }

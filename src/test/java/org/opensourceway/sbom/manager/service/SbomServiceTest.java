@@ -105,8 +105,9 @@ class SbomServiceTest {
         }
         BinaryManagementVo vo = sbomService.queryPackageBinaryManagement(SbomServiceTest.packageId, null);
         assertThat(vo.getPackageList().size()).isEqualTo(1);
-        assertThat(vo.getProvideList().size()).isGreaterThan(1);
-        assertThat(vo.getExternalList().size()).isGreaterThan(1);
+        assertThat(vo.getProvideList().size()).isEqualTo(36);
+        assertThat(vo.getExternalList().size()).isEqualTo(216);
+        assertThat(vo.getRelationshipList().size()).isEqualTo(4);
     }
 
     @Test
@@ -118,6 +119,7 @@ class SbomServiceTest {
         assertThat(vo.getPackageList().size()).isEqualTo(1);
         assertThat(vo.getProvideList().size()).isEqualTo(0);
         assertThat(vo.getExternalList().size()).isEqualTo(0);
+        assertThat(vo.getRelationshipList().size()).isEqualTo(0);
     }
 
     @Test
@@ -127,8 +129,9 @@ class SbomServiceTest {
         }
         BinaryManagementVo vo = sbomService.queryPackageBinaryManagement(SbomServiceTest.packageId, ReferenceCategory.PROVIDE_MANAGER.name());
         assertThat(vo.getPackageList().size()).isEqualTo(0);
-        assertThat(vo.getProvideList().size()).isGreaterThan(1);
+        assertThat(vo.getProvideList().size()).isEqualTo(36);
         assertThat(vo.getExternalList().size()).isEqualTo(0);
+        assertThat(vo.getRelationshipList().size()).isEqualTo(0);
     }
 
     @Test
@@ -139,9 +142,21 @@ class SbomServiceTest {
         BinaryManagementVo vo = sbomService.queryPackageBinaryManagement(SbomServiceTest.packageId, ReferenceCategory.EXTERNAL_MANAGER.name());
         assertThat(vo.getPackageList().size()).isEqualTo(0);
         assertThat(vo.getProvideList().size()).isEqualTo(0);
-        assertThat(vo.getExternalList().size()).isGreaterThan(1);
+        assertThat(vo.getExternalList().size()).isEqualTo(216);
+        assertThat(vo.getRelationshipList().size()).isEqualTo(0);
     }
 
+    @Test
+    public void getRelationshipRef() {
+        if (SbomServiceTest.packageId == null) {
+            getPackageId();
+        }
+        BinaryManagementVo vo = sbomService.queryPackageBinaryManagement(SbomServiceTest.packageId, ReferenceCategory.RELATIONSHIP_MANAGER.name());
+        assertThat(vo.getPackageList().size()).isEqualTo(0);
+        assertThat(vo.getProvideList().size()).isEqualTo(0);
+        assertThat(vo.getExternalList().size()).isEqualTo(0);
+        assertThat(vo.getRelationshipList().size()).isEqualTo(4);
+    }
 
     @Test
     public void queryPackageInfoByBinaryExactlyTest() {
@@ -518,7 +533,7 @@ class SbomServiceTest {
         assertThat(result.getTotalElements()).isEqualTo(0);
         assertThat(result.getTotalPages()).isEqualTo(0);
     }
-    
+
     private void assertVulWithMediumSeverity(VulnerabilityVo vo) {
         assertThat(vo.getVulId()).isEqualTo("CVE-2022-00000-test");
         assertThat(vo.getScoringSystem()).isEqualTo("CVSS3");

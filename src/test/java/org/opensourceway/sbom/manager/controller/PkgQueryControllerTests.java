@@ -220,7 +220,8 @@ public class PkgQueryControllerTests {
                 .andExpect(header().string("Content-Type", "application/json"))
                 .andExpect(jsonPath("$.packageList.*", hasSize(1)))
                 .andExpect(jsonPath("$.provideList.*", hasSize(36)))
-                .andExpect(jsonPath("$.externalList.*", hasSize(216)));
+                .andExpect(jsonPath("$.externalList.*", hasSize(216)))
+                .andExpect(jsonPath("$.relationshipList.*", hasSize(4)));
     }
 
     @Test
@@ -237,7 +238,8 @@ public class PkgQueryControllerTests {
                 .andExpect(header().string("Content-Type", "application/json"))
                 .andExpect(jsonPath("$.packageList.*", hasSize(1)))
                 .andExpect(jsonPath("$.provideList.*", hasSize(0)))
-                .andExpect(jsonPath("$.externalList.*", hasSize(0)));
+                .andExpect(jsonPath("$.externalList.*", hasSize(0)))
+                .andExpect(jsonPath("$.relationshipList.*", hasSize(0)));
     }
 
     @Test
@@ -254,7 +256,26 @@ public class PkgQueryControllerTests {
                 .andExpect(header().string("Content-Type", "application/json"))
                 .andExpect(jsonPath("$.packageList.*", hasSize(0)))
                 .andExpect(jsonPath("$.provideList.*", hasSize(0)))
-                .andExpect(jsonPath("$.externalList.*", hasSize(216)));
+                .andExpect(jsonPath("$.externalList.*", hasSize(216)))
+                .andExpect(jsonPath("$.relationshipList.*", hasSize(0)));
+    }
+
+    @Test
+    public void queryRelationshipRef() throws Exception {
+        if (PkgQueryControllerTests.packageId == null) {
+            getPackageId();
+        }
+        this.mockMvc
+                .perform(get("/sbom-api/queryPackageBinaryManagement/%s/%s".formatted(PkgQueryControllerTests.packageId, ReferenceCategory.RELATIONSHIP_MANAGER.name()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.packageList.*", hasSize(0)))
+                .andExpect(jsonPath("$.provideList.*", hasSize(0)))
+                .andExpect(jsonPath("$.externalList.*", hasSize(0)))
+                .andExpect(jsonPath("$.relationshipList.*", hasSize(4)));
     }
 
     @Test
