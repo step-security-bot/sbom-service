@@ -18,6 +18,7 @@ import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
 import org.opensourceway.sbom.manager.model.vo.VulCountVo;
 import org.opensourceway.sbom.manager.model.vo.VulnerabilityVo;
 import org.opensourceway.sbom.manager.model.vo.request.PublishSbomRequest;
+import org.opensourceway.sbom.manager.model.vo.request.QuerySbomPackagesRequest;
 import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
 import org.opensourceway.sbom.manager.model.vo.response.PublishSbomResponse;
 import org.opensourceway.sbom.manager.service.SbomService;
@@ -247,8 +248,9 @@ public class SbomController {
         }
     }
 
+    @Deprecated
     @PostMapping("/querySbomPackages")
-    public @ResponseBody ResponseEntity querySbomPackages(@RequestParam("productName") String productName,
+    public @ResponseBody ResponseEntity querySbomPackagesDeprecated(@RequestParam("productName") String productName,
                                                           @RequestParam(value = "packageName", required = false) String packageName,
                                                           @RequestParam(value = "isExactly", required = false) Boolean isExactly,
                                                           @RequestParam(required = false) String vulSeverity,
@@ -258,12 +260,23 @@ public class SbomController {
                                                           @RequestParam(required = false) String licenseId,
                                                           @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
                                                           @RequestParam(name = "size", required = false, defaultValue = "15") Integer size) {
-        logger.info("query sbom packages by productName:{}, packageName:{}, isExactly:{}, vulSeverity:{}, " +
-                        "noLicense:{}, multiLicense:{}, isLegalLicense:{}, licenseId:{}, page:{}, size:{}",
-                productName, packageName, isExactly, vulSeverity, noLicense, multiLicense, isLegalLicense, licenseId, page, size);
-        PageVo<PackageWithStatisticsVo> packagesPage = sbomService.getPackageInfoByNameForPage(
-                productName, packageName, isExactly, vulSeverity, noLicense, multiLicense, isLegalLicense, licenseId, page, size);
+        var req = new QuerySbomPackagesRequest();
+        req.setProductName(productName);
+        req.setPackageName(packageName);
+        req.setExactly(isExactly);
+        req.setVulSeverity(vulSeverity);
+        req.setNoLicense(noLicense);
+        req.setMultiLicense(multiLicense);
+        req.setLegalLicense(isLegalLicense);
+        req.setLicenseId(licenseId);
+        req.setPage(page);
+        req.setSize(size);
+        return querySbomPackages(req);
+    }
 
+    public @ResponseBody ResponseEntity querySbomPackages(@RequestBody QuerySbomPackagesRequest req) {
+        logger.info("query sbom packages request: {}", req);
+        PageVo<PackageWithStatisticsVo> packagesPage = sbomService.getPackageInfoByNameForPage(req);
         logger.info("query sbom packages result:{}", packagesPage);
         return ResponseEntity.status(HttpStatus.OK).body(packagesPage);
     }

@@ -17,9 +17,9 @@ import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
 import org.opensourceway.sbom.manager.model.vo.VulCountVo;
 import org.opensourceway.sbom.manager.model.vo.VulnerabilityVo;
 import org.opensourceway.sbom.manager.model.vo.request.PublishSbomRequest;
+import org.opensourceway.sbom.manager.model.vo.request.QuerySbomPackagesRequest;
 import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,9 +45,7 @@ public interface SbomService {
 
     Package queryPackageInfoById(String packageId);
 
-    PageVo<PackageWithStatisticsVo> getPackageInfoByNameForPage(String productName, String packageName, Boolean isEqual,
-                                                                String vulSeverity, Boolean noLicense, Boolean multiLicense,
-                                                                Boolean isLegalLicense, String licenseId, int page, int size);
+    PageVo<PackageWithStatisticsVo> getPackageInfoByNameForPage(QuerySbomPackagesRequest req);
 
     BinaryManagementVo queryPackageBinaryManagement(String packageId, String binaryType);
 
