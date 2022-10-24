@@ -289,11 +289,12 @@ public class SbomServiceImpl implements SbomService {
     }
 
     @Override
-    public PageVo<PackageWithStatisticsVo> getPackageInfoByNameForPage(String productName, String packageName, Boolean isExactly, int page, int size) {
-        String equalPackageName = BooleanUtils.isTrue(isExactly) ? packageName : null;
+    public PageVo<PackageWithStatisticsVo> getPackageInfoByNameForPage(String productName, String packageName, Boolean isExactly,
+                                                                       String vulSeverity, Boolean noLicense, Boolean multiLicense,
+                                                                       Boolean isLegalLicense, String licenseId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size).withSort(Sort.by(Sort.Order.by("name")));
-
-        Page<Package> result = packageRepository.getPackageInfoByNameForPage(productName, isExactly, equalPackageName, packageName, pageable);
+        Page<Package> result = packageRepository.getPackageInfoByNameForPage(productName, isExactly, packageName,
+                vulSeverity, noLicense, multiLicense, isLegalLicense, licenseId, pageable);
         return new PageVo<>(new PageImpl<>(result.stream().map(PackageWithStatisticsVo::fromPackage).toList(),
                 result.getPageable(), result.getTotalElements()));
     }

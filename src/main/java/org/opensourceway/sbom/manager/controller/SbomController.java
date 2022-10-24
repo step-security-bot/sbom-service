@@ -251,15 +251,18 @@ public class SbomController {
     public @ResponseBody ResponseEntity querySbomPackages(@RequestParam("productName") String productName,
                                                           @RequestParam(value = "packageName", required = false) String packageName,
                                                           @RequestParam(value = "isExactly", required = false) Boolean isExactly,
+                                                          @RequestParam(required = false) String vulSeverity,
+                                                          @RequestParam(required = false) Boolean noLicense,
+                                                          @RequestParam(required = false) Boolean multiLicense,
+                                                          @RequestParam(required = false) Boolean isLegalLicense,
+                                                          @RequestParam(required = false) String licenseId,
                                                           @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
                                                           @RequestParam(name = "size", required = false, defaultValue = "15") Integer size) {
-        logger.info("query sbom packages by productName:{}, packageName:{}, isExactly:{}, page:{}, size:{}",
-                productName,
-                packageName,
-                isExactly,
-                page,
-                size);
-        PageVo<PackageWithStatisticsVo> packagesPage = sbomService.getPackageInfoByNameForPage(productName, packageName, isExactly, page, size);
+        logger.info("query sbom packages by productName:{}, packageName:{}, isExactly:{}, vulSeverity:{}, " +
+                        "noLicense:{}, multiLicense:{}, isLegalLicense:{}, licenseId:{}, page:{}, size:{}",
+                productName, packageName, isExactly, vulSeverity, noLicense, multiLicense, isLegalLicense, licenseId, page, size);
+        PageVo<PackageWithStatisticsVo> packagesPage = sbomService.getPackageInfoByNameForPage(
+                productName, packageName, isExactly, vulSeverity, noLicense, multiLicense, isLegalLicense, licenseId, page, size);
 
         logger.info("query sbom packages result:{}", packagesPage);
         return ResponseEntity.status(HttpStatus.OK).body(packagesPage);

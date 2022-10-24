@@ -6,6 +6,7 @@ import org.opensourceway.sbom.manager.utils.CvssSeverity;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class PackageStatisticsVo implements Serializable {
@@ -72,16 +73,26 @@ public class PackageStatisticsVo implements Serializable {
 
     public static PackageStatisticsVo fromPackage(Package pkg) {
         var vo = new PackageStatisticsVo();
-        Map<CvssSeverity, Long> vulSeverityVulCountMap = pkg.getExternalVulRefs().stream()
-                .map(ExternalVulRef::getVulnerability)
-                .distinct()
-                .collect(Collectors.groupingBy(CvssSeverity::calculateVulCvssSeverity, Collectors.counting()));
-        vo.setCriticalVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.CRITICAL, 0L));
-        vo.setHighVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.HIGH, 0L));
-        vo.setMediumVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.MEDIUM, 0L));
-        vo.setLowVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.LOW, 0L));
-        vo.setNoneVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.NONE, 0L));
-        vo.setUnknownVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.UNKNOWN, 0L));
+        var statistics = pkg.getPackageStatistics();
+        if (Objects.nonNull(statistics)) {
+            vo.setCriticalVulCount(statistics.getCriticalVulCount());
+            vo.setHighVulCount(statistics.getHighVulCount());
+            vo.setMediumVulCount(statistics.getMediumVulCount());
+            vo.setLowVulCount(statistics.getLowVulCount());
+            vo.setNoneVulCount(statistics.getNoneVulCount());
+            vo.setUnknownVulCount(statistics.getUnknownVulCount());
+        } else {
+            Map<CvssSeverity, Long> vulSeverityVulCountMap = pkg.getExternalVulRefs().stream()
+                    .map(ExternalVulRef::getVulnerability)
+                    .distinct()
+                    .collect(Collectors.groupingBy(CvssSeverity::calculateVulCvssSeverity, Collectors.counting()));
+            vo.setCriticalVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.CRITICAL, 0L));
+            vo.setHighVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.HIGH, 0L));
+            vo.setMediumVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.MEDIUM, 0L));
+            vo.setLowVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.LOW, 0L));
+            vo.setNoneVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.NONE, 0L));
+            vo.setUnknownVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.UNKNOWN, 0L));
+        }
         return vo;
     }
 }

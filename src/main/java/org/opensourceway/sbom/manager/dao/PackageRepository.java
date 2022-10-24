@@ -34,15 +34,27 @@ public interface PackageRepository extends JpaRepository<Package, UUID> {
                                        @Param("likePackageName") String likePackageName,
                                        @Param("maxLine") Integer maxLine);
 
-    @Query(value = "SELECT * FROM package WHERE sbom_id = ( SELECT id FROM sbom WHERE product_id = (SELECT id FROM product WHERE name = :productName)) " +
-            "AND (:isExactly IS NULL OR :isExactly = FALSE OR (name = :equalPackageName)) " +
-            "AND (:isExactly IS NULL OR :isExactly = TRUE OR (name LIKE %:likePackageName%))",
+    @Query(value = "SELECT p.* FROM package p LEFT JOIN package_statistics ps ON p.id = ps.package_id " +
+            "WHERE sbom_id = ( SELECT id FROM sbom WHERE product_id = (SELECT id FROM product WHERE name = :productName)) " +
+            "AND (:isExactly IS NULL OR :isExactly = FALSE OR (name = :packageName)) " +
+            "AND (:isExactly IS NULL OR :isExactly = TRUE OR (name LIKE CONCAT('%', :packageName, '%'))) " +
+            "AND (:vulSeverity IS NULL OR severity = :vulSeverity) " +
+            "AND (:noLicense IS NULL OR :noLicense = FALSE OR license_count = 0) " +
+            "AND (:noLicense IS NULL OR :noLicense = TRUE OR license_count > 0) " +
+            "AND (:multiLicense IS NULL OR :multiLicense = FALSE OR license_count > 1) " +
+            "AND (:multiLicense IS NULL OR :multiLicense = TRUE OR license_count <= 1) " +
+            "AND (:isLegalLicense IS NULL OR is_legal_license = :isLegalLicense) " +
+            "AND (:licenseId IS NULL OR :licenseId = ANY(licenses))",
             countProjection = "1",
             nativeQuery = true)
     Page<Package> getPackageInfoByNameForPage(@Param("productName") String productName,
                                               @Param("isExactly") Boolean isExactly,
-                                              @Param("equalPackageName") String equalPackageName,
-                                              @Param("likePackageName") String likePackageName,
+                                              @Param("packageName") String packageName,
+                                              @Param("vulSeverity") String vulSeverity,
+                                              @Param("noLicense") Boolean noLicense,
+                                              @Param("multiLicense") Boolean multiLicense,
+                                              @Param("isLegalLicense") Boolean isLegalLicense,
+                                              @Param("licenseId") String licenseId,
                                               Pageable pageable);
 
     @Query(value = "SELECT CAST(A.id as varchar) id, A.name, A.version, A.supplier, A.description, A.copyright, A.summary, A.homepage, " +

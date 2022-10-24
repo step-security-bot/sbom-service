@@ -34,7 +34,7 @@ public class TestCommon {
         assertThat(spdxDocument.getCreationInfo().created()).isEqualTo("2022-06-27T08:05:09Z");
         assertThat(spdxDocument.getDocumentNamespace()).isEqualTo("spdx://57eaa8d8-9572-44ff-ace4-d4ac38292265");
         assertThat(spdxDocument.getPackages().size()).isEqualTo(78);
-        assertThat(spdxDocument.getRelationships().size()).isEqualTo(77);
+        assertThat(spdxDocument.getRelationships().size()).isEqualTo(36);
 
         Optional<SpdxPackage> pkgOptional = spdxDocument.getPackages().stream()
                 .filter(tempPkg -> StringUtils.endsWithIgnoreCase("SPDXRef-Package-github-abseil-cpp-20210324.2", tempPkg.getSpdxId()))

@@ -117,7 +117,7 @@ public class ChecksumToGAVTest {
         Sbom sbom = sbomRepository.findByProductName(TestConstants.PUBLISH_TEST_CHECKSUM_NAME).orElse(null);
         assertThat(sbom).isNotNull();
         assertThat(sbom.getPackages().size()).isEqualTo(2);
-        assertThat(sbom.getPackages().get(0).getExternalPurlRefs().size()).isEqualTo(3);
+        assertThat(sbom.getPackages().stream().map(Package::getExternalPurlRefs).mapToLong(List::size).sum()).isEqualTo(4);
     }
 
     @Test

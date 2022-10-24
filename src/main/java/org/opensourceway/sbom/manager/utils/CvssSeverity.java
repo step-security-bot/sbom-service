@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Objects;
 
 public enum CvssSeverity {
+    NA(-2, null, null, null, null),
+
     UNKNOWN(-1, null, null, null, null),
 
     NONE(0, null, null, 0.0, 0.0),
