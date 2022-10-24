@@ -2,7 +2,6 @@ package org.opensourceway.sbom.manager.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.opensourceway.sbom.analyzer.TraceDataAnalyzer;
 import org.opensourceway.sbom.constants.SbomConstants;
@@ -41,6 +40,7 @@ import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
 import org.opensourceway.sbom.manager.model.vo.VulCountVo;
 import org.opensourceway.sbom.manager.model.vo.VulnerabilityVo;
 import org.opensourceway.sbom.manager.model.vo.request.PublishSbomRequest;
+import org.opensourceway.sbom.manager.model.vo.request.QuerySbomPackagesRequest;
 import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
 import org.opensourceway.sbom.manager.service.SbomService;
 import org.opensourceway.sbom.manager.service.reader.SbomReader;
@@ -180,8 +180,7 @@ public class SbomServiceImpl implements SbomService {
                 response.setSuccess(Boolean.TRUE);
                 response.setFinish(Boolean.TRUE);
                 response.setSbomRef(UrlUtil.generateSbomUrl(sbomWebsiteDomain, rawSbom.getProduct().getName()));
-            } else if (List.of(SbomConstants.TASK_STATUS_FAILED_FINISH)
-                    .contains(rawSbom.getTaskStatus())) {
+            } else if (Objects.equals(SbomConstants.TASK_STATUS_FAILED_FINISH, rawSbom.getTaskStatus())) {
                 response.setSuccess(Boolean.FALSE);
                 response.setFinish(Boolean.FALSE);
             } else {
@@ -289,11 +288,11 @@ public class SbomServiceImpl implements SbomService {
     }
 
     @Override
-    public PageVo<PackageWithStatisticsVo> getPackageInfoByNameForPage(String productName, String packageName, Boolean isExactly, int page, int size) {
-        String equalPackageName = BooleanUtils.isTrue(isExactly) ? packageName : null;
-        Pageable pageable = PageRequest.of(page, size).withSort(Sort.by(Sort.Order.by("name")));
-
-        Page<Package> result = packageRepository.getPackageInfoByNameForPage(productName, isExactly, equalPackageName, packageName, pageable);
+    public PageVo<PackageWithStatisticsVo> getPackageInfoByNameForPage(QuerySbomPackagesRequest req) {
+        Pageable pageable = PageRequest.of(req.getPage(), req.getSize()).withSort(Sort.by(Sort.Order.by("name")));
+        Page<Package> result = packageRepository.getPackageInfoByNameForPage(req.getProductName(), req.getExactly(),
+                req.getPackageName(), req.getVulSeverity(), req.getNoLicense(), req.getMultiLicense(),
+                req.getLegalLicense(), req.getLicenseId(), pageable);
         return new PageVo<>(new PageImpl<>(result.stream().map(PackageWithStatisticsVo::fromPackage).toList(),
                 result.getPageable(), result.getTotalElements()));
     }

@@ -181,7 +181,7 @@ class SpdxReaderTest {
         assertThat(sbomCreators.get(0).getName()).isEqualTo("Tool: OSS Review Toolkit - e5b343ff71-dirty");
 
         List<SbomElementRelationship> sbomElementRelationships = sbomElementRelationshipRepository.findBySbomId(sbom.getId());
-        assertThat(sbomElementRelationships.size()).isEqualTo(77);
+        assertThat(sbomElementRelationships.size()).isEqualTo(36);
 
         List<Package> packages = packageRepository.findBySbomId(sbom.getId());
         assertThat(packages.size()).isEqualTo(78);

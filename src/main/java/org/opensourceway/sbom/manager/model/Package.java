@@ -155,8 +155,14 @@ public class Package {
     /**
      * Verification code of a package.
      */
-    @OneToOne(mappedBy = "pkg", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "pkg", cascade = CascadeType.ALL, orphanRemoval = true)
     private PkgVerfCode pkgVerfCode;
+
+    /**
+     * Statistics of a package.
+     */
+    @OneToOne(mappedBy = "pkg", cascade = CascadeType.ALL, orphanRemoval = true)
+    private PackageStatistics packageStatistics;
 
     public UUID getId() {
         return id;
@@ -331,5 +337,13 @@ public class Package {
 
     public void setPkgVerfCode(PkgVerfCode pkgVerfCode) {
         this.pkgVerfCode = pkgVerfCode;
+    }
+
+    public PackageStatistics getPackageStatistics() {
+        return packageStatistics;
+    }
+
+    public void setPackageStatistics(PackageStatistics packageStatistics) {
+        this.packageStatistics = packageStatistics;
     }
 }

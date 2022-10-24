@@ -1268,14 +1268,6 @@
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-Package-PyPI-six-1.16.0"
   }, {
-    "spdxElementId" : "SPDXRef-Package-PyPI-asttokens-2.0.5",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-PyPI-asttokens-2.0.5-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-PyPI-asttokens-2.0.5",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-PyPI-asttokens-2.0.5-source-artifact"
-  }, {
     "spdxElementId" : "SPDXRef-Package-PyPI-astunparse-1.6.3",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-Package-PyPI-six-1.16.0"
@@ -1284,169 +1276,13 @@
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-Package-PyPI-wheel-0.37.1"
   }, {
-    "spdxElementId" : "SPDXRef-Package-PyPI-astunparse-1.6.3",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-PyPI-astunparse-1.6.3-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-PyPI-astunparse-1.6.3",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-PyPI-astunparse-1.6.3-source-artifact"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-PyPI-numpy-1.21.6",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-PyPI-numpy-1.21.6-source-artifact"
-  }, {
     "spdxElementId" : "SPDXRef-Package-PyPI-packaging-21.3",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-Package-PyPI-pyparsing-3.0.9"
   }, {
-    "spdxElementId" : "SPDXRef-Package-PyPI-packaging-21.3",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-PyPI-packaging-21.3-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-PyPI-packaging-21.3",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-PyPI-packaging-21.3-source-artifact"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-PyPI-pillow-9.1.1",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-PyPI-pillow-9.1.1-source-artifact"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-PyPI-protobuf-4.21.2",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-PyPI-protobuf-4.21.2-source-artifact"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-PyPI-psutil-5.9.1",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-PyPI-psutil-5.9.1-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-PyPI-psutil-5.9.1",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-PyPI-psutil-5.9.1-source-artifact"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-PyPI-pyparsing-3.0.9",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-PyPI-pyparsing-3.0.9-source-artifact"
-  }, {
     "spdxElementId" : "SPDXRef-Package-PyPI-scipy-1.7.3",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-Package-PyPI-numpy-1.21.6"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-PyPI-scipy-1.7.3",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-PyPI-scipy-1.7.3-source-artifact"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-PyPI-six-1.16.0",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-PyPI-six-1.16.0-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-PyPI-six-1.16.0",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-PyPI-six-1.16.0-source-artifact"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-PyPI-wheel-0.37.1",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-PyPI-wheel-0.37.1-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-PyPI-wheel-0.37.1",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-PyPI-wheel-0.37.1-source-artifact"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-abseil-cpp-20210324.2",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-abseil-cpp-20210324.2-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-akg-1.7.0",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-akg-1.7.0-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-c-ares-1-15-0",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-c-ares-1-15-0-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-cppjieba-5.0.3",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-cppjieba-5.0.3-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-eigen-3.3.9",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-eigen-3.3.9-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-flatbuffers-2.0.0",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-flatbuffers-2.0.0-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-glog-0.4.0",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-glog-0.4.0-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-graphengine-1.0.0",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-graphengine-1.0.0-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-grpc-1.36.1",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-grpc-1.36.1-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-icu-69-1",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-icu-69-1-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-json-3.7.3",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-json-3.7.3-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-libevent-2.1.12-stable",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-libevent-2.1.12-stable-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-libjpeg-turbo-2.0.4",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-libjpeg-turbo-2.0.4-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-metadef-1.5.1",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-metadef-1.5.1-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-oneDNN-2.2",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-oneDNN-2.2-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-opencv-4.5.2",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-opencv-4.5.2-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-openssl-1-1-1k",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-openssl-1-1-1k-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-protobuf-3.13.0",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-protobuf-3.13.0-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-pybind11-2.4.3",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-pybind11-2.4.3-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-re2-2019-12-01",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-re2-2019-12-01-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-sentencepiece-0.1.92",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-sentencepiece-0.1.92-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-sqlite-3.36.0",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-sqlite-3.36.0-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-tinyxml2-8.0.0",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-tinyxml2-8.0.0-vcs"
-  }, {
-    "spdxElementId" : "SPDXRef-Package-github-zlib-1.2.11",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-Package-github-zlib-1.2.11-vcs"
   }, {
     "spdxElementId" : "SPDXRef-Project-PIP-requirements.txt",
     "relationshipType" : "DEPENDS_ON",
