@@ -1,3 +1,6 @@
+-- Init table index(json field)
+CREATE INDEX IF NOT EXISTS external_purl_ref_purl_idx ON external_purl_ref USING btree (jsonb_extract_path_text ( purl,'type'), jsonb_extract_path_text ( purl,'name'));
+
 -- Init table product_type
 INSERT INTO product_type VALUES('openEuler')
 ON CONFLICT (type) DO NOTHING;

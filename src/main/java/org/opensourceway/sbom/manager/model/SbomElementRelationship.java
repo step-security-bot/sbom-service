@@ -21,7 +21,8 @@ import java.util.UUID;
 @Entity
 @Table(indexes = {
         @Index(name = "sbom_element_uk", columnList = "sbom_id, element_id, related_element_id, relationship_type", unique = true),
-        @Index(name = "sbom_id_idx", columnList = "sbom_id")
+        @Index(name = "sbom_id_idx", columnList = "sbom_id"),
+        @Index(name = "sbom_related_element_idx", columnList = "sbom_id, related_element_id"),
 })
 public class SbomElementRelationship {
     @Id

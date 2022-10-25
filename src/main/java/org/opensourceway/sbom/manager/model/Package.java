@@ -28,7 +28,8 @@ import java.util.UUID;
  */
 @Entity
 @Table(indexes = {
-        @Index(name = "package_uk", columnList = "sbom_id, spdx_id, name, version", unique = true)
+        @Index(name = "package_uk", columnList = "sbom_id, spdx_id, name, version", unique = true),
+        @Index(name = "package_name_idx", columnList = "sbom_id, name")
 })
 public class Package {
     @Id
