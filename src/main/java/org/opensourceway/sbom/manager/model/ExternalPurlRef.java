@@ -28,6 +28,7 @@ import java.util.UUID;
         @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 })
 @Table(indexes = {
+        @Index(name = "external_purl_ref_pkg_id_idx", columnList = "pkg_id"),
         @Index(name = "external_purl_ref_uk", columnList = "pkg_id, category, type, purl", unique = true)
 })
 public class ExternalPurlRef {
