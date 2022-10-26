@@ -18,6 +18,7 @@ import org.opensourceway.sbom.manager.dao.ProductRepository;
 import org.opensourceway.sbom.manager.dao.ProductTypeRepository;
 import org.opensourceway.sbom.manager.dao.RawSbomRepository;
 import org.opensourceway.sbom.manager.dao.SbomRepository;
+import org.opensourceway.sbom.manager.dao.spec.ExternalPurlRefCondition;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Package;
@@ -29,7 +30,6 @@ import org.opensourceway.sbom.manager.model.Sbom;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
-import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageWithStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PageVo;
 import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
@@ -160,104 +160,113 @@ class SbomServiceTest {
 
     @Test
     public void queryPackageInfoByBinaryExactlyTest() {
-        PackageUrlVo purl = new PackageUrlVo("maven",
-                "org.apache.zookeeper",
-                "zookeeper",
-                "3.4.6");
+        ExternalPurlRefCondition condition = ExternalPurlRefCondition.Builder.newBuilder()
+                .productName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
+                .binaryType(ReferenceCategory.EXTERNAL_MANAGER.name())
+                .type("maven")
+                .namespace("org.apache.zookeeper")
+                .name("zookeeper")
+                .version("3.4.6")
+                .build();
         Pageable pageable = PageRequest.of(0, 15);
 
-        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
-                ReferenceCategory.EXTERNAL_MANAGER.name(),
-                purl, null, null,
-                pageable);
+        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(condition, pageable);
         assertThat(result.getTotalElements()).isEqualTo(1);
     }
 
     @Test
     public void queryPackageInfoByBinaryWithoutVersionTest() {
-        PackageUrlVo purl = new PackageUrlVo("maven",
-                "org.apache.zookeeper",
-                "zookeeper",
-                "");
+        ExternalPurlRefCondition condition = ExternalPurlRefCondition.Builder.newBuilder()
+                .productName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
+                .binaryType(ReferenceCategory.EXTERNAL_MANAGER.name())
+                .type("maven")
+                .namespace("org.apache.zookeeper")
+                .name("zookeeper")
+                .version("")
+                .build();
         Pageable pageable = PageRequest.of(0, 15);
 
-        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
-                ReferenceCategory.EXTERNAL_MANAGER.name(),
-                purl, null, null,
-                pageable);
+        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(condition, pageable);
         assertThat(result.getTotalElements()).isEqualTo(7);
     }
 
     @Test
     public void queryPackageInfoByBinaryOnlyNameTest() {
-        PackageUrlVo purl = new PackageUrlVo("maven",
-                "",
-                "zookeeper",
-                "");
+        ExternalPurlRefCondition condition = ExternalPurlRefCondition.Builder.newBuilder()
+                .productName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
+                .binaryType(ReferenceCategory.EXTERNAL_MANAGER.name())
+                .type("maven")
+                .namespace("")
+                .name("zookeeper")
+                .version("")
+                .build();
         Pageable pageable = PageRequest.of(0, 15);
 
-        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
-                ReferenceCategory.EXTERNAL_MANAGER.name(),
-                purl, null, null,
-                pageable);
+        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(condition, pageable);
         assertThat(result.getTotalElements()).isEqualTo(9);
     }
 
     @Test
     public void queryPackageInfoByBinaryChecksumTest() {
-        PackageUrlVo purl = new PackageUrlVo("maven",
-                "sqlline",
-                "sqlline",
-                "1.3.0");
         // use checksum type, to:pkg:maven/sha1/2a2d713f56de83f4e84fab07a7edfbfcebf403af@1.0.0
+        ExternalPurlRefCondition condition = ExternalPurlRefCondition.Builder.newBuilder()
+                .productName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
+                .binaryType(ReferenceCategory.EXTERNAL_MANAGER.name())
+                .type("maven")
+                .namespace("sqlline")
+                .name("zookeeper")
+                .version("1.3.0")
+                .build();
         Pageable pageable = PageRequest.of(0, 15);
 
-        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
-                ReferenceCategory.EXTERNAL_MANAGER.name(),
-                purl, null, null,
-                pageable);
+        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(condition, pageable);
         assertThat(result.getTotalElements()).isEqualTo(0);
     }
 
     @Test
     public void queryPackageInfoByBinaryChecksumTest1() {
         // actual purl value: pkg:maven/sqlline/sqlline@1.3.0
-        PackageUrlVo purl = new PackageUrlVo("maven",
-                "sha1",
-                "2a2d713f56de83f4e84fab07a7edfbfcebf403af",
-                "1.0.0");
+        ExternalPurlRefCondition condition = ExternalPurlRefCondition.Builder.newBuilder()
+                .productName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
+                .binaryType(ReferenceCategory.EXTERNAL_MANAGER.name())
+                .type("maven")
+                .namespace("sha1")
+                .name("2a2d713f56de83f4e84fab07a7edfbfcebf403af")
+                .version("1.0.0")
+                .build();
         Pageable pageable = PageRequest.of(0, 15);
 
-        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME,
-                ReferenceCategory.EXTERNAL_MANAGER.name(),
-                purl, null, null,
-                pageable);
+        PageVo<PackagePurlVo> result = sbomService.queryPackageInfoByBinaryViaSpec(condition, pageable);
         assertThat(result.getTotalElements()).isEqualTo(0);
     }
 
     @Test
     public void queryPackageInfoByBinaryViaSpecFullComponent() {
-        PageVo<PackagePurlVo> refs = sbomService.queryPackageInfoByBinaryViaSpec(
-                TestConstants.SAMPLE_PRODUCT_NAME,
-                ReferenceCategory.PACKAGE_MANAGER.name(),
-                new PackageUrlVo("gitee",
-                        "mindspore",
-                        "akg",
-                        "1.7.0"), null, null,
-                PageRequest.of(0, 15));
+        ExternalPurlRefCondition condition = ExternalPurlRefCondition.Builder.newBuilder()
+                .productName(TestConstants.SAMPLE_PRODUCT_NAME)
+                .binaryType(ReferenceCategory.PACKAGE_MANAGER.name())
+                .type("gitee")
+                .namespace("mindspore")
+                .name("akg")
+                .version("1.7.0")
+                .build();
+
+        PageVo<PackagePurlVo> refs = sbomService.queryPackageInfoByBinaryViaSpec(condition, PageRequest.of(0, 15));
         assertThat(refs.getTotalElements()).isEqualTo(1);
     }
 
     @Test
     public void queryPackageInfoByBinaryViaSpecNotExists() {
-        PageVo<PackagePurlVo> refs = sbomService.queryPackageInfoByBinaryViaSpec(
-                TestConstants.SAMPLE_PRODUCT_NAME,
-                ReferenceCategory.PACKAGE_MANAGER.name(),
-                new PackageUrlVo("gitee",
-                        "mindspore",
-                        "akg",
-                        "x.7.0"), null, null,
-                PageRequest.of(0, 15));
+        ExternalPurlRefCondition condition = ExternalPurlRefCondition.Builder.newBuilder()
+                .productName(TestConstants.SAMPLE_PRODUCT_NAME)
+                .binaryType(ReferenceCategory.PACKAGE_MANAGER.name())
+                .type("gitee")
+                .namespace("mindspore")
+                .name("akg")
+                .version("x.7.0")
+                .build();
+
+        PageVo<PackagePurlVo> refs = sbomService.queryPackageInfoByBinaryViaSpec(condition, PageRequest.of(0, 15));
         assertThat(refs.getTotalElements()).isEqualTo(0);
     }
 
