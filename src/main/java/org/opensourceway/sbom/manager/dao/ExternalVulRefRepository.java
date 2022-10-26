@@ -76,4 +76,12 @@ public interface ExternalVulRefRepository extends JpaRepository<ExternalVulRef, 
                                                                   @Param("packageId") UUID packageId,
                                                                   @Param("severity") String severity,
                                                                   Pageable pageable);
+
+    @Query(value = """
+            SELECT evr.* FROM external_vul_ref evr JOIN package p ON evr.pkg_id = p.id JOIN vulnerability v ON evr.vul_id = v.id
+            WHERE p.sbom_id = (SELECT id FROM sbom WHERE product_id = (SELECT id FROM product WHERE name = :productName))
+            AND v.vul_id = :vulId
+            """,
+            nativeQuery = true)
+    List<ExternalVulRef> findByProductNameAndVulId(String productName, String vulId);
 }

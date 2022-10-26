@@ -763,4 +763,61 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.copyrightContent.[0].additionalInfo").value("Copyright (c) 1989, 1991 Free Software Foundation, Inc."));
 
     }
+
+    @Test
+    public void queryVulImpact() throws Exception {
+        this.mockMvc
+                .perform(get("/sbom-api/queryVulImpact/%s".formatted(TestConstants.SAMPLE_PRODUCT_NAME))
+                        .param("vulId", "CVE-2022-00000-test")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.nodes.length()").value(2))
+                .andExpect(jsonPath("$.nodes.[0].nodeType").value("package"))
+                .andExpect(jsonPath("$.nodes.[0].label").value("pkg:pypi/asttokens@2.0.5"))
+                .andExpect(jsonPath("$.nodes.[0].x").value(0.0))
+                .andExpect(jsonPath("$.nodes.[0].y").value(0.0))
+                .andExpect(jsonPath("$.nodes.[0].id").value("1"))
+                .andExpect(jsonPath("$.nodes.[0].size").value(20.0))
+                .andExpect(jsonPath("$.nodes.[1].nodeType").value("vulnerability"))
+                .andExpect(jsonPath("$.nodes.[1].label").value("CVE-2022-00000-test"))
+                .andExpect(jsonPath("$.nodes.[1].x").value(0.0))
+                .andExpect(jsonPath("$.nodes.[1].y").value(-1000.0))
+                .andExpect(jsonPath("$.nodes.[1].id").value("0"))
+                .andExpect(jsonPath("$.nodes.[1].size").value(20.0))
+                .andExpect(jsonPath("$.edges.length()").value(1))
+                .andExpect(jsonPath("$.edges.[0].sourceID").value("0"))
+                .andExpect(jsonPath("$.edges.[0].targetID").value("1"))
+                .andExpect(jsonPath("$.edges.[0].size").value(1.0));
+    }
+
+    @Test
+    public void queryVulImpactNotExistVul() throws Exception {
+        this.mockMvc
+                .perform(get("/sbom-api/queryVulImpact/%s".formatted(TestConstants.SAMPLE_PRODUCT_NAME))
+                        .param("vulId", "CVE-NOT-EXISTS")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.nodes.length()").value(0))
+                .andExpect(jsonPath("$.edges.length()").value(0));
+    }
+
+    @Test
+    public void queryVulImpactNotExistProduct() throws Exception {
+        this.mockMvc
+                .perform(get("/sbom-api/queryVulImpact/%s".formatted(TestConstants.SAMPLE_PRODUCT_NAME + "error"))
+                        .param("vulId", "CVE-2022-00000-test")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.nodes.length()").value(0))
+                .andExpect(jsonPath("$.edges.length()").value(0));
+    }
 }

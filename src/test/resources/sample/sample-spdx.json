@@ -35,7 +35,7 @@
     "copyrightText" : "NONE",
     "downloadLocation" : "https://files.pythonhosted.org/packages/16/d5/b0ad240c22bba2f4591693b0ca43aae94fbd77fb1e2b107d54fff1462b6f/asttokens-2.0.5-py2.py3-none-any.whl",
     "externalRefs" : [ {
-      "referenceCategory" : "PROVIDE_MANAGER",
+      "referenceCategory" : "PACKAGE_MANAGER",
       "referenceType" : "purl",
       "referenceLocator" : "pkg:pypi/asttokens@2.0.5"
     } ],
