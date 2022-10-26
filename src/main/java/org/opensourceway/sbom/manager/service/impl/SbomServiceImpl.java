@@ -16,6 +16,7 @@ import org.opensourceway.sbom.manager.dao.ProductStatisticsRepository;
 import org.opensourceway.sbom.manager.dao.ProductTypeRepository;
 import org.opensourceway.sbom.manager.dao.RawSbomRepository;
 import org.opensourceway.sbom.manager.dao.SbomRepository;
+import org.opensourceway.sbom.manager.dao.spec.ExternalPurlRefCondition;
 import org.opensourceway.sbom.manager.dao.spec.ExternalPurlRefSpecs;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.ExternalVulRef;
@@ -348,39 +349,36 @@ public class SbomServiceImpl implements SbomService {
     }
 
     @Override
-    public PageVo<PackagePurlVo> queryPackageInfoByBinaryViaSpec(String productName, String binaryType, PackageUrlVo purl,
-                                                                 String startVersion, String endVersion, Pageable pageable) {
-        ReferenceCategory referenceCategory = ReferenceCategory.findReferenceCategory(binaryType);
+    public PageVo<PackagePurlVo> queryPackageInfoByBinaryViaSpec(ExternalPurlRefCondition condition, Pageable pageable) {
+        ReferenceCategory referenceCategory = ReferenceCategory.findReferenceCategory(condition.getBinaryType());
         if (!ReferenceCategory.BINARY_TYPE.contains(referenceCategory)) {
-            throw new RuntimeException("binary type: %s is not support".formatted(binaryType));
+            throw new RuntimeException("binary type: %s is not support".formatted(condition.getBinaryType()));
         }
-        Sbom sbom = sbomRepository.findByProductName(productName)
-                .orElseThrow(() -> new RuntimeException("can't find %s's sbom metadata".formatted(productName)));
+        Sbom sbom = sbomRepository.findByProductName(condition.getProductName())
+                .orElseThrow(() -> new RuntimeException("can't find %s's sbom metadata".formatted(condition.getProductName())));
+        condition.setSbomId(sbom.getId());
+        condition.setSortField("name");
 
-        Map<String, Pair<String, Boolean>> purlComponents = PurlUtil.generatePurlQueryConditionMap(purl, startVersion, endVersion);
-        // 指定版本非空或者版本上下限均为空时，按分页查询处理
-        // 指定版本为空并且版本上下限任一非空时，先查出所有符合条件的组件再根据版本范围过滤，最后返回一个假分页
-        if (StringUtils.isEmpty(purl.getVersion()) && (StringUtils.isNotEmpty(startVersion) || StringUtils.isNotEmpty(endVersion))) {
-            List<ExternalPurlRef> result = externalPurlRefRepository.findAll(
-                    ExternalPurlRefSpecs.hasSbomId(sbom.getId())
-                            .and(ExternalPurlRefSpecs.hasCategory(binaryType))
-                            .and(ExternalPurlRefSpecs.hasType(ReferenceType.PURL.getType()))
-                            .and(ExternalPurlRefSpecs.hasPurlComponent(purlComponents))
-                            .and(ExternalPurlRefSpecs.withSort("name")));
+        /*
+          指定版本非空或者版本上下限均为空时，按分页查询处理
+          指定版本为空并且版本上下限任一非空时，先查出所有符合条件的组件再根据版本范围过滤，最后返回一个假分页
+          */
+        if (StringUtils.isEmpty(condition.getVersion()) && (StringUtils.isNotEmpty(condition.getStartVersion()) || StringUtils.isNotEmpty(condition.getEndVersion()))) {
+            List<ExternalPurlRef> result = externalPurlRefRepository.findAll(ExternalPurlRefSpecs.convertCondition(condition));
             // 上下限均非空，startVersion <= version <= endVersion
-            if (StringUtils.isNotEmpty(startVersion) && StringUtils.isNotEmpty(endVersion)) {
+            if (StringUtils.isNotEmpty(condition.getStartVersion()) && StringUtils.isNotEmpty(condition.getEndVersion())) {
                 result = result.stream()
-                        .filter(ref -> VersionUtil.inRange(ref.getPurl().getVersion(), startVersion, endVersion))
+                        .filter(ref -> VersionUtil.inRange(ref.getPurl().getVersion(), condition.getStartVersion(), condition.getEndVersion()))
                         .toList();
                 // 下限为空，上限非空，version <= endVersion
-            } else if (StringUtils.isEmpty(startVersion)) {
+            } else if (StringUtils.isEmpty(condition.getStartVersion())) {
                 result = result.stream()
-                        .filter(ref -> VersionUtil.lessThanOrEqualTo(ref.getPurl().getVersion(), endVersion))
+                        .filter(ref -> VersionUtil.lessThanOrEqualTo(ref.getPurl().getVersion(), condition.getEndVersion()))
                         .toList();
                 // 上限为空，下限非空，startVersion <= version
             } else {
                 result = result.stream()
-                        .filter(ref -> VersionUtil.greaterThanOrEqualTo(ref.getPurl().getVersion(), startVersion))
+                        .filter(ref -> VersionUtil.greaterThanOrEqualTo(ref.getPurl().getVersion(), condition.getStartVersion()))
                         .toList();
             }
             // 最多保留n个结果
@@ -394,11 +392,7 @@ public class SbomServiceImpl implements SbomService {
         }
 
         Page<ExternalPurlRef> result = externalPurlRefRepository.findAll(
-                ExternalPurlRefSpecs.hasSbomId(sbom.getId())
-                        .and(ExternalPurlRefSpecs.hasCategory(binaryType))
-                        .and(ExternalPurlRefSpecs.hasType(ReferenceType.PURL.getType()))
-                        .and(ExternalPurlRefSpecs.hasPurlComponent(purlComponents))
-                        .and(ExternalPurlRefSpecs.withSort("name")),
+                ExternalPurlRefSpecs.convertCondition(condition),
                 pageable);
 
         return new PageVo<>(new PageImpl(result.stream().map(PackagePurlVo::fromExternalPurlRef).collect(Collectors.toList()),

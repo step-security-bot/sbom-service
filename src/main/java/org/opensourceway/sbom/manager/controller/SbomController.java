@@ -2,6 +2,7 @@ package org.opensourceway.sbom.manager.controller;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.opensourceway.sbom.constants.SbomConstants;
+import org.opensourceway.sbom.manager.dao.spec.ExternalPurlRefCondition;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.ProductStatistics;
@@ -11,7 +12,6 @@ import org.opensourceway.sbom.manager.model.vo.CopyrightVo;
 import org.opensourceway.sbom.manager.model.vo.LicenseVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageStatisticsVo;
-import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageWithStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PageVo;
 import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
@@ -57,6 +57,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+@SuppressWarnings("rawtypes")
 @Controller
 @RequestMapping(path = "/sbom-api")
 public class SbomController {
@@ -251,15 +252,15 @@ public class SbomController {
     @Deprecated
     @PostMapping("/querySbomPackages")
     public @ResponseBody ResponseEntity querySbomPackagesDeprecated(@RequestParam("productName") String productName,
-                                                          @RequestParam(value = "packageName", required = false) String packageName,
-                                                          @RequestParam(value = "isExactly", required = false) Boolean isExactly,
-                                                          @RequestParam(required = false) String vulSeverity,
-                                                          @RequestParam(required = false) Boolean noLicense,
-                                                          @RequestParam(required = false) Boolean multiLicense,
-                                                          @RequestParam(required = false) Boolean isLegalLicense,
-                                                          @RequestParam(required = false) String licenseId,
-                                                          @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
-                                                          @RequestParam(name = "size", required = false, defaultValue = "15") Integer size) {
+                                                                    @RequestParam(value = "packageName", required = false) String packageName,
+                                                                    @RequestParam(value = "isExactly", required = false) Boolean isExactly,
+                                                                    @RequestParam(required = false) String vulSeverity,
+                                                                    @RequestParam(required = false) Boolean noLicense,
+                                                                    @RequestParam(required = false) Boolean multiLicense,
+                                                                    @RequestParam(required = false) Boolean isLegalLicense,
+                                                                    @RequestParam(required = false) String licenseId,
+                                                                    @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+                                                                    @RequestParam(name = "size", required = false, defaultValue = "15") Integer size) {
         var req = new QuerySbomPackagesRequest();
         req.setProductName(productName);
         req.setPackageName(packageName);
@@ -337,12 +338,22 @@ public class SbomController {
                         "startVersion:{}, endVersion: {}",
                 productName, binaryType, type, namespace, name, version, startVersion, endVersion);
 
-        PackageUrlVo purl = new PackageUrlVo(type, namespace, name, version);
-        Pageable pageable = PageRequest.of(page, size);
         PageVo<PackagePurlVo> queryResult;
 
         try {
-            queryResult = sbomService.queryPackageInfoByBinaryViaSpec(productName, binaryType, purl, startVersion, endVersion, pageable);
+            ExternalPurlRefCondition condition = ExternalPurlRefCondition.Builder.newBuilder()
+                    .productName(productName)
+                    .binaryType(binaryType)
+                    .type(type)
+                    .namespace(namespace)
+                    .name(name)
+                    .version(version)
+                    .startVersion(startVersion)
+                    .endVersion(endVersion)
+                    .build();
+            Pageable pageable = PageRequest.of(page, size);
+
+            queryResult = sbomService.queryPackageInfoByBinaryViaSpec(condition, pageable);
         } catch (RuntimeException e) {
             logger.error("query sbom packages failed.", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
