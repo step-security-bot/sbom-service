@@ -6,6 +6,7 @@ import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.RawSbom;
+import org.opensourceway.sbom.manager.model.echarts.Graph;
 import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
 import org.opensourceway.sbom.manager.model.vo.CopyrightVo;
 import org.opensourceway.sbom.manager.model.vo.LicenseVo;
@@ -601,5 +602,25 @@ public class SbomController {
 
         logger.info("query vulnerability result: {}", Objects.isNull(vulnerabilities) ? 0 : vulnerabilities.getTotalElements());
         return ResponseEntity.status(HttpStatus.OK).body(vulnerabilities);
+    }
+
+    @GetMapping("/queryVulImpact/{*productName}")
+    public @ResponseBody ResponseEntity queryVulImpact(@PathVariable String productName, @RequestParam String vulId) {
+        productName = productName.substring(1);
+        logger.info("queryVulImpact by productName: {}, vulId: {}", productName, vulId);
+
+        Graph graph;
+        try {
+            graph = sbomService.queryVulImpact(productName, vulId);
+        } catch (RuntimeException e) {
+            logger.error("queryVulImpact error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("queryVulImpact error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("queryVulImpact error");
+        }
+
+        logger.info("queryVulImpact result has {} nodes, {} edges", graph.getNodes().size(), graph.getEdges().size());
+        return ResponseEntity.status(HttpStatus.OK).body(graph);
     }
 }

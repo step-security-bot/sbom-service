@@ -26,6 +26,10 @@ import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.ProductType;
 import org.opensourceway.sbom.manager.model.RawSbom;
 import org.opensourceway.sbom.manager.model.Sbom;
+import org.opensourceway.sbom.manager.model.SbomElementRelationship;
+import org.opensourceway.sbom.manager.model.echarts.Edge;
+import org.opensourceway.sbom.manager.model.echarts.Graph;
+import org.opensourceway.sbom.manager.model.echarts.Node;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
 import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
@@ -65,6 +69,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -505,4 +510,78 @@ public class SbomServiceImpl implements SbomService {
                 result.getTotalElements()));
     }
 
+    @Override
+    public Graph queryVulImpact(String productName, String vulId) {
+        var graph = new Graph();
+        var refs = externalVulRefRepository.findByProductNameAndVulId(productName, vulId);
+        if (ObjectUtils.isEmpty(refs)) {
+            return graph;
+        }
+
+        var vulNode = graph.createVulNode(vulId);
+        graph.addNode(vulNode);
+
+        refs.forEach(ref -> {
+            var directPurlRef = ref.getPkg().getExternalPurlRefs().stream()
+                    .filter(purlRef -> purlRef.getPurl().equals(ref.getPurl()))
+                    .findFirst()
+                    .orElseThrow();
+            var packagePurlRef = ref.getPkg().getExternalPurlRefs().stream()
+                    .filter(purlRef -> StringUtils.equals(purlRef.getCategory(), ReferenceCategory.PACKAGE_MANAGER.name()))
+                    .findFirst()
+                    .orElseThrow();
+
+            Node packageNode;
+            if (StringUtils.equals(directPurlRef.getCategory(), ReferenceCategory.PACKAGE_MANAGER.name())) {
+                packageNode = graph.createPackageNode(directPurlRef.getPurl().toString());
+                if (graph.nodeVisited(packageNode)) {
+                    return;
+                }
+                graph.addNode(packageNode);
+                graph.addEdge(new Edge(vulNode.getId(), packageNode.getId()));
+                extractTransitiveDepRecursively(graph, packagePurlRef, packageNode);
+            } else {
+                var directNode = graph.createDepNode(directPurlRef.getPurl().toString());
+                if (graph.nodeVisited(directNode)) {
+                    return;
+                }
+                graph.addNode(directNode);
+                graph.addEdge(new Edge(vulNode.getId(), directNode.getId()));
+
+                packageNode = graph.createPackageNode(packagePurlRef.getPurl().toString());
+                graph.addEdge(new Edge(directNode.getId(), packageNode.getId()));
+                if (graph.nodeVisited(packageNode)) {
+                    return;
+                }
+                graph.addNode(packageNode);
+                extractTransitiveDepRecursively(graph, packagePurlRef, packageNode);
+            }
+        });
+        return graph;
+    }
+
+    private void extractTransitiveDepRecursively(Graph graph, ExternalPurlRef startRef, Node startNode) {
+        var transitiveDepSpdxIds = startRef.getPkg().getSbom().getSbomElementRelationships().stream()
+                .filter(it -> StringUtils.equals(it.getRelatedElementId(), startRef.getPkg().getSpdxId()))
+                .map(SbomElementRelationship::getElementId)
+                .toList();
+        if (ObjectUtils.isEmpty(transitiveDepSpdxIds)) {
+            return;
+        }
+        startRef.getPkg().getSbom().getPackages().stream()
+                .filter(pkg -> transitiveDepSpdxIds.contains(pkg.getSpdxId()))
+                .map(Package::getExternalPurlRefs)
+                .flatMap(List::stream)
+                .filter(ref -> StringUtils.equals(ref.getCategory(), ReferenceCategory.PACKAGE_MANAGER.name()))
+                .forEach(ref -> {
+                    var node = graph.createTransitiveDepNode(ref.getPurl().toString(), startNode.getY());
+                    if (graph.nodeVisited(node)) {
+                        return;
+                    }
+                    graph.addNode(node);
+                    graph.addEdge(new Edge(startNode.getId(), node.getId()));
+                    startNode.setSize(startNode.getSize() + 2);
+                    extractTransitiveDepRecursively(graph, ref, node);
+                });
+    }
 }

@@ -1,6 +1,9 @@
 package org.opensourceway.sbom.manager.model.vo;
 
+import org.opensourceway.sbom.manager.utils.PurlUtil;
+
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.TreeMap;
 
 public class PackageUrlVo implements Serializable {
@@ -94,5 +97,26 @@ public class PackageUrlVo implements Serializable {
 
     public void setSubpath(String subpath) {
         this.subpath = subpath;
+    }
+
+    @Override
+    public String toString() {
+        return PurlUtil.PackageUrlVoToPackageURL(this).canonicalize();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PackageUrlVo that = (PackageUrlVo) o;
+        return Objects.equals(schema, that.schema) && Objects.equals(type, that.type) &&
+                Objects.equals(namespace, that.namespace) && Objects.equals(name, that.name) &&
+                Objects.equals(version, that.version) && Objects.equals(qualifiers, that.qualifiers) &&
+                Objects.equals(subpath, that.subpath);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(schema, type, namespace, name, version, qualifiers, subpath);
     }
 }
