@@ -468,6 +468,11 @@ public class SbomServiceImpl implements SbomService {
         return result.stream().map(LicenseVo::fromLicense).toList();
     }
 
+    public PageVo<LicenseVo> queryLicense(String productName, String license, Boolean isLegal, Pageable pageable) throws Exception {
+        Page<Map> result = licenseRepository.findUniversal(productName, license, isLegal, pageable);
+        return new PageVo<>((PageImpl<LicenseVo>) EntityUtil.castEntity(result, LicenseVo.class));
+    }
+
     @Override
     public List<CopyrightVo> queryCopyrightByPackageId(String packageId) {
         CopyrightVo copyrightVo = new CopyrightVo();

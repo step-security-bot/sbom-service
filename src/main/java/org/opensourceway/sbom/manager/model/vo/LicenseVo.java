@@ -1,9 +1,12 @@
 package org.opensourceway.sbom.manager.model.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.opensourceway.sbom.manager.model.License;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LicenseVo implements Serializable {
 
     private String licenseId;
@@ -13,6 +16,8 @@ public class LicenseVo implements Serializable {
     private boolean isLegal;
 
     private String licenseUrl;
+
+    private BigInteger count;
 
     public String getLicenseId() {
         return licenseId;
@@ -44,6 +49,14 @@ public class LicenseVo implements Serializable {
 
     public void setLicenseUrl(String licenseUrl) {
         this.licenseUrl = licenseUrl;
+    }
+
+    public BigInteger getCount() {
+        return count;
+    }
+
+    public void setCount(BigInteger count) {
+        this.count = count;
     }
 
     public static LicenseVo fromLicense(License license) {

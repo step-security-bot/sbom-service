@@ -75,6 +75,8 @@ public interface SbomService {
 
     List<LicenseVo> queryLicenseByPackageId(String packageId);
 
+    PageVo<LicenseVo> queryLicense(String productName, String license, Boolean isLegal, Pageable pageable) throws Exception;
+
     List<CopyrightVo> queryCopyrightByPackageId(String packageId);
 
     PageVo<VulnerabilityVo> queryVulnerability(String productName, String packageId, String severity, Pageable pageable);
