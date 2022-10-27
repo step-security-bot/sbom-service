@@ -183,7 +183,8 @@ public class SbomDataInitTest {
                 .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
                 .findFirst().orElse(null);
         assertThat(pkg).isNotNull();
-        insertLicense("License-test", pkg);
+        insertLicense("License-test", pkg, false);
+        insertLicense("License-test1", pkg, true);
         insertCopyright(pkg);
     }
 
@@ -193,7 +194,7 @@ public class SbomDataInitTest {
         assertThat(pkg.getCopyright()).isEqualTo("Copyright (c) 1989, 1991 Free Software Foundation, Inc.");
     }
 
-    private void insertLicense(String lic, Package pkg) {
+    private void insertLicense(String lic, Package pkg, Boolean isLegal) {
         License license = licenseRepository.findBySpdxLicenseId(lic).orElse(new License());
         license.setSpdxLicenseId(lic);
         if (license.getPackages() == null) {
@@ -208,7 +209,7 @@ public class SbomDataInitTest {
         }
         license.setName("License for test");
         license.setUrl("https://xxx/licenses/License-test");
-        license.setIsLegal(false);
+        license.setIsLegal(isLegal);
         License licenseRet = licenseRepository.save(license);
         assertThat(licenseRet.getPackages().size()).isEqualTo(1);
     }

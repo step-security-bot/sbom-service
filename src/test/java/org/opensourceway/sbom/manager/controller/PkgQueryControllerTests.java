@@ -6,8 +6,10 @@ import org.junit.jupiter.api.Test;
 import org.opensourceway.sbom.manager.SbomApplicationContextHolder;
 import org.opensourceway.sbom.manager.SbomManagerApplication;
 import org.opensourceway.sbom.manager.TestConstants;
+import org.opensourceway.sbom.manager.dao.ProductRepository;
 import org.opensourceway.sbom.manager.dao.SbomRepository;
 import org.opensourceway.sbom.manager.model.Package;
+import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.Sbom;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.manager.model.vo.PackageWithStatisticsVo;
@@ -47,6 +49,9 @@ public class PkgQueryControllerTests {
 
     @Autowired
     private SbomRepository sbomRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     @Test
     public void queryPackagesListForPageable() throws Exception {
@@ -752,7 +757,7 @@ public class PkgQueryControllerTests {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
-                .andExpect(jsonPath("$.licenseContent.length()").value(1))
+                .andExpect(jsonPath("$.licenseContent.length()").value(2))
                 .andExpect(jsonPath("$.licenseContent.[0].licenseId").value("License-test"))
                 .andExpect(jsonPath("$.licenseContent.[0].licenseName").value("License for test"))
                 .andExpect(jsonPath("$.licenseContent.[0].licenseUrl").value("https://xxx/licenses/License-test"))
@@ -761,6 +766,76 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.copyrightContent.[0].organization").value("Free Software Foundation, Inc"))
                 .andExpect(jsonPath("$.copyrightContent.[0].startYear").value("1989"))
                 .andExpect(jsonPath("$.copyrightContent.[0].additionalInfo").value("Copyright (c) 1989, 1991 Free Software Foundation, Inc."));
+
+    }
+
+    @Test
+    public void queryLicenseUniversal() throws Exception {
+        Product product = productRepository.findByName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(product).isNotNull();
+        this.mockMvc
+                .perform(get("/sbom-api/queryLicenseUniversalApi/")
+                        .param("productName", product.getName())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content.[0].licenseId").value("License-test"))
+                .andExpect(jsonPath("$.content.[0].licenseName").value("License for test"))
+                .andExpect(jsonPath("$.content.[0].licenseUrl").value("https://xxx/licenses/License-test"))
+                .andExpect(jsonPath("$.content.[0].legal").value(false))
+                .andExpect(jsonPath("$.content.[1].licenseId").value("License-test1"))
+                .andExpect(jsonPath("$.content.[1].licenseName").value("License for test"))
+                .andExpect(jsonPath("$.content.[1].licenseUrl").value("https://xxx/licenses/License-test"))
+                .andExpect(jsonPath("$.content.[1].legal").value(true));
+
+        this.mockMvc
+                .perform(get("/sbom-api/queryLicenseUniversalApi/")
+                        .param("productName", product.getName())
+                        .param("license", "License-test")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content.[0].licenseId").value("License-test"))
+                .andExpect(jsonPath("$.content.[0].licenseName").value("License for test"))
+                .andExpect(jsonPath("$.content.[0].licenseUrl").value("https://xxx/licenses/License-test"))
+                .andExpect(jsonPath("$.content.[0].legal").value(false));
+
+        this.mockMvc
+                .perform(get("/sbom-api/queryLicenseUniversalApi/")
+                        .param("productName", product.getName())
+                        .param("isLegal", "true")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content.[0].licenseId").value("License-test1"))
+                .andExpect(jsonPath("$.content.[0].licenseName").value("License for test"))
+                .andExpect(jsonPath("$.content.[0].licenseUrl").value("https://xxx/licenses/License-test"))
+                .andExpect(jsonPath("$.content.[0].legal").value(true));
+
+        this.mockMvc
+                .perform(get("/sbom-api/queryLicenseUniversalApi/")
+                        .param("productName", product.getName())
+                        .param("license", "License-test1")
+                        .param("isLegal", "true")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content.[0].licenseId").value("License-test1"))
+                .andExpect(jsonPath("$.content.[0].licenseName").value("License for test"))
+                .andExpect(jsonPath("$.content.[0].licenseUrl").value("https://xxx/licenses/License-test"))
+                .andExpect(jsonPath("$.content.[0].legal").value(true));
 
     }
 
