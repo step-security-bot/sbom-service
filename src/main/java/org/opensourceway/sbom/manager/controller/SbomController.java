@@ -443,7 +443,7 @@ public class SbomController {
         return ResponseEntity.status(HttpStatus.OK).body(vulnerabilities);
     }
 
-    @GetMapping("/queryLicenseUniversalApi/")
+    @GetMapping("/queryLicenseUniversalApi")
     public @ResponseBody
     ResponseEntity queryLicense(@RequestParam(name = "productName") String productName,
                                 @RequestParam(name = "license", required = false) String license,

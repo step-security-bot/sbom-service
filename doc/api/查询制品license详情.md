@@ -10,13 +10,11 @@ comment: ""
 
 ## API接口
 
-GET /sbom-api/queryLicenseUniversalApi/
-
-### 参数路径
-
-`productName`: 查询的制品名 string      *必需*
+GET /sbom-api/queryLicenseUniversalApi
 
 ### 查询参数
+
+`productName`: 查询的制品名 string      *必需*
 
 `license`: 查询license的Id string        *非必需*
 
@@ -57,7 +55,7 @@ empty: 当前页是否为空  boolean
 
 #### 请求-1
 
-GET /sbom-api/queryLicenseUniversalApi/?productName=openEuler-22.03-LTS-everything-x86_64-dvd.iso
+GET /sbom-api/queryLicenseUniversalApi?productName=openEuler-22.03-LTS-everything-x86_64-dvd.iso
 
 #### 返回-1
 
@@ -183,7 +181,7 @@ GET /sbom-api/queryLicenseUniversalApi/?productName=openEuler-22.03-LTS-everythi
 
 #### 请求-2
 
-GET /sbom-api/queryLicenseUniversalApi/?productName=openEuler-22.03-LTS-everything-x86_64-dvd.iso&license=Apache-2.0
+GET /sbom-api/queryLicenseUniversalApi?productName=openEuler-22.03-LTS-everything-x86_64-dvd.iso&license=Apache-2.0
 
 #### 返回-2
 
@@ -211,7 +209,7 @@ GET /sbom-api/queryLicenseUniversalApi/?productName=openEuler-22.03-LTS-everythi
 
 #### 请求-3
 
-GET /sbom-api/queryLicenseUniversalApi/?productName=openEuler-22.03-LTS-everything-x86_64-dvd.iso&isLegal=true
+GET /sbom-api/queryLicenseUniversalApi?productName=openEuler-22.03-LTS-everything-x86_64-dvd.iso&isLegal=true
 
 #### 返回-3
 
