@@ -11,7 +11,6 @@ import org.opensourceway.sbom.manager.model.vo.CopyrightVo;
 import org.opensourceway.sbom.manager.model.vo.LicenseVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageStatisticsVo;
-import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageWithStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PageVo;
 import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
@@ -49,12 +48,6 @@ public interface SbomService {
     PageVo<PackageWithStatisticsVo> getPackageInfoByNameForPage(QuerySbomPackagesRequest req);
 
     BinaryManagementVo queryPackageBinaryManagement(String packageId, String binaryType);
-
-    @Deprecated
-    PageVo<PackagePurlVo> queryPackageInfoByBinary(String productName,
-                                                   String binaryType,
-                                                   PackageUrlVo purl,
-                                                   Pageable pageable) throws Exception;
 
     PageVo<PackagePurlVo> queryPackageInfoByBinaryViaSpec(ExternalPurlRefCondition condition, Pageable pageable);
 

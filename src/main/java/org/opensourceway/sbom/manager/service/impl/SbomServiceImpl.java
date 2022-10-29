@@ -34,7 +34,6 @@ import org.opensourceway.sbom.manager.model.vo.CopyrightVo;
 import org.opensourceway.sbom.manager.model.vo.LicenseVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageStatisticsVo;
-import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageWithStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PageVo;
 import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
@@ -46,8 +45,6 @@ import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
 import org.opensourceway.sbom.manager.service.SbomService;
 import org.opensourceway.sbom.manager.service.reader.SbomReader;
 import org.opensourceway.sbom.manager.service.writer.SbomWriter;
-import org.opensourceway.sbom.manager.utils.EntityUtil;
-import org.opensourceway.sbom.manager.utils.PurlUtil;
 import org.opensourceway.sbom.manager.utils.SbomFormat;
 import org.opensourceway.sbom.manager.utils.SbomMapperUtil;
 import org.opensourceway.sbom.manager.utils.SbomSpecification;
@@ -63,7 +60,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -323,29 +319,6 @@ public class SbomServiceImpl implements SbomService {
             packageRepository.findById(packageUUID).ifPresentOrElse(pkg -> vo.setRelationshipList(externalPurlRefRepository.queryRelationPackageRef(pkg.getSbom().getId(), pkg.getSpdxId())), () -> vo.setRelationshipList(Lists.newArrayList()));
         }
         return vo;
-    }
-
-    @Override
-    @Deprecated
-    public PageVo<PackagePurlVo> queryPackageInfoByBinary(String productName,
-                                                          String binaryType,
-                                                          PackageUrlVo purl,
-                                                          Pageable pageable) throws Exception {
-        ReferenceCategory referenceCategory = ReferenceCategory.findReferenceCategory(binaryType);
-        if (!ReferenceCategory.BINARY_TYPE.contains(referenceCategory)) {
-            throw new RuntimeException("binary type: %s is not support".formatted(binaryType));
-        }
-
-        Pair<String, Boolean> purlQueryCondition = PurlUtil.generatePurlQueryCondition(purl);
-
-        Page<Map> result = packageRepository.queryPackageInfoByBinary(productName,
-                binaryType,
-                purlQueryCondition.getSecond(),
-                purlQueryCondition.getFirst(),
-                purlQueryCondition.getFirst(),
-                pageable);
-
-        return new PageVo<>((PageImpl<PackagePurlVo>) EntityUtil.castEntity(result, PackagePurlVo.class));
     }
 
     @Override
