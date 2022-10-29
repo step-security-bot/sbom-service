@@ -336,41 +336,57 @@ public class SbomServiceImpl implements SbomService {
           指定版本非空或者版本上下限均为空时，按分页查询处理
           指定版本为空并且版本上下限任一非空时，先查出所有符合条件的组件再根据版本范围过滤，最后返回一个假分页
           */
-        if (StringUtils.isEmpty(condition.getVersion()) && (StringUtils.isNotEmpty(condition.getStartVersion()) || StringUtils.isNotEmpty(condition.getEndVersion()))) {
-            List<ExternalPurlRef> result = externalPurlRefRepository.findAll(ExternalPurlRefSpecs.convertCondition(condition));
-            // 上下限均非空，startVersion <= version <= endVersion
-            if (StringUtils.isNotEmpty(condition.getStartVersion()) && StringUtils.isNotEmpty(condition.getEndVersion())) {
-                result = result.stream()
-                        .filter(ref -> VersionUtil.inRange(ref.getPurl().getVersion(), condition.getStartVersion(), condition.getEndVersion()))
-                        .toList();
-                // 下限为空，上限非空，version <= endVersion
-            } else if (StringUtils.isEmpty(condition.getStartVersion())) {
-                result = result.stream()
-                        .filter(ref -> VersionUtil.lessThanOrEqualTo(ref.getPurl().getVersion(), condition.getEndVersion()))
-                        .toList();
-                // 上限为空，下限非空，startVersion <= version
-            } else {
-                result = result.stream()
-                        .filter(ref -> VersionUtil.greaterThanOrEqualTo(ref.getPurl().getVersion(), condition.getStartVersion()))
-                        .toList();
-            }
-            // 最多保留n个结果
-            var maxReserveSize = 50;
-            if (result.size() > maxReserveSize) {
-                logger.warn("received {} components, truncate to {}", result.size(), maxReserveSize);
-                result = result.subList(0, maxReserveSize);
-            }
-            return new PageVo<>(new PageImpl(result.stream().map(PackagePurlVo::fromExternalPurlRef).toList(),
-                    PageRequest.of(0, maxReserveSize), result.size()));
+        if (!StringUtils.equalsIgnoreCase(condition.getBinaryType(), ReferenceCategory.RELATIONSHIP_MANAGER.name())
+                && StringUtils.isEmpty(condition.getVersion())
+                && (StringUtils.isNotEmpty(condition.getStartVersion()) || StringUtils.isNotEmpty(condition.getEndVersion()))) {
+            List<ExternalPurlRef> result = queryPackageInfoByBinaryFromDB(condition, null).getContent();
+            List<ExternalPurlRef> pageableResult = filterAndPageForVersionRange(condition, result);
+
+            return new PageVo<>(new PageImpl(pageableResult.stream().map(PackagePurlVo::fromExternalPurlRef).toList(),
+                    PageRequest.of(0, SbomConstants.MAX_PAGE_SIZE), pageableResult.size()));
         }
 
-        Page<ExternalPurlRef> result = externalPurlRefRepository.findAll(
-                ExternalPurlRefSpecs.convertCondition(condition),
-                pageable);
-
+        Page<ExternalPurlRef> result = queryPackageInfoByBinaryFromDB(condition, pageable);
         return new PageVo<>(new PageImpl(result.stream().map(PackagePurlVo::fromExternalPurlRef).collect(Collectors.toList()),
                 result.getPageable(),
                 result.getTotalElements()));
+    }
+
+    private Page<ExternalPurlRef> queryPackageInfoByBinaryFromDB(ExternalPurlRefCondition condition, Pageable pageable) {
+        if (StringUtils.equalsIgnoreCase(condition.getBinaryType(), ReferenceCategory.RELATIONSHIP_MANAGER.name())) {
+            return externalPurlRefRepository.queryPackageRefByRelation(condition, pageable);
+        } else {
+            if (pageable == null) {
+                pageable = PageRequest.of(0, SbomConstants.MAX_SINGLE_PAGE_SIZE);
+            }
+            return externalPurlRefRepository.findAll(ExternalPurlRefSpecs.convertCondition(condition), pageable);
+        }
+    }
+
+    private List<ExternalPurlRef> filterAndPageForVersionRange(ExternalPurlRefCondition condition, List<ExternalPurlRef> result) {
+        List<ExternalPurlRef> returnResult;
+        // 上下限均非空，startVersion <= version <= endVersion
+        if (StringUtils.isNotEmpty(condition.getStartVersion()) && StringUtils.isNotEmpty(condition.getEndVersion())) {
+            returnResult = result.stream()
+                    .filter(ref -> VersionUtil.inRange(ref.getPurl().getVersion(), condition.getStartVersion(), condition.getEndVersion()))
+                    .toList();
+            // 下限为空，上限非空，version <= endVersion
+        } else if (StringUtils.isEmpty(condition.getStartVersion())) {
+            returnResult = result.stream()
+                    .filter(ref -> VersionUtil.lessThanOrEqualTo(ref.getPurl().getVersion(), condition.getEndVersion()))
+                    .toList();
+            // 上限为空，下限非空，startVersion <= version
+        } else {
+            returnResult = result.stream()
+                    .filter(ref -> VersionUtil.greaterThanOrEqualTo(ref.getPurl().getVersion(), condition.getStartVersion()))
+                    .toList();
+        }
+        // 最多保留n个结果
+        if (result.size() > SbomConstants.MAX_PAGE_SIZE) {
+            logger.warn("received {} components, truncate to {}", result.size(), SbomConstants.MAX_PAGE_SIZE);
+            result = result.subList(0, SbomConstants.MAX_PAGE_SIZE);
+        }
+        return returnResult;
     }
 
     @Override

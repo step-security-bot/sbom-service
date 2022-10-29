@@ -129,6 +129,10 @@ public class ExternalPurlRefCondition {
         this.type = type;
     }
 
+    public Boolean isTypeExactly() {
+        return isTypeExactly;
+    }
+
     public Boolean getTypeExactly() {
         return isTypeExactly;
     }
@@ -143,6 +147,10 @@ public class ExternalPurlRefCondition {
 
     public void setNamespace(String namespace) {
         this.namespace = namespace;
+    }
+
+    public Boolean isNamespaceExactly() {
+        return isNamespaceExactly;
     }
 
     public Boolean getNamespaceExactly() {
@@ -161,6 +169,10 @@ public class ExternalPurlRefCondition {
         this.name = name;
     }
 
+    public Boolean isNameExactly() {
+        return isNameExactly;
+    }
+
     public Boolean getNameExactly() {
         return isNameExactly;
     }
@@ -175,6 +187,10 @@ public class ExternalPurlRefCondition {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public Boolean isVersionExactly() {
+        return isVersionExactly;
     }
 
     public Boolean getVersionExactly() {
