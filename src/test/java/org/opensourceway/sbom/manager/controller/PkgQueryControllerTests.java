@@ -511,6 +511,103 @@ public class PkgQueryControllerTests {
     }
 
     @Test
+    public void queryPackageInfoByRuntimeDepTest() throws Exception {
+        this.mockMvc
+                .perform(post("/sbom-api/querySbomPackagesByBinary")
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
+                        .param("binaryType", ReferenceCategory.RELATIONSHIP_MANAGER.name())
+                        .param("type", "rpm")
+                        .param("namespace", "")
+                        .param("name", "hive")
+                        .param("version", "3.1.2")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.size").value(15))
+                .andExpect(jsonPath("$.content.[0].name").value("hadoop-3.1-common"))
+                .andExpect(jsonPath("$.content.[1].name").value("spark"))
+                .andExpect(jsonPath("$.content.[2].name").value("storm"));
+    }
+
+    @Test
+    public void queryPackageInfoByRuntimeDepNoVersionTest() throws Exception {
+        this.mockMvc
+                .perform(post("/sbom-api/querySbomPackagesByBinary")
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
+                        .param("binaryType", ReferenceCategory.RELATIONSHIP_MANAGER.name())
+                        .param("type", "rpm")
+                        .param("namespace", "")
+                        .param("name", "hive")
+                        .param("version", "3.1.2")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.size").value(15))
+                .andExpect(jsonPath("$.content.[0].name").value("hadoop-3.1-common"))
+                .andExpect(jsonPath("$.content.[1].name").value("spark"))
+                .andExpect(jsonPath("$.content.[2].name").value("storm"));
+    }
+
+    @Test
+    public void queryPackageInfoByRuntimeDepErrorVersionTest() throws Exception {
+        this.mockMvc
+                .perform(post("/sbom-api/querySbomPackagesByBinary")
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
+                        .param("binaryType", ReferenceCategory.RELATIONSHIP_MANAGER.name())
+                        .param("type", "rpm")
+                        .param("namespace", "")
+                        .param("name", "hive")
+                        .param("version", "3.1.3")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.totalElements").value(0))
+                .andExpect(jsonPath("$.totalPages").value(0))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.size").value(15));
+    }
+
+    @Test
+    public void queryPackageInfoByRuntimeDepWithPageTest() throws Exception {
+        this.mockMvc
+                .perform(post("/sbom-api/querySbomPackagesByBinary")
+                        .param("productName", TestConstants.SAMPLE_REPODATA_PRODUCT_NAME)
+                        .param("binaryType", ReferenceCategory.RELATIONSHIP_MANAGER.name())
+                        .param("type", "rpm")
+                        .param("namespace", "")
+                        .param("name", "hive")
+                        .param("version", "3.1.2")
+                        .param("page", "1")
+                        .param("size", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.last").value(false))
+                .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.totalPages").value(3))
+                .andExpect(jsonPath("$.number").value(1))
+                .andExpect(jsonPath("$.size").value(1))
+                .andExpect(jsonPath("$.content.[0].name").value("spark"));
+    }
+
+    @Test
     public void queryProductTypeTest() throws Exception {
         this.mockMvc
                 .perform(get("/sbom-api/queryProductType")
