@@ -6,6 +6,7 @@ import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.RawSbom;
+import org.opensourceway.sbom.manager.model.echarts.Graph;
 import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
 import org.opensourceway.sbom.manager.model.vo.CopyrightVo;
 import org.opensourceway.sbom.manager.model.vo.LicenseVo;
@@ -67,7 +68,11 @@ public interface SbomService {
 
     List<LicenseVo> queryLicenseByPackageId(String packageId);
 
+    PageVo<LicenseVo> queryLicense(String productName, String license, Boolean isLegal, Pageable pageable) throws Exception;
+
     List<CopyrightVo> queryCopyrightByPackageId(String packageId);
 
     PageVo<VulnerabilityVo> queryVulnerability(String productName, String packageId, String severity, Pageable pageable);
+
+    Graph queryVulImpact(String productName, String vulId);
 }

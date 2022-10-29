@@ -7,6 +7,7 @@ import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.RawSbom;
+import org.opensourceway.sbom.manager.model.echarts.Graph;
 import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
 import org.opensourceway.sbom.manager.model.vo.CopyrightVo;
 import org.opensourceway.sbom.manager.model.vo.LicenseVo;
@@ -453,6 +454,20 @@ public class SbomController {
         return ResponseEntity.status(HttpStatus.OK).body(vulnerabilities);
     }
 
+    @GetMapping("/queryLicenseUniversalApi")
+    public @ResponseBody
+    ResponseEntity queryLicense(@RequestParam(name = "productName") String productName,
+                                @RequestParam(name = "license", required = false) String license,
+                                @RequestParam(name = "isLegal", required = false) Boolean isLegal,
+                                @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+                                @RequestParam(name = "size", required = false, defaultValue = "15") Integer size) throws Exception {
+        logger.info("query package License for productName by universal api: {}", productName);
+        PageVo<LicenseVo> licenses;
+        Pageable pageable = PageRequest.of(page, size);
+        licenses = sbomService.queryLicense(productName, license, isLegal, pageable);
+        return ResponseEntity.status(HttpStatus.OK).body(licenses);
+    }
+
     @GetMapping("/queryPackageLicenseAndCopyright/{packageId}")
     public @ResponseBody
     ResponseEntity queryLicenseByPackageId(@PathVariable("packageId") String packageId) {
@@ -612,5 +627,25 @@ public class SbomController {
 
         logger.info("query vulnerability result: {}", Objects.isNull(vulnerabilities) ? 0 : vulnerabilities.getTotalElements());
         return ResponseEntity.status(HttpStatus.OK).body(vulnerabilities);
+    }
+
+    @GetMapping("/queryVulImpact/{*productName}")
+    public @ResponseBody ResponseEntity queryVulImpact(@PathVariable String productName, @RequestParam String vulId) {
+        productName = productName.substring(1);
+        logger.info("queryVulImpact by productName: {}, vulId: {}", productName, vulId);
+
+        Graph graph;
+        try {
+            graph = sbomService.queryVulImpact(productName, vulId);
+        } catch (RuntimeException e) {
+            logger.error("queryVulImpact error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("queryVulImpact error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("queryVulImpact error");
+        }
+
+        logger.info("queryVulImpact result has {} nodes, {} edges", graph.getNodes().size(), graph.getEdges().size());
+        return ResponseEntity.status(HttpStatus.OK).body(graph);
     }
 }

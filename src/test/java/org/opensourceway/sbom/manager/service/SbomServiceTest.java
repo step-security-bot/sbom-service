@@ -592,7 +592,7 @@ class SbomServiceTest {
                 .findFirst().orElse(null);
         assertThat(pkg).isNotNull();
         List<License> licenses = licenseRepository.findByPkgId(pkg.getId());
-        assertThat(licenses.size()).isEqualTo(1);
+        assertThat(licenses.size()).isEqualTo(2);
         assertThat(licenses.get(0).getSpdxLicenseId()).isEqualTo("License-test");
         assertThat(licenses.get(0).getName()).isEqualTo("License for test");
         assertThat(licenses.get(0).getUrl()).isEqualTo("https://xxx/licenses/License-test");
