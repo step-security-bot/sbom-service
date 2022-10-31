@@ -49,6 +49,7 @@ import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
 import org.opensourceway.sbom.manager.service.SbomService;
 import org.opensourceway.sbom.manager.service.reader.SbomReader;
 import org.opensourceway.sbom.manager.service.writer.SbomWriter;
+import org.opensourceway.sbom.manager.utils.EntityUtil;
 import org.opensourceway.sbom.manager.utils.SbomFormat;
 import org.opensourceway.sbom.manager.utils.SbomMapperUtil;
 import org.opensourceway.sbom.manager.utils.SbomSpecification;
@@ -348,7 +349,7 @@ public class SbomServiceImpl implements SbomService {
             List<ExternalPurlRef> pageableResult = filterAndPageForVersionRange(condition, result);
 
             return new PageVo<>(new PageImpl(pageableResult.stream().map(PackagePurlVo::fromExternalPurlRef).toList(),
-                    PageRequest.of(0, SbomConstants.MAX_PAGE_SIZE), pageableResult.size()));
+                    PageRequest.of(0, SbomConstants.DEFAULT_PAGE_SIZE), pageableResult.size()));
         }
 
         Page<ExternalPurlRef> result = queryPackageInfoByBinaryFromDB(condition, pageable);
@@ -362,7 +363,7 @@ public class SbomServiceImpl implements SbomService {
             return externalPurlRefRepository.queryPackageRefByRelation(condition, pageable);
         } else {
             if (pageable == null) {
-                pageable = PageRequest.of(0, SbomConstants.MAX_SINGLE_PAGE_SIZE);
+                pageable = PageRequest.of(0, SbomConstants.MAX_PAGE_SIZE);
             }
             return externalPurlRefRepository.findAll(ExternalPurlRefSpecs.convertCondition(condition), pageable);
         }
@@ -387,9 +388,9 @@ public class SbomServiceImpl implements SbomService {
                     .toList();
         }
         // 最多保留n个结果
-        if (result.size() > SbomConstants.MAX_PAGE_SIZE) {
-            logger.warn("received {} components, truncate to {}", result.size(), SbomConstants.MAX_PAGE_SIZE);
-            result = result.subList(0, SbomConstants.MAX_PAGE_SIZE);
+        if (returnResult.size() > SbomConstants.DEFAULT_PAGE_SIZE) {
+            logger.warn("received {} components, truncate to {}", returnResult.size(), SbomConstants.DEFAULT_PAGE_SIZE);
+            returnResult = returnResult.subList(0, SbomConstants.DEFAULT_PAGE_SIZE);
         }
         return returnResult;
     }
