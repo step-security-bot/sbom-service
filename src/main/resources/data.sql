@@ -15,17 +15,17 @@ ON CONFLICT (type) DO NOTHING;
 
 --openEuler
 INSERT INTO product_config(id, name, label, value_type, ord, product_type)
-VALUES('013d61a1-5938-46db-9092-88df47c10bf6', 'version', '版本号', 'enum([{"label":"openEuler-22.03-LTS","value":"openEuler-22.03-LTS"}])', 1, 'openEuler')
+VALUES('013d61a1-5938-46db-9092-88df47c10bf6', 'version', '版本号', 'enum([{"label":"openEuler-22.03-LTS","value":"openEuler-22.03-LTS"},{"label":"openEuler-20.03-LTS-SP3","value":"openEuler-20.03-LTS-SP3"},{"label":"openEuler-20.03-LTS-SP2","value":"openEuler-20.03-LTS-SP2"},{"label":"openEuler-20.03-LTS-SP1","value":"openEuler-20.03-LTS-SP1"}])', 1, 'openEuler')
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, label = EXCLUDED.label, value_type = EXCLUDED.value_type, ord = EXCLUDED.ord, product_type = EXCLUDED.product_type;
 
 INSERT INTO product_config(id, name, label, value_type, ord, product_type)
-VALUES('f0266c11-1d7a-45c6-80e6-2ccf586f6755', 'imageFormat', '文件格式', 'enum([{"label":"ISO","value":"ISO"}])', 2, 'openEuler')
+VALUES('f0266c11-1d7a-45c6-80e6-2ccf586f6755', 'imageFormat', '文件格式', 'enum([{"label":"ISO","value":"ISO"},{"label":"EPOL","value":"EPOL"}])', 2, 'openEuler')
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, label = EXCLUDED.label, value_type = EXCLUDED.value_type, ord = EXCLUDED.ord, product_type = EXCLUDED.product_type;
 
 INSERT INTO product_config(id, name, label, value_type, ord, product_type)
-VALUES('7f959c6b-6651-4c56-be30-5e2cebb901cf', 'imageType', '镜像类型', 'enum([{"label":"everything","value":"everything"},{"label":"normal","value":"empty"},{"label":"update","value":"update"}])', 3, 'openEuler')
+VALUES('7f959c6b-6651-4c56-be30-5e2cebb901cf', 'imageType', '镜像类型', 'enum([{"label":"Everything","value":"everything"},{"label":"Normal","value":"empty"},{"label":"Update","value":"update"},{"label":"Update Train","value":"update-train"},{"label":"Update Wallaby","value":"update-wallaby"}])', 3, 'openEuler')
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, label = EXCLUDED.label, value_type = EXCLUDED.value_type, ord = EXCLUDED.ord, product_type = EXCLUDED.product_type;
 
