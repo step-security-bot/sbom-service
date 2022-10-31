@@ -61,5 +61,5 @@ public class SbomConstants {
 
     public static final Integer MAX_PAGE_SIZE = 50;
 
-    public static final Integer MAX_SINGLE_PAGE_SIZE = 50;
+    public static final Integer MAX_SINGLE_PAGE_SIZE = 10000;
 }
