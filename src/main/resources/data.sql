@@ -109,7 +109,82 @@ ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
 
 INSERT INTO product(id, name, attribute)
-VALUES('d81e9cf4-f793-4ca1-9602-91cb4d59b419', '/opt/repo-data/openEuler-22.03-LTS/update/aarch64', '{"productType":"openEuler", "version":"openEuler-22.03-LTS","imageFormat":"ISO","imageType":"update-test","arch":"aarch64"}'::jsonb)
+VALUES('f71b86c2-3d0c-4e9a-a9eb-b1bad0213d02', '/openEuler-22.03-LTS/EPOL/update/multi_version/OpenStack/Wallaby/aarch64', '{"productType":"openEuler", "version":"openEuler-22.03-LTS","imageFormat":"EPOL","imageType":"update-wallaby","arch":"aarch64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('d8c855f8-6df0-4149-8b29-155e1714c6a7', '/openEuler-22.03-LTS/EPOL/update/multi_version/OpenStack/Wallaby/x86_64', '{"productType":"openEuler", "version":"openEuler-22.03-LTS","imageFormat":"EPOL","imageType":"update-wallaby","arch":"x86_64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('c4599563-e78a-488e-8cb7-5ff53ebf5eb7', '/openEuler-22.03-LTS/EPOL/update/multi_version/OpenStack/Train/aarch64', '{"productType":"openEuler", "version":"openEuler-22.03-LTS","imageFormat":"EPOL","imageType":"update-train","arch":"aarch64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('ae7201b8-8548-463b-ac2e-b8a6cd6610da', '/openEuler-22.03-LTS/EPOL/update/multi_version/OpenStack/Train/x86_64', '{"productType":"openEuler", "version":"openEuler-22.03-LTS","imageFormat":"EPOL","imageType":"update-train","arch":"x86_64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('9bdab31c-a7bd-4383-b0c5-16d28e148e43', '/openEuler-20.03-LTS-SP3/update/aarch64', '{"productType":"openEuler", "version":"openEuler-20.03-LTS-SP3","imageFormat":"ISO","imageType":"update","arch":"aarch64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('27516015-2c95-4f1e-ada9-926dc3ffad03', '/openEuler-20.03-LTS-SP3/update/x86_64', '{"productType":"openEuler", "version":"openEuler-20.03-LTS-SP3","imageFormat":"ISO","imageType":"update","arch":"x86_64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('797d8d29-7cab-4468-ba02-7e0078fee5a5', '/openEuler-20.03-LTS-SP3/EPOL/update/main/aarch64', '{"productType":"openEuler", "version":"openEuler-20.03-LTS-SP3","imageFormat":"EPOL","imageType":"update","arch":"aarch64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('55540832-de6c-49c0-b3f2-b4b62e8569ad', '/openEuler-20.03-LTS-SP3/EPOL/update/main/x86_64', '{"productType":"openEuler", "version":"openEuler-20.03-LTS-SP3","imageFormat":"EPOL","imageType":"update","arch":"x86_64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('ae9f6ef1-66c8-44dd-965e-2471d52da765', '/openEuler-20.03-LTS-SP2/update/aarch64', '{"productType":"openEuler", "version":"openEuler-20.03-LTS-SP2","imageFormat":"ISO","imageType":"update","arch":"aarch64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('a9f04d75-433e-476d-b1c7-6a64a7feb8c3', '/openEuler-20.03-LTS-SP2/update/x86_64', '{"productType":"openEuler", "version":"openEuler-20.03-LTS-SP2","imageFormat":"ISO","imageType":"update","arch":"x86_64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('2adb6add-d69b-4f29-9233-86c29a205250', '/openEuler-20.03-LTS-SP2/EPOL/update/main/aarch64', '{"productType":"openEuler", "version":"openEuler-20.03-LTS-SP2","imageFormat":"EPOL","imageType":"update","arch":"aarch64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('93887c35-5a21-4d6a-bf9f-8158a17adcb3', '/openEuler-20.03-LTS-SP2/EPOL/update/main/x86_64', '{"productType":"openEuler", "version":"openEuler-20.03-LTS-SP2","imageFormat":"EPOL","imageType":"update","arch":"x86_64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('d22c6135-1506-4c29-bbc3-167f94fdb38d', '/openEuler-20.03-LTS-SP1/update/aarch64', '{"productType":"openEuler", "version":"openEuler-20.03-LTS-SP1","imageFormat":"ISO","imageType":"update","arch":"aarch64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('b127e9ad-42ca-46c5-8777-9cd946de0e0a', '/openEuler-20.03-LTS-SP1/update/x86_64', '{"productType":"openEuler", "version":"openEuler-20.03-LTS-SP1","imageFormat":"ISO","imageType":"update","arch":"x86_64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('e50d0398-2516-4ab4-88d6-9199662a710a', '/openEuler-20.03-LTS-SP1/EPOL/update/aarch64', '{"productType":"openEuler", "version":"openEuler-20.03-LTS-SP1","imageFormat":"EPOL ","imageType":"update","arch":"aarch64"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+INSERT INTO product(id, name, attribute)
+VALUES('ae05237c-9d45-4fe0-afe3-a5fbf7004686', '/openEuler-20.03-LTS-SP1/EPOL/update/x86_64', '{"productType":"openEuler", "version":"openEuler-20.03-LTS-SP1","imageFormat":"EPOL","imageType":"update","arch":"x86_64"}'::jsonb)
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
 
