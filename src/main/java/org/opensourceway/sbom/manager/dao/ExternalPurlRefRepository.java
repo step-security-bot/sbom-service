@@ -1,6 +1,9 @@
 package org.opensourceway.sbom.manager.dao;
 
+import org.opensourceway.sbom.manager.dao.spec.ExternalPurlRefCondition;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -25,6 +28,45 @@ public interface ExternalPurlRefRepository extends JpaRepository<ExternalPurlRef
             "			ser.sbom_id = :sbomId AND ser.sbom_id = pkg.sbom_id \n" +
             "			AND ser.element_id = :elementId AND ser.related_element_id = pkg.spdx_id)",
             nativeQuery = true)
-    List<ExternalPurlRef> queryRelationPackageRef(UUID sbomId,String elementId);
+    List<ExternalPurlRef> queryRelationPackageRef(@Param("sbomId") UUID sbomId, @Param("elementId") String elementId);
+
+    // TODO: 通过自定义函数简化SQL
+    @Query(value = "SELECT * FROM external_purl_ref \n" +
+            "	WHERE\n" +
+            "		category = 'PACKAGE_MANAGER' \n" +
+            "		AND pkg_id IN (\n" +
+            "			SELECT pkg.ID FROM sbom_element_relationship ser, package pkg \n" +
+            "				WHERE\n" +
+            "					ser.sbom_id = :#{#condition.sbomId} \n" +
+            "					AND ser.sbom_id = pkg.sbom_id \n" +
+            "					AND ser.element_id = pkg.spdx_id \n" +
+            "					AND ser.related_element_id IN (\n" +
+            "						SELECT inner_pkg.spdx_id FROM external_purl_ref epr\n" +
+            "								INNER JOIN package inner_pkg ON epr.pkg_id = inner_pkg.ID \n" +
+            "							WHERE\n" +
+            "								inner_pkg.sbom_id = :#{#condition.sbomId}\n" +
+            "								AND epr.category = 'PACKAGE_MANAGER' \n" +
+            "								AND epr.TYPE = :#{#condition.refType} \n" +
+            "								AND (:#{#condition.isTypeExactly} IS NULL OR COALESCE(:#{#condition.isTypeExactly}) = 'FALSE' " +
+            "                                   OR jsonb_extract_path_text(epr.purl, 'type') = CAST(:#{#condition.type} AS VARCHAR)) \n" +
+            "								AND (:#{#condition.isTypeExactly} IS NULL OR COALESCE(:#{#condition.isTypeExactly}) = 'TRUE' " +
+            "                                   OR jsonb_extract_path_text(epr.purl, 'type') LIKE CONCAT('%', :#{#condition.type}, '%')) \n" +
+            "								AND (:#{#condition.isNamespaceExactly} IS NULL OR COALESCE(:#{#condition.isNamespaceExactly}) = 'FALSE' " +
+            "                                   OR jsonb_extract_path_text(epr.purl, 'namespace') = CAST(:#{#condition.namespace} AS VARCHAR)) \n" +
+            "								AND (:#{#condition.isNamespaceExactly} IS NULL OR COALESCE(:#{#condition.isNamespaceExactly}) = 'TRUE' " +
+            "                                   OR jsonb_extract_path_text(epr.purl, 'namespace') LIKE CONCAT('%', :#{#condition.namespace}, '%')) \n" +
+            "								AND (:#{#condition.isNameExactly} IS NULL OR COALESCE(:#{#condition.isNameExactly}) = 'FALSE' " +
+            "                                   OR jsonb_extract_path_text(epr.purl, 'name') = CAST(:#{#condition.name} AS VARCHAR)) \n" +
+            "								AND (:#{#condition.isNameExactly} IS NULL OR COALESCE(:#{#condition.isNameExactly}) = 'TRUE' " +
+            "                                   OR jsonb_extract_path_text(epr.purl, 'name') LIKE CONCAT('%', :#{#condition.name}, '%')) \n" +
+            "								AND (:#{#condition.isVersionExactly} IS NULL OR COALESCE(:#{#condition.isVersionExactly}) = 'FALSE' " +
+            "                                   OR jsonb_extract_path_text(epr.purl, 'version') = CAST(:#{#condition.version} AS VARCHAR)) \n" +
+            "								AND (:#{#condition.isVersionExactly} IS NULL OR COALESCE(:#{#condition.isVersionExactly}) = 'TRUE' " +
+            "                                   OR jsonb_extract_path_text(epr.purl, 'version') LIKE CONCAT('%', :#{#condition.version}, '%')) \n" +
+            "					) \n" +
+            "		) ORDER BY purl",
+            countProjection = "1",
+            nativeQuery = true)
+    Page<ExternalPurlRef> queryPackageRefByRelation(@Param("condition") ExternalPurlRefCondition condition, Pageable pageable);
 
 }

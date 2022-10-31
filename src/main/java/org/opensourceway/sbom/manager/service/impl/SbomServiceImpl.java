@@ -16,6 +16,7 @@ import org.opensourceway.sbom.manager.dao.ProductStatisticsRepository;
 import org.opensourceway.sbom.manager.dao.ProductTypeRepository;
 import org.opensourceway.sbom.manager.dao.RawSbomRepository;
 import org.opensourceway.sbom.manager.dao.SbomRepository;
+import org.opensourceway.sbom.manager.dao.spec.ExternalPurlRefCondition;
 import org.opensourceway.sbom.manager.dao.spec.ExternalPurlRefSpecs;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.ExternalVulRef;
@@ -37,7 +38,6 @@ import org.opensourceway.sbom.manager.model.vo.CopyrightVo;
 import org.opensourceway.sbom.manager.model.vo.LicenseVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageStatisticsVo;
-import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageWithStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PageVo;
 import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
@@ -49,8 +49,6 @@ import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
 import org.opensourceway.sbom.manager.service.SbomService;
 import org.opensourceway.sbom.manager.service.reader.SbomReader;
 import org.opensourceway.sbom.manager.service.writer.SbomWriter;
-import org.opensourceway.sbom.manager.utils.EntityUtil;
-import org.opensourceway.sbom.manager.utils.PurlUtil;
 import org.opensourceway.sbom.manager.utils.SbomFormat;
 import org.opensourceway.sbom.manager.utils.SbomMapperUtil;
 import org.opensourceway.sbom.manager.utils.SbomSpecification;
@@ -66,7 +64,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -330,85 +327,71 @@ public class SbomServiceImpl implements SbomService {
     }
 
     @Override
-    @Deprecated
-    public PageVo<PackagePurlVo> queryPackageInfoByBinary(String productName,
-                                                          String binaryType,
-                                                          PackageUrlVo purl,
-                                                          Pageable pageable) throws Exception {
-        ReferenceCategory referenceCategory = ReferenceCategory.findReferenceCategory(binaryType);
+    public PageVo<PackagePurlVo> queryPackageInfoByBinaryViaSpec(ExternalPurlRefCondition condition, Pageable pageable) {
+        ReferenceCategory referenceCategory = ReferenceCategory.findReferenceCategory(condition.getBinaryType());
         if (!ReferenceCategory.BINARY_TYPE.contains(referenceCategory)) {
-            throw new RuntimeException("binary type: %s is not support".formatted(binaryType));
+            throw new RuntimeException("binary type: %s is not support".formatted(condition.getBinaryType()));
+        }
+        Sbom sbom = sbomRepository.findByProductName(condition.getProductName())
+                .orElseThrow(() -> new RuntimeException("can't find %s's sbom metadata".formatted(condition.getProductName())));
+        condition.setSbomId(sbom.getId());
+        condition.setSortField("name");
+
+        /*
+          指定版本非空或者版本上下限均为空时，按分页查询处理
+          指定版本为空并且版本上下限任一非空时，先查出所有符合条件的组件再根据版本范围过滤，最后返回一个假分页
+          */
+        if (!StringUtils.equalsIgnoreCase(condition.getBinaryType(), ReferenceCategory.RELATIONSHIP_MANAGER.name())
+                && StringUtils.isEmpty(condition.getVersion())
+                && (StringUtils.isNotEmpty(condition.getStartVersion()) || StringUtils.isNotEmpty(condition.getEndVersion()))) {
+            List<ExternalPurlRef> result = queryPackageInfoByBinaryFromDB(condition, null).getContent();
+            List<ExternalPurlRef> pageableResult = filterAndPageForVersionRange(condition, result);
+
+            return new PageVo<>(new PageImpl(pageableResult.stream().map(PackagePurlVo::fromExternalPurlRef).toList(),
+                    PageRequest.of(0, SbomConstants.MAX_PAGE_SIZE), pageableResult.size()));
         }
 
-        Pair<String, Boolean> purlQueryCondition = PurlUtil.generatePurlQueryCondition(purl);
-
-        Page<Map> result = packageRepository.queryPackageInfoByBinary(productName,
-                binaryType,
-                purlQueryCondition.getSecond(),
-                purlQueryCondition.getFirst(),
-                purlQueryCondition.getFirst(),
-                pageable);
-
-        return new PageVo<>((PageImpl<PackagePurlVo>) EntityUtil.castEntity(result, PackagePurlVo.class));
-    }
-
-    @Override
-    public PageVo<PackagePurlVo> queryPackageInfoByBinaryViaSpec(String productName, String binaryType, PackageUrlVo purl,
-                                                                 String startVersion, String endVersion, Pageable pageable) {
-        ReferenceCategory referenceCategory = ReferenceCategory.findReferenceCategory(binaryType);
-        if (!ReferenceCategory.BINARY_TYPE.contains(referenceCategory)) {
-            throw new RuntimeException("binary type: %s is not support".formatted(binaryType));
-        }
-        Sbom sbom = sbomRepository.findByProductName(productName)
-                .orElseThrow(() -> new RuntimeException("can't find %s's sbom metadata".formatted(productName)));
-
-        Map<String, Pair<String, Boolean>> purlComponents = PurlUtil.generatePurlQueryConditionMap(purl, startVersion, endVersion);
-        // 指定版本非空或者版本上下限均为空时，按分页查询处理
-        // 指定版本为空并且版本上下限任一非空时，先查出所有符合条件的组件再根据版本范围过滤，最后返回一个假分页
-        if (StringUtils.isEmpty(purl.getVersion()) && (StringUtils.isNotEmpty(startVersion) || StringUtils.isNotEmpty(endVersion))) {
-            List<ExternalPurlRef> result = externalPurlRefRepository.findAll(
-                    ExternalPurlRefSpecs.hasSbomId(sbom.getId())
-                            .and(ExternalPurlRefSpecs.hasCategory(binaryType))
-                            .and(ExternalPurlRefSpecs.hasType(ReferenceType.PURL.getType()))
-                            .and(ExternalPurlRefSpecs.hasPurlComponent(purlComponents))
-                            .and(ExternalPurlRefSpecs.withSort("name")));
-            // 上下限均非空，startVersion <= version <= endVersion
-            if (StringUtils.isNotEmpty(startVersion) && StringUtils.isNotEmpty(endVersion)) {
-                result = result.stream()
-                        .filter(ref -> VersionUtil.inRange(ref.getPurl().getVersion(), startVersion, endVersion))
-                        .toList();
-                // 下限为空，上限非空，version <= endVersion
-            } else if (StringUtils.isEmpty(startVersion)) {
-                result = result.stream()
-                        .filter(ref -> VersionUtil.lessThanOrEqualTo(ref.getPurl().getVersion(), endVersion))
-                        .toList();
-                // 上限为空，下限非空，startVersion <= version
-            } else {
-                result = result.stream()
-                        .filter(ref -> VersionUtil.greaterThanOrEqualTo(ref.getPurl().getVersion(), startVersion))
-                        .toList();
-            }
-            // 最多保留n个结果
-            var maxReserveSize = 50;
-            if (result.size() > maxReserveSize) {
-                logger.warn("received {} components, truncate to {}", result.size(), maxReserveSize);
-                result = result.subList(0, maxReserveSize);
-            }
-            return new PageVo<>(new PageImpl(result.stream().map(PackagePurlVo::fromExternalPurlRef).toList(),
-                    PageRequest.of(0, maxReserveSize), result.size()));
-        }
-
-        Page<ExternalPurlRef> result = externalPurlRefRepository.findAll(
-                ExternalPurlRefSpecs.hasSbomId(sbom.getId())
-                        .and(ExternalPurlRefSpecs.hasCategory(binaryType))
-                        .and(ExternalPurlRefSpecs.hasType(ReferenceType.PURL.getType()))
-                        .and(ExternalPurlRefSpecs.hasPurlComponent(purlComponents))
-                        .and(ExternalPurlRefSpecs.withSort("name")),
-                pageable);
-
+        Page<ExternalPurlRef> result = queryPackageInfoByBinaryFromDB(condition, pageable);
         return new PageVo<>(new PageImpl(result.stream().map(PackagePurlVo::fromExternalPurlRef).collect(Collectors.toList()),
                 result.getPageable(),
                 result.getTotalElements()));
+    }
+
+    private Page<ExternalPurlRef> queryPackageInfoByBinaryFromDB(ExternalPurlRefCondition condition, Pageable pageable) {
+        if (StringUtils.equalsIgnoreCase(condition.getBinaryType(), ReferenceCategory.RELATIONSHIP_MANAGER.name())) {
+            return externalPurlRefRepository.queryPackageRefByRelation(condition, pageable);
+        } else {
+            if (pageable == null) {
+                pageable = PageRequest.of(0, SbomConstants.MAX_SINGLE_PAGE_SIZE);
+            }
+            return externalPurlRefRepository.findAll(ExternalPurlRefSpecs.convertCondition(condition), pageable);
+        }
+    }
+
+    private List<ExternalPurlRef> filterAndPageForVersionRange(ExternalPurlRefCondition condition, List<ExternalPurlRef> result) {
+        List<ExternalPurlRef> returnResult;
+        // 上下限均非空，startVersion <= version <= endVersion
+        if (StringUtils.isNotEmpty(condition.getStartVersion()) && StringUtils.isNotEmpty(condition.getEndVersion())) {
+            returnResult = result.stream()
+                    .filter(ref -> VersionUtil.inRange(ref.getPurl().getVersion(), condition.getStartVersion(), condition.getEndVersion()))
+                    .toList();
+            // 下限为空，上限非空，version <= endVersion
+        } else if (StringUtils.isEmpty(condition.getStartVersion())) {
+            returnResult = result.stream()
+                    .filter(ref -> VersionUtil.lessThanOrEqualTo(ref.getPurl().getVersion(), condition.getEndVersion()))
+                    .toList();
+            // 上限为空，下限非空，startVersion <= version
+        } else {
+            returnResult = result.stream()
+                    .filter(ref -> VersionUtil.greaterThanOrEqualTo(ref.getPurl().getVersion(), condition.getStartVersion()))
+                    .toList();
+        }
+        // 最多保留n个结果
+        if (result.size() > SbomConstants.MAX_PAGE_SIZE) {
+            logger.warn("received {} components, truncate to {}", result.size(), SbomConstants.MAX_PAGE_SIZE);
+            result = result.subList(0, SbomConstants.MAX_PAGE_SIZE);
+        }
+        return returnResult;
     }
 
     @Override

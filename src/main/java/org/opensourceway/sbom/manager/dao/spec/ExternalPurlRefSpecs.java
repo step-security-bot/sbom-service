@@ -79,4 +79,12 @@ public final class ExternalPurlRefSpecs {
         };
     }
 
+    public static Specification<ExternalPurlRef> convertCondition(ExternalPurlRefCondition condition) {
+        return ExternalPurlRefSpecs.hasSbomId(condition.getSbomId())
+                .and(ExternalPurlRefSpecs.hasCategory(condition.getBinaryType()))
+                .and(ExternalPurlRefSpecs.hasType(condition.getRefType()))
+                .and(ExternalPurlRefSpecs.hasPurlComponent(condition.getPurlComponents()))
+                .and(ExternalPurlRefSpecs.withSort(condition.getSortField()));
+    }
+
 }

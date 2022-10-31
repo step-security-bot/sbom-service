@@ -1,6 +1,7 @@
 package org.opensourceway.sbom.manager.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.opensourceway.sbom.manager.dao.spec.ExternalPurlRefCondition;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.ProductStatistics;
@@ -11,7 +12,6 @@ import org.opensourceway.sbom.manager.model.vo.CopyrightVo;
 import org.opensourceway.sbom.manager.model.vo.LicenseVo;
 import org.opensourceway.sbom.manager.model.vo.PackagePurlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageStatisticsVo;
-import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.model.vo.PackageWithStatisticsVo;
 import org.opensourceway.sbom.manager.model.vo.PageVo;
 import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
@@ -50,14 +50,7 @@ public interface SbomService {
 
     BinaryManagementVo queryPackageBinaryManagement(String packageId, String binaryType);
 
-    @Deprecated
-    PageVo<PackagePurlVo> queryPackageInfoByBinary(String productName,
-                                                   String binaryType,
-                                                   PackageUrlVo purl,
-                                                   Pageable pageable) throws Exception;
-
-    PageVo<PackagePurlVo> queryPackageInfoByBinaryViaSpec(String productName, String binaryType, PackageUrlVo purl,
-                                                          String startVersion, String endVersion, Pageable pageable);
+    PageVo<PackagePurlVo> queryPackageInfoByBinaryViaSpec(ExternalPurlRefCondition condition, Pageable pageable);
 
     List<String> queryProductType();
 
