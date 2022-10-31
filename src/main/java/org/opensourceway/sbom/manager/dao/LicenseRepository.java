@@ -27,7 +27,7 @@ public interface LicenseRepository extends JpaRepository<License, UUID> {
 
     @Query(value = "SELECT A.spdx_license_id licenseId, A.\"name\" licenseName,A.is_legal isLegal,A.url licenseUrl,COUNT(A.*) FROM license A, pkg_license_relp B, package C, sbom D, product E WHERE A.id = " +
             "B.license_id AND B.pkg_id = C.id AND C.sbom_id = D.id AND D.product_id = E.id AND E.name = :productName " +
-            "AND (:license IS NULL OR A.spdx_license_id = :license) AND (:isLegal IS NULL OR A.is_legal = :isLegal) GROUP BY A.spdx_license_id, A.\"name\",A.is_legal,A.url",
+            "AND (:license IS NULL OR A.spdx_license_id = :license) AND (:isLegal IS NULL OR A.is_legal = :isLegal) GROUP BY A.spdx_license_id, A.\"name\",A.is_legal,A.url ORDER BY licenseId",
             nativeQuery = true)
     Page<Map> findUniversal(String productName, String license, Boolean isLegal, Pageable pageable);
 }
