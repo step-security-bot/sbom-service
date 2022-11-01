@@ -26,7 +26,7 @@
   - [X] openEuler社区SBOM随发布件归档
   - [ ] MindSpore社区SBOM随发布件归档
   - [ ] openGauss社区SBOM随发布件归档
-- [ ] SBOM桌面功能
+- [ ] SBOM Dashboard功能
 
   - [X] 风险看板
   - [X] 成分查询
