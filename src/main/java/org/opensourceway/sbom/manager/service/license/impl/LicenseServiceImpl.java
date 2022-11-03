@@ -1,7 +1,6 @@
 package org.opensourceway.sbom.manager.service.license.impl;
 
 import com.github.packageurl.MalformedPackageURLException;
-import com.github.packageurl.PackageURL;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.opensourceway.sbom.cache.constant.CacheConstants;
@@ -13,10 +12,12 @@ import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.dao.LicenseRepository;
 import org.opensourceway.sbom.manager.dao.PackageRepository;
 import org.opensourceway.sbom.manager.dao.ProductRepository;
+import org.opensourceway.sbom.manager.dao.RepoMetaRepository;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
+import org.opensourceway.sbom.manager.model.RepoMeta;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.service.license.LicenseService;
 import org.opensourceway.sbom.manager.utils.PurlUtil;
@@ -29,10 +30,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +62,9 @@ public class LicenseServiceImpl implements LicenseService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private RepoMetaRepository repoMetaRepository;
 
     @Autowired
     private LicenseInfoMapCache licenseInfoMapCache;
@@ -114,9 +120,18 @@ public class LicenseServiceImpl implements LicenseService {
             return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(),
                     packageUrlVo.getName(), packageUrlVo.getVersion(), null, null)));
         } else {
+            List<RepoMeta> repoMetaList = repoMetaRepository.queryRepoMetaByPackageName(SbomConstants.PRODUCT_OPENEULER_NAME,
+                    String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY)), packageUrlVo.getName());
+            String repoName = packageUrlVo.getName();
+            if (!CollectionUtils.isEmpty(repoMetaList) && !repoMetaList.get(0).getDownloadLocation().isEmpty()) {
+                String downloadLocation = repoMetaList.get(0).getDownloadLocation();
+                List<String> repoInfo = Arrays.stream(Arrays.stream(downloadLocation.split("/tree/")).toList().get(0).split("/")).toList();
+                repoName = repoInfo.get(repoInfo.size() - 1);
+            }
             return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL("gitee", SbomRepoConstants.OPENEULER_REPO_ORG,
-                    packageUrlVo.getName(), (String) product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY),
+                    repoName, String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY)),
                     null, null)));
+
         }
     }
 
@@ -156,20 +171,23 @@ public class LicenseServiceImpl implements LicenseService {
         Product product = productRepository.findBySbomId(sbomId);
 
         try {
-            List<String> purls = new ArrayList<>();
+            Set<String> repoPurlSet = new HashSet<>();
+            Map<String, String> pkgRepoPurlTrans = new HashMap<>();
             externalPurlChunk.forEach(purlRef -> {
                 String purlForLicense = getPurlsForLicense(purlRef.getPurl(), product);
                 if (!Objects.isNull(purlForLicense)) {
-                    purls.add(purlForLicense);
+                    repoPurlSet.add(purlForLicense);
+                    pkgRepoPurlTrans.put(purlRef.getPurl().toString(), purlForLicense);
                 }
             });
+            List<String> purls = new ArrayList<>(repoPurlSet);
             ComplianceResponse[] responseArr = licenseClient.getComplianceResponse(purls);
             if (Objects.isNull(responseArr) || responseArr.length == 0) {
                 return resultSet;
             }
             externalPurlChunk.forEach(ref ->
                     Arrays.stream(responseArr)
-                            .filter(response -> StringUtils.equals(getPurlsForLicense(ref.getPurl(), product), response.getPurl()))
+                            .filter(response -> StringUtils.equals(pkgRepoPurlTrans.get(ref.getPurl().toString()), response.getPurl()))
                             .forEach(licenseObj -> resultSet.add(Pair.of(ref, licenseObj))));
 
         } catch (Exception e) {

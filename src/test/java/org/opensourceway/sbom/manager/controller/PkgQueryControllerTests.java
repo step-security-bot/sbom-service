@@ -639,7 +639,7 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.*", hasSize(4)))
                 .andExpect(jsonPath("$.[0].name").value("version"))
                 .andExpect(jsonPath("$.[0].label").value("版本号"))
-                .andExpect(jsonPath("$.[0].valueType").value("enum([{\"label\":\"openEuler-22.03-LTS\",\"value\":\"openEuler-22.03-LTS\"}])"))
+                .andExpect(jsonPath("$.[0].valueType").value(new JsonContainsMatcher("\"label\":\"openEuler-22.03-LTS\",\"value\":\"openEuler-22.03-LTS\"")))
                 .andExpect(jsonPath("$.[0].ord").value(1))
                 .andExpect(jsonPath("$.[3].name").value("arch"))
                 .andExpect(jsonPath("$.[3].label").value("系统架构"))
