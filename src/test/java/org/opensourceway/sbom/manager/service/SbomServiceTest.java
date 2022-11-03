@@ -616,6 +616,18 @@ class SbomServiceTest {
         assertThat(responseArr.length).isEqualTo(1);
         assertThat(responseArr[0].getPurl()).isEqualTo(purl);
         assertThat(responseArr[0].getResult().getIsSca()).isEqualTo("true");
+
+        Package pkg1 = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-rpm-hadoop-3.1-common-3.1.4"))
+                .findFirst().orElse(null);
+        assertThat(pkg1).isNotNull();
+        ExternalPurlRef externalPurlRef1 = pkg1.getExternalPurlRefs().get(0);
+        String purl1 = licenseServiceImpl.getPurlsForLicense(externalPurlRef1.getPurl(), product);
+        assertThat(purl1).isEqualTo("pkg:gitee/src-openeuler/hadoop-3.1@openEuler-22.03-LTS");
+        ComplianceResponse[] responseArr1 = licenseClientImpl.getComplianceResponse(List.of(purl));
+        assertThat(responseArr1.length).isEqualTo(1);
+        assertThat(responseArr1[0].getPurl()).isEqualTo(purl);
+        assertThat(responseArr1[0].getResult().getIsSca()).isEqualTo("true");
     }
 
     @Test
