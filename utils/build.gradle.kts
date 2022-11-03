@@ -10,6 +10,7 @@ dependencies {
     implementation("com.github.package-url:packageurl-java:$packageUrlJavaVersion")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework:spring-context-support:5.3.23")
+    implementation("org.yaml:snakeyaml")
 
     api("com.github.ben-manes.caffeine:caffeine")
     api("com.google.guava:guava:31.1-jre")
