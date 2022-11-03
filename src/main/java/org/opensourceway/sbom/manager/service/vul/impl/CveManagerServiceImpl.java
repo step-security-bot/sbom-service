@@ -84,7 +84,7 @@ public class CveManagerServiceImpl extends AbstractVulService {
             logger.info("fetch vulnerabilities from cve-manager for purl chunk {}, total {}", i + 1, chunks.size());
             List<ExternalPurlRef> chunk = chunks.get(i);
             List<String> purls = chunk.stream()
-                    .map(ref -> PurlUtil.PackageUrlVoToPackageURL(ref.getPurl()).canonicalize())
+                    .map(ref -> PurlUtil.canonicalizePurl(ref.getPurl()))
                     .collect(Collectors.toSet())
                     .stream().toList();
             try {
@@ -111,14 +111,14 @@ public class CveManagerServiceImpl extends AbstractVulService {
 
         externalPurlRefs.forEach(ref -> report.getData()
                 .stream()
-                .filter(vul -> StringUtils.equals(PurlUtil.PackageUrlVoToPackageURL(ref.getPurl()).canonicalize(), vul.getPurl()))
+                .filter(vul -> StringUtils.equals(PurlUtil.canonicalizePurl(ref.getPurl()), vul.getPurl()))
                 .forEach(vul -> {
                     Vulnerability vulnerability = vulnerabilityRepository.saveAndFlush(persistVulnerability(vul));
                     Map<Pair<UUID, String>, ExternalVulRef> existExternalVulRefs = Optional.ofNullable(ref.getPkg().getExternalVulRefs())
                             .orElse(new ArrayList<>())
                             .stream()
                             .collect(Collectors.toMap(it ->
-                                            Pair.of(it.getVulnerability().getId(), PurlUtil.PackageUrlVoToPackageURL(it.getPurl()).canonicalize()),
+                                            Pair.of(it.getVulnerability().getId(), PurlUtil.canonicalizePurl(it.getPurl())),
                                     Function.identity()));
                     ExternalVulRef externalVulRef = existExternalVulRefs.getOrDefault(Pair.of(vulnerability.getId(), vul.getPurl()), new ExternalVulRef());
                     externalVulRef.setCategory(ReferenceCategory.SECURITY.name());
@@ -207,7 +207,7 @@ public class CveManagerServiceImpl extends AbstractVulService {
         Set<Pair<ExternalPurlRef, Object>> resultSet = new HashSet<>();
 
         List<String> requestPurls = externalPurlChunk.stream()
-                .map(ref -> PurlUtil.PackageUrlVoToPackageURL(ref.getPurl()).canonicalize())
+                .map(ref -> PurlUtil.canonicalizePurl(ref.getPurl()))
                 .collect(Collectors.toSet())
                 .stream().toList();
 
@@ -220,7 +220,7 @@ public class CveManagerServiceImpl extends AbstractVulService {
 
                 externalPurlChunk.forEach(purlRef -> response.getData()
                         .stream()
-                        .filter(vul -> StringUtils.equals(PurlUtil.PackageUrlVoToPackageURL(purlRef.getPurl()).canonicalize(), vul.getPurl()))
+                        .filter(vul -> StringUtils.equals(PurlUtil.canonicalizePurl(purlRef.getPurl()), vul.getPurl()))
                         .forEach(vul -> resultSet.add(Pair.of(purlRef, vul))));
             } catch (Exception e) {
                 logger.error("failed to extract vulnerabilities from cve-manager for sbom {}", sbomId);
@@ -247,7 +247,7 @@ public class CveManagerServiceImpl extends AbstractVulService {
                     .orElse(new ArrayList<>())
                     .stream()
                     .collect(Collectors.toMap(it ->
-                                    Pair.of(it.getVulnerability().getId(), PurlUtil.PackageUrlVoToPackageURL(it.getPurl()).canonicalize()),
+                                    Pair.of(it.getVulnerability().getId(), PurlUtil.canonicalizePurl(it.getPurl())),
                             Function.identity()));
             ExternalVulRef externalVulRef = existExternalVulRefs.getOrDefault(Pair.of(vulnerability.getId(), vul.getPurl()), new ExternalVulRef());
             externalVulRef.setCategory(ReferenceCategory.SECURITY.name());

@@ -123,7 +123,7 @@ public class OssIndexServiceImpl extends AbstractVulService {
                     .map(type -> PurlUtil.convertPackageType(ref.getPurl(), type))
                     .toList();
         }
-        return List.of(PurlUtil.PackageUrlVoToPackageURL(ref.getPurl()).canonicalize());
+        return List.of(PurlUtil.canonicalizePurl(ref.getPurl()));
     }
 
     private void persistExternalVulRef(ComponentReportElement[] report, Map<ExternalPurlRef, List<String>> refToConvertedPurl) {
@@ -142,25 +142,25 @@ public class OssIndexServiceImpl extends AbstractVulService {
                     }
 
                     Vulnerability vulnerability = vulnerabilityRepository.saveAndFlush(persistVulnerability(vul));
-                    if (externalVulRefExistence.contains(Pair.of(vulnerability.getId(), PurlUtil.PackageUrlVoToPackageURL(ref.getPurl()).canonicalize()))) {
+                    if (externalVulRefExistence.contains(Pair.of(vulnerability.getId(), PurlUtil.canonicalizePurl(ref.getPurl())))) {
                         return;
                     }
                     Map<Pair<UUID, String>, ExternalVulRef> existExternalVulRefs = Optional.ofNullable(ref.getPkg().getExternalVulRefs())
                             .orElse(new ArrayList<>())
                             .stream()
                             .collect(Collectors.toMap(it ->
-                                            Pair.of(it.getVulnerability().getId(), PurlUtil.PackageUrlVoToPackageURL(it.getPurl()).canonicalize()),
+                                            Pair.of(it.getVulnerability().getId(), PurlUtil.canonicalizePurl(it.getPurl())),
                                     Function.identity()));
                     ExternalVulRef externalVulRef = existExternalVulRefs.getOrDefault(Pair.of(
-                            vulnerability.getId(), PurlUtil.PackageUrlVoToPackageURL(ref.getPurl()).canonicalize()), new ExternalVulRef());
+                            vulnerability.getId(), PurlUtil.canonicalizePurl(ref.getPurl())), new ExternalVulRef());
                     externalVulRef.setCategory(ReferenceCategory.SECURITY.name());
                     externalVulRef.setType(ReferenceType.CVE.getType());
                     externalVulRef.setStatus(Optional.ofNullable(externalVulRef.getStatus()).orElse(VulStatus.AFFECTED.name()));
-                    externalVulRef.setPurl(PurlUtil.strToPackageUrlVo(PurlUtil.PackageUrlVoToPackageURL(ref.getPurl()).canonicalize()));
+                    externalVulRef.setPurl(PurlUtil.strToPackageUrlVo(PurlUtil.canonicalizePurl(ref.getPurl())));
                     externalVulRef.setVulnerability(vulnerability);
                     externalVulRef.setPkg(ref.getPkg());
                     externalVulRefRepository.saveAndFlush(externalVulRef);
-                    externalVulRefExistence.add(Pair.of(vulnerability.getId(), PurlUtil.PackageUrlVoToPackageURL(ref.getPurl()).canonicalize()));
+                    externalVulRefExistence.add(Pair.of(vulnerability.getId(), PurlUtil.canonicalizePurl(ref.getPurl())));
                 }));
     }
 
@@ -297,7 +297,7 @@ public class OssIndexServiceImpl extends AbstractVulService {
 
             Vulnerability vulnerability = vulnerabilityRepository.saveAndFlush(persistVulnerability(vul));
             if (externalVulRefExistence.contains(Triple.of(purlOwnerPackage.getId(), vulnerability.getId(),
-                    PurlUtil.PackageUrlVoToPackageURL(purlRef.getPurl()).canonicalize()))) {
+                    PurlUtil.canonicalizePurl(purlRef.getPurl())))) {
                 continue;
             }
 
@@ -306,19 +306,19 @@ public class OssIndexServiceImpl extends AbstractVulService {
                     .orElse(new ArrayList<>())
                     .stream()
                     .collect(Collectors.toMap(it ->
-                                    Pair.of(it.getVulnerability().getId(), PurlUtil.PackageUrlVoToPackageURL(it.getPurl()).canonicalize()),
+                                    Pair.of(it.getVulnerability().getId(), PurlUtil.canonicalizePurl(it.getPurl())),
                             Function.identity()));
             ExternalVulRef externalVulRef = existExternalVulRefs.getOrDefault(Pair.of(
-                    vulnerability.getId(), PurlUtil.PackageUrlVoToPackageURL(purlRef.getPurl()).canonicalize()), new ExternalVulRef());
+                    vulnerability.getId(), PurlUtil.canonicalizePurl(purlRef.getPurl())), new ExternalVulRef());
             externalVulRef.setCategory(ReferenceCategory.SECURITY.name());
             externalVulRef.setType(ReferenceType.CVE.getType());
             externalVulRef.setStatus(Optional.ofNullable(externalVulRef.getStatus()).orElse(VulStatus.AFFECTED.name()));
-            externalVulRef.setPurl(PurlUtil.strToPackageUrlVo(PurlUtil.PackageUrlVoToPackageURL(purlRef.getPurl()).canonicalize()));
+            externalVulRef.setPurl(PurlUtil.strToPackageUrlVo(PurlUtil.canonicalizePurl(purlRef.getPurl())));
             externalVulRef.setVulnerability(vulnerability);
             externalVulRef.setPkg(purlOwnerPackage);
             externalVulRefRepository.saveAndFlush(externalVulRef);
             externalVulRefExistence.add(Triple.of(purlOwnerPackage.getId(), vulnerability.getId(),
-                    PurlUtil.PackageUrlVoToPackageURL(purlRef.getPurl()).canonicalize()));
+                    PurlUtil.canonicalizePurl(purlRef.getPurl())));
         }
     }
 }

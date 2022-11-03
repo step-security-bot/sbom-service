@@ -185,7 +185,7 @@ public class PackagePurlVo implements Serializable {
         packagePurlVo.setLicenseDeclared(externalPurlRef.getPkg().getLicenseDeclared());
         packagePurlVo.setSourceInfo(externalPurlRef.getPkg().getSourceInfo());
         packagePurlVo.setSbomId(externalPurlRef.getPkg().getSbom().getId().toString());
-        packagePurlVo.setPurl(PurlUtil.PackageUrlVoToPackageURL(externalPurlRef.getPurl()).canonicalize());
+        packagePurlVo.setPurl(PurlUtil.canonicalizePurl(externalPurlRef.getPurl()));
 
         return packagePurlVo;
     }
