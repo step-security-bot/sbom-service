@@ -10,4 +10,5 @@
   5. [查询软件包license、copyright详情](api/查询软件包license、copyright详情.md)
   6. [反向追溯链查询](api/反向追溯链查询.md)
   7. [漏洞影响范围查询](api/漏洞影响范围查询.md)
+  8. [查询软件包漏洞详情](api/查询软件包漏洞详情.md)
 * 四、[依赖模块](module/module.md)

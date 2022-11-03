@@ -21,6 +21,7 @@ import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.RepoMeta;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.service.license.LicenseService;
+import org.opensourceway.sbom.manager.utils.PurlUtil;
 import org.opensourceway.sbom.manager.utils.cache.LicenseInfoMapCache;
 import org.opensourceway.sbom.openeuler.obs.SbomRepoConstants;
 import org.slf4j.Logger;
@@ -117,8 +118,8 @@ public class LicenseServiceImpl implements LicenseService {
     private String dealOpenEulerPurl(PackageUrlVo packageUrlVo, Product product) throws MalformedPackageURLException {
         if (!"rpm".equals(packageUrlVo.getType())) {
 
-            return (new PackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(), packageUrlVo.getName(),
-                    packageUrlVo.getVersion(), null, null)).canonicalize();
+            return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(),
+                    packageUrlVo.getName(), packageUrlVo.getVersion(), null, null)));
         } else {
             List<RepoMeta> repoMetaList = repoMetaRepository.queryRepoMetaByPackageName(SbomConstants.PRODUCT_OPENEULER_NAME,
                     String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY)), packageUrlVo.getName());
@@ -128,9 +129,9 @@ public class LicenseServiceImpl implements LicenseService {
                 List<String> repoInfo = Arrays.stream(Arrays.stream(downloadLocation.split("/tree/")).toList().get(0).split("/")).toList();
                 repoName = repoInfo.get(repoInfo.size() - 1);
             }
-            return (new PackageURL("gitee", SbomRepoConstants.OPENEULER_REPO_ORG, repoName,
-                    (String) product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY),
-                    null, null)).canonicalize();
+            return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL("gitee", SbomRepoConstants.OPENEULER_REPO_ORG,
+                    repoName, (String) product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY),
+                    null, null)));
 
         }
     }
@@ -142,11 +143,11 @@ public class LicenseServiceImpl implements LicenseService {
      ***/
     private String dealMindsporePurl(PackageUrlVo packageUrlVo) throws MalformedPackageURLException {
         if ("mindspore".equals(packageUrlVo.getNamespace())) {
-            return (new PackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(), packageUrlVo.getName(),
-                    "v" + packageUrlVo.getVersion(), null, null)).canonicalize();
+            return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(),
+                    packageUrlVo.getNamespace(), packageUrlVo.getName(), "v" + packageUrlVo.getVersion(), null, null)));
         } else if (packageUrlVo.getType() != null && packageUrlVo.getType().contains("git")) {
-            return (new PackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(), packageUrlVo.getName(),
-                    packageUrlVo.getVersion(), null, null)).canonicalize();
+            return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(),
+                    packageUrlVo.getName(), packageUrlVo.getVersion(), null, null)));
         } else {
             return null;
         }
