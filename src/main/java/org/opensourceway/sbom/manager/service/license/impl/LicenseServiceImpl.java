@@ -1,7 +1,6 @@
 package org.opensourceway.sbom.manager.service.license.impl;
 
 import com.github.packageurl.MalformedPackageURLException;
-import com.github.packageurl.PackageURL;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.opensourceway.sbom.cache.constant.CacheConstants;
@@ -130,7 +129,7 @@ public class LicenseServiceImpl implements LicenseService {
                 repoName = repoInfo.get(repoInfo.size() - 1);
             }
             return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL("gitee", SbomRepoConstants.OPENEULER_REPO_ORG,
-                    repoName, (String) product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY),
+                    repoName, String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY)),
                     null, null)));
 
         }
