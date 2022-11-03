@@ -8,25 +8,59 @@ import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.springframework.data.util.Pair;
 import org.springframework.util.CollectionUtils;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
 public class PurlUtil {
-    public static PackageURL strToPackageURL(String purlStr) {
+    public static PackageURL newPackageURL(String purlStr) {
         try {
-            return new PackageURL(purlStr);
+            return new PackageURL(encodePurl(purlStr));
         } catch (MalformedPackageURLException e) {
             throw new RuntimeException(e);
         }
     }
 
+    private static String encodePurl(String purl) {
+        return URLEncoder.encode(purl, StandardCharsets.UTF_8)
+                .replace("%3A", ":")
+                .replace("%2F", "/")
+                .replace("%40", "@")
+                .replace("%3F", "?")
+                .replace("%3D", "=")
+                .replace("%26", "&")
+                .replace("%23", "#");
+    }
+
+    public static PackageURL newPackageURL(final String type, final String namespace, final String name,
+                                           final String version, final TreeMap<String, String> qualifiers,
+                                           final String subpath) throws MalformedPackageURLException {
+        return new PackageURL(type, namespace, name, version, qualifiers, subpath);
+    }
+
+    public static PackageURL newPackageURL(final String type, final String name) throws MalformedPackageURLException {
+        return newPackageURL(type, null, name, null, null, null);
+    }
+
+    public static String canonicalizePurl(PackageURL purl) {
+        return purl.canonicalize()
+                .replace("%20", "+")
+                .replace("%2B", "+")
+                .replace("%2A", "*");
+    }
+
     public static String canonicalizePurl(String purl) {
-        return strToPackageURL(purl).canonicalize();
+        return canonicalizePurl(newPackageURL(purl));
+    }
+
+    public static String canonicalizePurl(PackageUrlVo vo) {
+        return canonicalizePurl(PackageUrlVoToPackageURL(vo));
     }
 
     public static PackageUrlVo strToPackageUrlVo(String purlStr) {
-        PackageURL packageURL = strToPackageURL(purlStr);
+        PackageURL packageURL = newPackageURL(purlStr);
         return new PackageUrlVo(packageURL.getScheme(), packageURL.getType(), packageURL.getNamespace(),
                 packageURL.getName(), packageURL.getVersion(), (TreeMap<String, String>) packageURL.getQualifiers(),
                 packageURL.getSubpath());
@@ -34,7 +68,7 @@ public class PurlUtil {
 
     public static PackageURL PackageUrlVoToPackageURL(PackageUrlVo vo) {
         try {
-            return new PackageURL(vo.getType(), vo.getNamespace(), vo.getName(), vo.getVersion(),
+            return PurlUtil.newPackageURL(vo.getType(), vo.getNamespace(), vo.getName(), vo.getVersion(),
                     vo.getQualifiers(), vo.getSubpath());
         } catch (MalformedPackageURLException e) {
             throw new RuntimeException(e);
@@ -44,8 +78,8 @@ public class PurlUtil {
     public static String convertPackageType(PackageUrlVo vo, String type) {
         PackageURL packageURL = PackageUrlVoToPackageURL(vo);
         try {
-            return new PackageURL(type, packageURL.getNamespace(), packageURL.getName(), packageURL.getVersion(),
-                    (TreeMap<String, String>) packageURL.getQualifiers(), packageURL.getSubpath()).canonicalize();
+            return canonicalizePurl(PurlUtil.newPackageURL(type, packageURL.getNamespace(), packageURL.getName(), packageURL.getVersion(),
+                    (TreeMap<String, String>) packageURL.getQualifiers(), packageURL.getSubpath()));
         } catch (MalformedPackageURLException e) {
             throw new RuntimeException(e);
         }

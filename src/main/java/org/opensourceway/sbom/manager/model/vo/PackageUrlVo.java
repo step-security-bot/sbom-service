@@ -101,7 +101,7 @@ public class PackageUrlVo implements Serializable {
 
     @Override
     public String toString() {
-        return PurlUtil.PackageUrlVoToPackageURL(this).canonicalize();
+        return PurlUtil.canonicalizePurl(this);
     }
 
     @Override
