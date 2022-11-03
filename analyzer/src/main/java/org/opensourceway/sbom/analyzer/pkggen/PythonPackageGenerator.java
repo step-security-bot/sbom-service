@@ -22,7 +22,7 @@ public class PythonPackageGenerator extends AbstractPackageGenerator {
 
     @Override
     public CuratedPackage generatePackage(String host, String path, String url) {
-        String pattern = "/.*/(.*)-(.*)";
+        String pattern = "/.*/(.*)-([\\d.]+).*";
         Matcher matcher = Pattern.compile(pattern).matcher(path);
         if (matcher.matches()) {
             String name = matcher.group(1);
