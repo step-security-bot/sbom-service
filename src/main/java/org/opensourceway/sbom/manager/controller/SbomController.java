@@ -429,10 +429,6 @@ public class SbomController {
         }
     }
 
-    /**
-     * @deprecated Use {@link #queryVulnerability} instead.
-     */
-    @Deprecated
     @GetMapping("/queryPackageVulnerability/{packageId}")
     public @ResponseBody ResponseEntity queryVulnerabilityByPackageId(@PathVariable("packageId") String packageId,
                                                                       @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
@@ -441,7 +437,7 @@ public class SbomController {
         PageVo<VulnerabilityVo> vulnerabilities;
         Pageable pageable = PageRequest.of(page, size);
         try {
-            vulnerabilities = sbomService.queryVulnerability(null, packageId, null, pageable);
+            vulnerabilities = sbomService.queryPackageVulnerability(packageId, pageable);
         } catch (RuntimeException e) {
             logger.error("query package vulnerability error: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
