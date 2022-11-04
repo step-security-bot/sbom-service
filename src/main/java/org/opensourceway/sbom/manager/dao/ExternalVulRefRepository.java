@@ -19,11 +19,7 @@ public interface ExternalVulRefRepository extends JpaRepository<ExternalVulRef, 
     @Query(value = """
             WITH all_vul AS (
             SELECT evf.*, v.vul_id v_vul_id, v.source FROM external_vul_ref evf join vulnerability v on evf.vul_id = v.id
-            WHERE (CAST(:packageId AS UUID) IS NULL AND evf.pkg_id IN (
-                SELECT id FROM package WHERE sbom_id = (
-                    SELECT id FROM sbom WHERE product_id = (
-                        SELECT id FROM product WHERE name = :productName))))
-            OR (CAST(:packageId AS UUID) IS NOT NULL AND evf.pkg_id = CAST(:packageId AS UUID))
+            WHERE evf.pkg_id = :packageId
             ), oss_index AS (
             SELECT * FROM all_vul WHERE source = 'OSS_INDEX'
             ), cve_manager_dup AS (
@@ -41,17 +37,13 @@ public interface ExternalVulRefRepository extends JpaRepository<ExternalVulRef, 
             (SELECT vs.scoring_system FROM vul_score vs WHERE vs.vul_id = v.vul_id AND vs.scoring_system = 'CVSS2')
             ) scoring_system FROM all_vul v WHERE id NOT IN (SELECT id FROM cve_manager_dup)
             )
-            SELECT * FROM uni_vul uv WHERE :severity IS NULL OR uv.severity = :severity
+            SELECT * FROM uni_vul uv
             ORDER BY uv.score DESC NULLS LAST, uv.v_vul_id DESC, uv.scoring_system DESC NULLS LAST
             """,
             countQuery = """
             WITH all_vul AS (
             SELECT evf.*, v.vul_id v_vul_id, v.source FROM external_vul_ref evf join vulnerability v on evf.vul_id = v.id
-            WHERE (CAST(:packageId AS UUID) IS NULL AND evf.pkg_id IN (
-                SELECT id FROM package WHERE sbom_id = (
-                    SELECT id FROM sbom WHERE product_id = (
-                        SELECT id FROM product WHERE name = :productName))))
-            OR (CAST(:packageId AS UUID) IS NOT NULL AND evf.pkg_id = CAST(:packageId AS UUID))
+            WHERE evf.pkg_id = :packageId
             ), oss_index AS (
             SELECT * FROM all_vul WHERE source = 'OSS_INDEX'
             ), cve_manager_dup AS (
@@ -69,13 +61,10 @@ public interface ExternalVulRefRepository extends JpaRepository<ExternalVulRef, 
             (SELECT vs.scoring_system FROM vul_score vs WHERE vs.vul_id = v.vul_id AND vs.scoring_system = 'CVSS2')
             ) scoring_system FROM all_vul v WHERE id NOT IN (SELECT id FROM cve_manager_dup)
             )
-            SELECT COUNT(1) FROM uni_vul uv WHERE :severity IS NULL OR uv.severity = :severity
+            SELECT COUNT(1) FROM uni_vul uv
             """,
             nativeQuery = true)
-    Page<ExternalVulRef> findByProductNameAndPackageIdAndSeverity(@Param("productName") String productName,
-                                                                  @Param("packageId") UUID packageId,
-                                                                  @Param("severity") String severity,
-                                                                  Pageable pageable);
+    Page<ExternalVulRef> findByPackageId(@Param("packageId") UUID packageId, Pageable pageable);
 
     @Query(value = """
             SELECT evr.* FROM external_vul_ref evr JOIN package p ON evr.pkg_id = p.id JOIN vulnerability v ON evr.vul_id = v.id

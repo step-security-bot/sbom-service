@@ -334,6 +334,26 @@ class SbomServiceTest {
     }
 
     @Test
+    public void queryPackageVulnerability() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+
+        PageVo<VulnerabilityVo> result = sbomService.queryPackageVulnerability(
+                pkg.getId().toString(), PageRequest.of(0, 15));
+        assertThat(result).isNotEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(3);
+        assertThat(result.getTotalPages()).isEqualTo(1);
+
+        assertVulWithMediumSeverity(result.getContent().get(1), "pkg:pypi/asttokens@2.0.5");
+        assertVulWithHighSeverity(result.getContent().get(0), "pkg:pypi/asttokens@2.0.5");
+        assertVulWithUnknownSeverity(result.getContent().get(2), "pkg:pypi/asttokens@2.0.5");
+    }
+
+    @Test
     public void queryVulnerabilityByPackageId() {
         Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
         assertThat(sbom).isNotNull();
@@ -543,13 +563,17 @@ class SbomServiceTest {
         assertThat(result.getTotalPages()).isEqualTo(0);
     }
 
-    private void assertVulWithMediumSeverity(VulnerabilityVo vo) {
+    private void assertVulWithMediumSeverity(VulnerabilityVo vo, String expectedPurl) {
         assertThat(vo.getVulId()).isEqualTo("CVE-2022-00000-test");
         assertThat(vo.getScoringSystem()).isEqualTo("CVSS3");
         assertThat(vo.getScore()).isEqualTo(5.3);
         assertThat(vo.getVector()).isEqualTo("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N");
         assertThat(vo.getSeverity()).isEqualTo(CvssSeverity.MEDIUM.name());
-        assertThat(vo.getPurl()).isEqualTo("pkg:pypi/asttokens@2.0.5");
+        if (expectedPurl != null) {
+            assertThat(vo.getPurl()).isEqualTo(expectedPurl);
+        } else {
+            assertThat(vo.getPurl()).isNull();
+        }
         assertThat(vo.getReferences().size()).isEqualTo(2);
         assertThat(vo.getReferences().get(0).getFirst()).isEqualTo("NVD");
         assertThat(vo.getReferences().get(0).getSecond()).isEqualTo("http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00000-test");
@@ -557,30 +581,50 @@ class SbomServiceTest {
         assertThat(vo.getReferences().get(1).getSecond()).isEqualTo("https://ossindex.sonatype.org/vulnerability/sonatype-2022-00000-test");
     }
 
-    private void assertVulWithHighSeverity(VulnerabilityVo vo) {
+    private void assertVulWithMediumSeverity(VulnerabilityVo vo) {
+        assertVulWithMediumSeverity(vo, null);
+    }
+
+    private void assertVulWithHighSeverity(VulnerabilityVo vo, String expectedPurl) {
         assertThat(vo.getVulId()).isEqualTo("CVE-2022-00001-test");
         assertThat(vo.getScoringSystem()).isEqualTo("CVSS2");
         assertThat(vo.getScore()).isEqualTo(9.8);
         assertThat(vo.getVector()).isEqualTo("(AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H)");
         assertThat(vo.getSeverity()).isEqualTo(CvssSeverity.HIGH.name());
-        assertThat(vo.getPurl()).isEqualTo("pkg:pypi/asttokens@2.0.5");
+        if (expectedPurl != null) {
+            assertThat(vo.getPurl()).isEqualTo(expectedPurl);
+        } else {
+            assertThat(vo.getPurl()).isNull();
+        }
         assertThat(vo.getReferences().size()).isEqualTo(1);
         assertThat(vo.getReferences().get(0).getFirst()).isEqualTo("NVD");
         assertThat(vo.getReferences().get(0).getSecond()).isEqualTo("http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00001-test");
     }
 
-    private void assertVulWithUnknownSeverity(VulnerabilityVo vo) {
+    private void assertVulWithHighSeverity(VulnerabilityVo vo) {
+        assertVulWithHighSeverity(vo, null);
+    }
+
+    private void assertVulWithUnknownSeverity(VulnerabilityVo vo, String expectedPurl) {
         assertThat(vo.getVulId()).isEqualTo("CVE-2022-00002-test");
         assertThat(vo.getScoringSystem()).isNull();
         assertThat(vo.getScore()).isNull();
         assertThat(vo.getVector()).isNull();
         assertThat(vo.getSeverity()).isEqualTo(CvssSeverity.UNKNOWN.name());
-        assertThat(vo.getPurl()).isEqualTo("pkg:pypi/asttokens@2.0.5");
+        if (expectedPurl != null) {
+            assertThat(vo.getPurl()).isEqualTo(expectedPurl);
+        } else {
+            assertThat(vo.getPurl()).isNull();
+        }
         assertThat(vo.getReferences().size()).isEqualTo(2);
         assertThat(vo.getReferences().get(0).getFirst()).isEqualTo("NVD");
         assertThat(vo.getReferences().get(0).getSecond()).isEqualTo("http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00002-test");
         assertThat(vo.getReferences().get(1).getFirst()).isEqualTo("GITHUB");
         assertThat(vo.getReferences().get(1).getSecond()).isEqualTo("https://github.com/xxx/xxx/security/advisories/xxx");
+    }
+
+    private void assertVulWithUnknownSeverity(VulnerabilityVo vo) {
+        assertVulWithUnknownSeverity(vo, null);
     }
 
     @Test

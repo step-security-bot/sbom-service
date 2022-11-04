@@ -16,6 +16,7 @@ import org.opensourceway.sbom.manager.dao.ProductStatisticsRepository;
 import org.opensourceway.sbom.manager.dao.ProductTypeRepository;
 import org.opensourceway.sbom.manager.dao.RawSbomRepository;
 import org.opensourceway.sbom.manager.dao.SbomRepository;
+import org.opensourceway.sbom.manager.dao.VulnerabilityRepository;
 import org.opensourceway.sbom.manager.dao.spec.ExternalPurlRefCondition;
 import org.opensourceway.sbom.manager.dao.spec.ExternalPurlRefSpecs;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
@@ -28,6 +29,7 @@ import org.opensourceway.sbom.manager.model.ProductType;
 import org.opensourceway.sbom.manager.model.RawSbom;
 import org.opensourceway.sbom.manager.model.Sbom;
 import org.opensourceway.sbom.manager.model.SbomElementRelationship;
+import org.opensourceway.sbom.manager.model.Vulnerability;
 import org.opensourceway.sbom.manager.model.echarts.Edge;
 import org.opensourceway.sbom.manager.model.echarts.Graph;
 import org.opensourceway.sbom.manager.model.echarts.Node;
@@ -119,6 +121,9 @@ public class SbomServiceImpl implements SbomService {
 
     @Autowired
     private ProductStatisticsRepository productStatisticsRepository;
+
+    @Autowired
+    private VulnerabilityRepository vulnerabilityRepository;
 
     @Value("${sbom.service.website.domain}")
     private String sbomWebsiteDomain;
@@ -491,10 +496,18 @@ public class SbomServiceImpl implements SbomService {
     }
 
     @Override
-    public PageVo<VulnerabilityVo> queryVulnerability(String productName, String packageId, String severity, Pageable pageable) {
-        Page<ExternalVulRef> result = externalVulRefRepository.findByProductNameAndPackageIdAndSeverity(
-                productName, Objects.isNull(packageId) ? null : UUID.fromString(packageId), severity, pageable);
+    public PageVo<VulnerabilityVo> queryPackageVulnerability(String packageId, Pageable pageable) {
+        Page<ExternalVulRef> result = externalVulRefRepository.findByPackageId(UUID.fromString(packageId), pageable);
         return new PageVo<>(new PageImpl<>(result.stream().map(VulnerabilityVo::fromExternalVulRef).toList(),
+                result.getPageable(),
+                result.getTotalElements()));
+    }
+
+    @Override
+    public PageVo<VulnerabilityVo> queryVulnerability(String productName, String packageId, String severity, Pageable pageable) {
+        Page<Vulnerability> result = vulnerabilityRepository.findByProductNameAndPackageIdAndSeverity(
+                productName, Objects.isNull(packageId) ? null : UUID.fromString(packageId), severity, pageable);
+        return new PageVo<>(new PageImpl<>(result.stream().map(VulnerabilityVo::fromVulnerability).toList(),
                 result.getPageable(),
                 result.getTotalElements()));
     }
