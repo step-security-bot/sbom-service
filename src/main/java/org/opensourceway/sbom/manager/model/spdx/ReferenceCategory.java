@@ -17,13 +17,16 @@ public enum ReferenceCategory {
 
     PERSISTENT_ID,
 
+    SOURCE_MANAGER,
+
     OTHER;
 
     public static final List<ReferenceCategory> BINARY_TYPE = List.of(
             ReferenceCategory.PACKAGE_MANAGER,
             ReferenceCategory.PROVIDE_MANAGER,
             ReferenceCategory.EXTERNAL_MANAGER,
-            ReferenceCategory.RELATIONSHIP_MANAGER
+            ReferenceCategory.RELATIONSHIP_MANAGER,
+            ReferenceCategory.SOURCE_MANAGER
     );
 
     public static ReferenceCategory findReferenceCategory(String categoryStr) {

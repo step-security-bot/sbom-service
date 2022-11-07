@@ -62,4 +62,11 @@ public class SbomConstants {
     public static final Integer DEFAULT_PAGE_SIZE = 50;
 
     public static final Integer MAX_PAGE_SIZE = 10000;
+
+    /**
+     * {gitUrl}/{orgName}/{repoName}/blob/{branch}/{patchName},e.g.
+     * <p>
+     *  <a href="https://gitee.com/src-openeuler/some-modules/blob/openEuler-22.03-LTS/openeuler-xxxxxx.patch">https://gitee.com/src-openeuler/some-modules/blob/openEuler-22.03-LTS/openeuler-xxxxxx.patch</a>
+     */
+    public static final String OPENEULER_PATCH_INFO_URL_PATTERN = "%s/%s/%s/blob/%s/%s";
 }

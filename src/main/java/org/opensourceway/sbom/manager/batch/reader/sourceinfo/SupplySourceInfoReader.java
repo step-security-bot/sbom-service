@@ -32,7 +32,7 @@ import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
-public class SupplySourceInfoReader implements ItemReader<List<Package>>, StepExecutionListener, ChunkListener {
+public class SupplySourceInfoReader implements ItemReader<List<UUID>>, StepExecutionListener, ChunkListener {
 
     private static final Logger logger = LoggerFactory.getLogger(SupplySourceInfoReader.class);
 
@@ -42,7 +42,7 @@ public class SupplySourceInfoReader implements ItemReader<List<Package>>, StepEx
     @Autowired
     private ProductRepository productRepository;
 
-    private List<List<Package>> chunks = null;
+    private List<List<UUID>> chunks = null;
 
     private StepExecution stepExecution;
 
@@ -67,7 +67,11 @@ public class SupplySourceInfoReader implements ItemReader<List<Package>>, StepEx
         this.stepExecution.getExecutionContext().putString(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY,
                 String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY)));
 
-        List<Package> pkgList = packageRepository.findBySbomId(sbomId);
+        List<UUID> pkgList = packageRepository.findBySbomId(sbomId)
+                .stream()
+                .map(Package::getId)
+                .toList();
+
         if (CollectionUtils.isEmpty(pkgList)) {
             logger.error("sbomId:{} `s package list is empty", sbomId);
             return;
@@ -91,7 +95,7 @@ public class SupplySourceInfoReader implements ItemReader<List<Package>>, StepEx
 
     @Nullable
     @Override
-    public List<Package> read() {
+    public List<UUID> read() {
         UUID sbomId = this.jobContext.containsKey(BatchContextConstants.BATCH_SBOM_ID_KEY) ?
                 (UUID) this.jobContext.get(BatchContextConstants.BATCH_SBOM_ID_KEY) : null;
         logger.info("start SupplySourceInfoReader sbomId:{}", sbomId);
@@ -123,12 +127,12 @@ public class SupplySourceInfoReader implements ItemReader<List<Package>>, StepEx
         if (StringUtils.equals(ExitStatus.FAILED.getExitCode(), stepExecution.getExitStatus().getExitCode())
                 && this.chunkContext.hasAttribute(BatchContextConstants.BUILD_IN_BATCH_CHUNK_FAILED_KEY)
                 && this.chunkContext.hasAttribute(BatchContextConstants.BUILD_IN_BATCH_CHUNK_FAILED_INPUT_KEY)) {
-            Chunk<List<Package>> retryInputs = (Chunk<List<Package>>) this.chunkContext.getAttribute(BatchContextConstants.BUILD_IN_BATCH_CHUNK_FAILED_INPUT_KEY);
+            Chunk<List<UUID>> retryInputs = (Chunk<List<UUID>>) this.chunkContext.getAttribute(BatchContextConstants.BUILD_IN_BATCH_CHUNK_FAILED_INPUT_KEY);
             assert retryInputs != null;
             remainingSize += CollectionUtils.size(retryInputs.getItems());
             logger.info("restore failed chunks, failed chunks size:{}, first element pkg id:{}",
                     retryInputs.getItems().size(),
-                    retryInputs.getItems().stream().findFirst().map(list -> list.get(0)).map(Package::getId).map(UUID::toString).orElse(""));
+                    retryInputs.getItems().stream().findFirst().map(list -> list.get(0)).map(UUID::toString).orElse(""));
         }
 
         stepExecution.getExecutionContext().putInt(BatchContextConstants.BATCH_READER_STEP_REMAINING_SIZE_KEY, remainingSize);
