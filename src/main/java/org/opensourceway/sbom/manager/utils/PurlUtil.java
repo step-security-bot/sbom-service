@@ -160,6 +160,7 @@ public class PurlUtil {
             case "github":
             case "gitlab":
             case "gitee":
+            case PackageURL.StandardTypes.GENERIC:
                 return PurlUtil.generateNoNamespacePurlQueryConditionMap(type, purl.getName(), purl.getVersion(), startVersion, endVersion);
             // TODO 后续追加其他包管理的支持
         }

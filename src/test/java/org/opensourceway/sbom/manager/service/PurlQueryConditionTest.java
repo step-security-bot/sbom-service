@@ -214,4 +214,18 @@ public class PurlQueryConditionTest {
         assertThat(result.get("version").getSecond()).isTrue();
     }
 
+    @Test
+    public void genericOnlyNameTest() {
+        Map<String, Pair<String, Boolean>> result = PurlUtil.generatePurlQueryConditionMap(
+                new PackageUrlVo("generic", "", "libedit", ""), null , null);
+
+        assertThat(result.get("type").getFirst()).isEqualTo("generic");
+        assertThat(result.get("type").getSecond()).isTrue();
+
+        assertThat(result.get("name").getFirst()).isEqualTo("libedit");
+        assertThat(result.get("name").getSecond()).isFalse();
+
+        assertThat(result.containsKey("version")).isFalse();
+    }
+
 }
