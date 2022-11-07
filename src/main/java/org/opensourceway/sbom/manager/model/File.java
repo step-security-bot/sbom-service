@@ -13,6 +13,8 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -150,5 +152,21 @@ public class File {
 
     public void setSbom(Sbom sbom) {
         this.sbom = sbom;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        File file = (File) o;
+        return Objects.equals(id, file.id)
+                && Objects.equals(spdxId, file.spdxId)
+                && Objects.equals(fileName, file.fileName)
+                && Objects.equals(Optional.ofNullable(sbom).orElse(new Sbom()).getId(), Optional.ofNullable(file.sbom).orElse(new Sbom()).getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, spdxId, fileName, Optional.ofNullable(sbom).orElse(new Sbom()).getId());
     }
 }
