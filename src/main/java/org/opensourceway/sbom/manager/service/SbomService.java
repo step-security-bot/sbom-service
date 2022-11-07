@@ -72,6 +72,8 @@ public interface SbomService {
 
     List<CopyrightVo> queryCopyrightByPackageId(String packageId);
 
+    PageVo<VulnerabilityVo> queryPackageVulnerability(String packageId, Pageable pageable);
+
     PageVo<VulnerabilityVo> queryVulnerability(String productName, String packageId, String severity, Pageable pageable);
 
     Graph queryVulImpact(String productName, String vulId);

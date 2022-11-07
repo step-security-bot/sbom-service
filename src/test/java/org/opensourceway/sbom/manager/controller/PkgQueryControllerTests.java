@@ -639,7 +639,7 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.*", hasSize(4)))
                 .andExpect(jsonPath("$.[0].name").value("version"))
                 .andExpect(jsonPath("$.[0].label").value("版本号"))
-                .andExpect(jsonPath("$.[0].valueType").value("enum([{\"label\":\"openEuler-22.03-LTS\",\"value\":\"openEuler-22.03-LTS\"}])"))
+                .andExpect(jsonPath("$.[0].valueType").value(new JsonContainsMatcher("\"label\":\"openEuler-22.03-LTS\",\"value\":\"openEuler-22.03-LTS\"")))
                 .andExpect(jsonPath("$.[0].ord").value(1))
                 .andExpect(jsonPath("$.[3].name").value("arch"))
                 .andExpect(jsonPath("$.[3].label").value("系统架构"))
@@ -833,7 +833,7 @@ public class PkgQueryControllerTests {
                 .andExpect(header().string("Content-Type", "application/json"))
                 .andExpect(jsonPath("$.criticalVulCount").value(0))
                 .andExpect(jsonPath("$.highVulCount").value(1))
-                .andExpect(jsonPath("$.mediumVulCount").value(2))
+                .andExpect(jsonPath("$.mediumVulCount").value(1))
                 .andExpect(jsonPath("$.lowVulCount").value(0))
                 .andExpect(jsonPath("$.noneVulCount").value(0))
                 .andExpect(jsonPath("$.unknownVulCount").value(1));
@@ -991,5 +991,31 @@ public class PkgQueryControllerTests {
                 .andExpect(header().string("Content-Type", "application/json"))
                 .andExpect(jsonPath("$.nodes.length()").value(0))
                 .andExpect(jsonPath("$.edges.length()").value(0));
+    }
+
+    @Test
+    public void queryPackageVulnerability() throws Exception {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+
+        this.mockMvc
+                .perform(get("/sbom-api/queryPackageVulnerability/%s".formatted(pkg.getId().toString()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.numberOfElements").value(3))
+                .andExpect(jsonPath("$.empty").value(false))
+                .andExpect(jsonPath("$.size").value(15))
+                .andExpect(jsonPath("$.first").value(true));
     }
 }

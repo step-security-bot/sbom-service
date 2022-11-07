@@ -124,7 +124,7 @@ public class SpdxWriter implements SbomWriter {
         }
 
         return new SpdxExternalReference(ref.getComment(), ReferenceCategory.valueOf(ref.getCategory()),
-                ReferenceType.findReferenceType(ref.getType()), PurlUtil.PackageUrlVoToPackageURL(ref.getPurl()).canonicalize());
+                ReferenceType.findReferenceType(ref.getType()), PurlUtil.canonicalizePurl(ref.getPurl()));
     }
 
     private SpdxExternalReference transformExternalVulRef(ExternalVulRef ref) {
