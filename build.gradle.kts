@@ -45,6 +45,7 @@ dependencies {
     implementation(project(":clients:sonatype"))
     implementation(project(":clients:oss-index"))
     implementation(project(":clients:openeuler-repo"))
+    implementation(project(":clients:vcs"))
 
     implementation("oss-review-toolkit:model")
     implementation("oss-review-toolkit:utils:spdx-utils")

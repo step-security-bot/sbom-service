@@ -1,15 +1,26 @@
 package org.opensourceway.sbom.pojo;
 
-public class UpstreamInfoVo {
-    private String gitUrl;
+public class OpenEulerAdvisorVo {
 
     private String versionControl;
+
+    private String gitUrl;
+
+    private String url;
 
     private String srcRepo;
 
     private String tagPrefix;
 
     private String seperator;
+
+    public String getVersionControl() {
+        return versionControl;
+    }
+
+    public void setVersionControl(String versionControl) {
+        this.versionControl = versionControl;
+    }
 
     public String getGitUrl() {
         return gitUrl;
@@ -19,12 +30,12 @@ public class UpstreamInfoVo {
         this.gitUrl = gitUrl;
     }
 
-    public String getVersionControl() {
-        return versionControl;
+    public String getUrl() {
+        return url;
     }
 
-    public void setVersionControl(String versionControl) {
-        this.versionControl = versionControl;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getSrcRepo() {

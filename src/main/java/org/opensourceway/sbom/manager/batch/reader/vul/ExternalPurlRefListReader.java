@@ -121,6 +121,10 @@ public class ExternalPurlRefListReader implements ItemReader<List<ExternalPurlRe
 
     @Override
     public ExitStatus afterStep(@NotNull StepExecution stepExecution) {
+        if (this.chunks == null) {
+            return null;
+        }
+
         int remainingSize = this.chunks.size();
 
         if (StringUtils.equals(ExitStatus.FAILED.getExitCode(), stepExecution.getExitStatus().getExitCode())

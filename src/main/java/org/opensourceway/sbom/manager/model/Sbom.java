@@ -95,6 +95,9 @@ public class Sbom {
     @OneToMany(mappedBy = "sbom", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SbomElementRelationship> sbomElementRelationships;
 
+    @OneToMany(mappedBy = "sbom", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<File> files;
+
     public UUID getId() {
         return id;
     }

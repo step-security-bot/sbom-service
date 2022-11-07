@@ -4,6 +4,7 @@ import org.opensourceway.sbom.manager.dao.ProductRepository;
 import org.opensourceway.sbom.manager.dao.RawSbomRepository;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.RawSbom;
+import org.opensourceway.sbom.manager.model.spdx.RelationshipType;
 import org.opensourceway.sbom.manager.model.spdx.SpdxDocument;
 import org.opensourceway.sbom.manager.model.spdx.SpdxPackage;
 import org.opensourceway.sbom.manager.model.spdx.SpdxRelationship;
@@ -48,7 +49,7 @@ public class TestCommon {
 
         SpdxRelationship relationship = spdxDocument.getRelationships().get(0);
         assertThat(relationship.spdxElementId()).isEqualTo("SPDXRef-Package-PyPI-asttokens-2.0.5");
-        assertThat(relationship.relationshipType().name()).isEqualTo("DEPENDS_ON");
+        assertThat(relationship.relationshipType().name()).isEqualTo(RelationshipType.DEPENDS_ON.name());
         assertThat(relationship.relatedSpdxElement()).isEqualTo("SPDXRef-Package-PyPI-six-1.16.0");
     }
 

@@ -22,15 +22,18 @@ public interface ExternalPurlRefRepository extends JpaRepository<ExternalPurlRef
             nativeQuery = true)
     List<ExternalPurlRef> findBySbomId(UUID sbomId);
 
+    // TODO: 后续去除RUNTIME_DEPENDENCY_OF
     @Query(value = "SELECT * FROM external_purl_ref WHERE category = 'PACKAGE_MANAGER' \n" +
             "	AND pkg_id IN (\n" +
             "		SELECT pkg.ID FROM sbom_element_relationship ser, package pkg WHERE\n" +
             "			ser.sbom_id = :sbomId AND ser.sbom_id = pkg.sbom_id \n" +
-            "			AND ser.element_id = :elementId AND ser.related_element_id = pkg.spdx_id)",
+            "			AND ser.element_id = :elementId AND ser.related_element_id = pkg.spdx_id" +
+            "           AND ser.relationship_type IN ('DEPENDS_ON', 'RUNTIME_DEPENDENCY_OF'))",
             nativeQuery = true)
     List<ExternalPurlRef> queryRelationPackageRef(@Param("sbomId") UUID sbomId, @Param("elementId") String elementId);
 
     // TODO: 通过自定义函数简化SQL
+    // TODO: 后续去除RUNTIME_DEPENDENCY_OF
     @Query(value = "SELECT * FROM external_purl_ref \n" +
             "	WHERE\n" +
             "		category = 'PACKAGE_MANAGER' \n" +
@@ -63,7 +66,7 @@ public interface ExternalPurlRefRepository extends JpaRepository<ExternalPurlRef
             "                                   OR jsonb_extract_path_text(epr.purl, 'version') = CAST(:#{#condition.version} AS VARCHAR)) \n" +
             "								AND (:#{#condition.isVersionExactly} IS NULL OR COALESCE(:#{#condition.isVersionExactly}) = 'TRUE' " +
             "                                   OR jsonb_extract_path_text(epr.purl, 'version') LIKE CONCAT('%', :#{#condition.version}, '%')) \n" +
-            "					) \n" +
+            "					) AND ser.relationship_type IN ('DEPENDS_ON', 'RUNTIME_DEPENDENCY_OF') \n" +
             "		) ORDER BY purl",
             countProjection = "1",
             nativeQuery = true)
