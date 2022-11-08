@@ -74,6 +74,7 @@ import org.springframework.util.ObjectUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -351,10 +352,11 @@ public class SbomServiceImpl implements SbomService {
                 && StringUtils.isEmpty(condition.getVersion())
                 && (StringUtils.isNotEmpty(condition.getStartVersion()) || StringUtils.isNotEmpty(condition.getEndVersion()))) {
             List<ExternalPurlRef> result = queryPackageInfoByBinaryFromDB(condition, null).getContent();
-            List<ExternalPurlRef> pageableResult = filterAndPageForVersionRange(condition, result);
+            List<ExternalPurlRef> filteredResult = filterVersionRange(condition, result);
+            List<ExternalPurlRef> pagedResult = pageList(filteredResult, pageable);
 
-            return new PageVo<>(new PageImpl(pageableResult.stream().map(PackagePurlVo::fromExternalPurlRef).toList(),
-                    PageRequest.of(0, SbomConstants.DEFAULT_PAGE_SIZE), pageableResult.size()));
+            return new PageVo<>(new PageImpl(pagedResult.stream().map(PackagePurlVo::fromExternalPurlRef).toList(),
+                    PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), filteredResult.size()));
         }
 
         Page<ExternalPurlRef> result = queryPackageInfoByBinaryFromDB(condition, pageable);
@@ -374,7 +376,7 @@ public class SbomServiceImpl implements SbomService {
         }
     }
 
-    private List<ExternalPurlRef> filterAndPageForVersionRange(ExternalPurlRefCondition condition, List<ExternalPurlRef> result) {
+    private List<ExternalPurlRef> filterVersionRange(ExternalPurlRefCondition condition, List<ExternalPurlRef> result) {
         List<ExternalPurlRef> returnResult;
         // 上下限均非空，startVersion <= version <= endVersion
         if (StringUtils.isNotEmpty(condition.getStartVersion()) && StringUtils.isNotEmpty(condition.getEndVersion())) {
@@ -392,12 +394,19 @@ public class SbomServiceImpl implements SbomService {
                     .filter(ref -> VersionUtil.greaterThanOrEqualTo(ref.getPurl().getVersion(), condition.getStartVersion()))
                     .toList();
         }
-        // 最多保留n个结果
-        if (returnResult.size() > SbomConstants.DEFAULT_PAGE_SIZE) {
-            logger.warn("received {} components, truncate to {}", returnResult.size(), SbomConstants.DEFAULT_PAGE_SIZE);
-            returnResult = returnResult.subList(0, SbomConstants.DEFAULT_PAGE_SIZE);
-        }
         return returnResult;
+    }
+
+    private <T> List<T> pageList(List<T> list, Pageable pageable) {
+        if (pageable.getOffset() >= list.size()) {
+            return new ArrayList<>();
+        }
+
+        if (pageable.getOffset() + pageable.getPageSize() > list.size()) {
+            return list.subList((int) pageable.getOffset(), list.size());
+        }
+
+        return list.subList((int) pageable.getOffset(), (int) pageable.getOffset() + pageable.getPageSize());
     }
 
     @Override

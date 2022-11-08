@@ -466,7 +466,7 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.last").value(true))
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.totalPages").value(1))
-                .andExpect(jsonPath("$.size").value(50))
+                .andExpect(jsonPath("$.size").value(15))
                 .andExpect(jsonPath("$.content.[0].name").value("hive"));
     }
 
@@ -489,7 +489,7 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.last").value(true))
                 .andExpect(jsonPath("$.totalElements").value(5))
                 .andExpect(jsonPath("$.totalPages").value(1))
-                .andExpect(jsonPath("$.size").value(50));
+                .andExpect(jsonPath("$.size").value(15));
     }
 
     @Test
@@ -511,7 +511,7 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.last").value(true))
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.totalPages").value(1))
-                .andExpect(jsonPath("$.size").value(50))
+                .andExpect(jsonPath("$.size").value(15))
                 .andExpect(jsonPath("$.content.[0].name").value("hive"));
     }
 
