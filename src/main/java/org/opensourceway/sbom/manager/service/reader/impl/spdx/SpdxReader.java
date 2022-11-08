@@ -81,6 +81,7 @@ public class SpdxReader implements SbomReader {
     public Sbom persistSbom(String productName, SbomDocument sbomDocument) {
         SpdxDocument spdxDocument = (SpdxDocument) sbomDocument;
 
+        // FIXME: 此处的sbom不用再查了，PersistSbomMetadataStep中已经做了删除
         Sbom sbom = sbomRepository.findByProductName(productName)
                 .orElse(new Sbom(productRepository.findByName(productName)
                         .orElseThrow(() -> new RuntimeException("can't find %s's product metadata".formatted(productName)))));
@@ -132,8 +133,15 @@ public class SpdxReader implements SbomReader {
 
         List<SbomElementRelationship> sbomElementRelationships = new ArrayList<>();
         document.getRelationships().forEach(it -> {
-            SbomElementRelationship sbomElementRelationship = existSbomElementRelationships.getOrDefault(
-                    Triple.of(it.spdxElementId(), it.relatedSpdxElement(), it.relationshipType().name()), new SbomElementRelationship());
+            Triple<String, String, String> key = Triple.of(it.spdxElementId(), it.relatedSpdxElement(), it.relationshipType().name());
+            SbomElementRelationship sbomElementRelationship;
+            if (existSbomElementRelationships.containsKey(key)) {
+                sbomElementRelationship = existSbomElementRelationships.get(key);
+            } else {
+                sbomElementRelationship = new SbomElementRelationship();
+                existSbomElementRelationships.put(key, sbomElementRelationship);
+            }
+
             sbomElementRelationship.setElementId(it.spdxElementId());
             sbomElementRelationship.setRelatedElementId(it.relatedSpdxElement());
             sbomElementRelationship.setRelationshipType(it.relationshipType().name());
