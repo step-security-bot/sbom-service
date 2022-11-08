@@ -59,8 +59,6 @@ public class SbomConstants {
 
     public static final String CHECKSUM_SKIP_GROUP = "org.zenframework.z8.dependencies.commons";
 
-    public static final Integer DEFAULT_PAGE_SIZE = 50;
-
     public static final Integer MAX_PAGE_SIZE = 10000;
 
     /**
