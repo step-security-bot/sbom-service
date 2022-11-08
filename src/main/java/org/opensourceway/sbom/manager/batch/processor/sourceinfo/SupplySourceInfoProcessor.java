@@ -148,7 +148,7 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
                 upstreamPurl.setPurl(vo);
                 upstreamPurlMap.put(upstreamLocation, upstreamPurl);
             } catch (ScannerException e) {
-                logger.error("supplyUpstream yaml parse failed, skip it, upstream:{}", upstreamDownloadUrl, e);
+                logger.error("supplyUpstream yaml parse failed, skip it, upstream:{}, error info:{}", upstreamDownloadUrl, e.getMessage());
             } catch (Exception e) {
                 logger.error("supplyUpstream failed, upstream:{}", upstreamDownloadUrl, e);
                 throw new RuntimeException(e);

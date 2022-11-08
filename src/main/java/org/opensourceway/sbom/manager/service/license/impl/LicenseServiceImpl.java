@@ -223,7 +223,7 @@ public class LicenseServiceImpl implements LicenseService {
                     }
                     if (illegalLicenseList.contains(lic)) {
                         license.setIsLegal(false);
-                        logger.error("license {} for {} is not legal", lic, purlRef.getPkg().getName());
+                        logger.warn("license {} for {} is not legal", lic, purlRef.getPkg().getName());
                     } else {
                         license.setIsLegal(true);
                     }
