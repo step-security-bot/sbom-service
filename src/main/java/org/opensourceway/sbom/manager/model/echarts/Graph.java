@@ -9,6 +9,24 @@ import java.util.Map;
 import java.util.Set;
 
 public class Graph implements Serializable {
+    private static final double VUL_NODE_SIZE = 80.0;
+
+    private static final double DEP_NODE_SIZE = 60.0;
+
+    private static final double PKG_NODE_SIZE = 40.0;
+
+    private static final double TRANSITIVE_PKG_NODE_SIZE = 20.0;
+
+    private static final double VUL_Y_AXIS = -1000.0;
+
+    private static final double DEP_Y_AXIS = -500.0;
+
+    private static final double PKG_Y_AXIS = 0.0;
+
+    private static final double Y_AXIS_INTERVAL = 500.0;
+
+    private static final int X_AXIS_SIZE_MULTIPLIER = 15;
+
     private Set<Node> nodes = new HashSet<>();
 
     private Set<Edge> edges = new HashSet<>();
@@ -65,22 +83,22 @@ public class Graph implements Serializable {
 
     private Double calculateX(Double y, Double size) {
         var nodeCount = nodeTypeCount.getOrDefault(y, 0);
-        return Math.floor(nodeCount * Math.pow(-1.0, nodeCount) / 2.0) * (size + 10) * 10;
+        return Math.floor(nodeCount * Math.pow(-1.0, nodeCount) / 2.0) * size * X_AXIS_SIZE_MULTIPLIER;
     }
 
     public Node createVulNode(String label) {
-        return createNode(NodeType.VUL.getType(), label, -1000.0, 20.0);
+        return createNode(NodeType.VUL.getType(), label, VUL_Y_AXIS, VUL_NODE_SIZE);
     }
 
     public Node createDepNode(String label) {
-        return createNode(NodeType.DEP.getType(), label, -500.0, 20.0);
+        return createNode(NodeType.DEP.getType(), label, DEP_Y_AXIS, DEP_NODE_SIZE);
     }
 
     public Node createPackageNode(String label) {
-        return createNode(NodeType.PKG.getType(), label, 0.0, 20.0);
+        return createNode(NodeType.PKG.getType(), label, PKG_Y_AXIS, PKG_NODE_SIZE);
     }
 
     public Node createTransitiveDepNode(String label, Double y) {
-        return createNode(NodeType.TRANSITIVE_DEP.getType(), label, y + 500.0, 20.0);
+        return createNode(NodeType.TRANSITIVE_DEP.getType(), label, y + Y_AXIS_INTERVAL, TRANSITIVE_PKG_NODE_SIZE);
     }
 }

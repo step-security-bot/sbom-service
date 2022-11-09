@@ -22,6 +22,8 @@ public enum ReferenceType {
 
     SOFTWARE_HERITAGE("swh"),
 
+    URL("url"),
+
     CHECKSUM("checksum");
 
     private final String type;
