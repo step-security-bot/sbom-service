@@ -6,6 +6,7 @@ import org.opensourceway.sbom.clients.sonatype.vo.GAVInfo;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.dao.ExternalPurlRefRepository;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
+import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
 import org.opensourceway.sbom.manager.service.checksum.ChecksumService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +71,7 @@ public class ChecksumServiceImpl implements ChecksumService {
                     externalPurl.getPurl().setNamespace(group);
                     externalPurl.getPurl().setName(artifact);
                     externalPurl.getPurl().setVersion(version);
-                    externalPurl.setType("purl");
+                    externalPurl.setType(ReferenceType.PURL.getType());
                     externalPurlRefsTOChange.add(externalPurl);
                     gavId.add(checksumDocs.getId());
                     logger.debug("get GAV from checksum for {}", externalPurl.getPurl().getName());

@@ -17,6 +17,7 @@ import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.RepoMeta;
 import org.opensourceway.sbom.manager.model.SbomElementRelationship;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
+import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
 import org.opensourceway.sbom.manager.model.spdx.RelationshipType;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.openeuler.obs.SbomRepoConstants;
@@ -139,7 +140,7 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
 
                 ExternalPurlRef upstreamPurl = new ExternalPurlRef();
                 upstreamPurl.setCategory(ReferenceCategory.SOURCE_MANAGER.name());
-                upstreamPurl.setType("url");
+                upstreamPurl.setType(ReferenceType.URL.getType());
                 upstreamPurl.setPkg(pkg);
 
                 PackageUrlVo vo = new PackageUrlVo();
