@@ -9,21 +9,21 @@ import java.util.Map;
 import java.util.Set;
 
 public class Graph implements Serializable {
-    private static final double VUL_NODE_SIZE = 80.0;
+    private static final double VUL_NODE_SIZE = 50.0;
 
-    private static final double DEP_NODE_SIZE = 60.0;
+    private static final double DEP_NODE_SIZE = 40.0;
 
-    private static final double PKG_NODE_SIZE = 40.0;
+    private static final double PKG_NODE_SIZE = 30.0;
 
     private static final double TRANSITIVE_PKG_NODE_SIZE = 20.0;
 
-    private static final double VUL_Y_AXIS = -1000.0;
+    private static final double VUL_Y_AXIS = -2000.0;
 
-    private static final double DEP_Y_AXIS = -500.0;
+    private static final double DEP_Y_AXIS = -1000.0;
 
     private static final double PKG_Y_AXIS = 0.0;
 
-    private static final double Y_AXIS_INTERVAL = 500.0;
+    private static final double Y_AXIS_INTERVAL = 1000.0;
 
     private static final int X_AXIS_SIZE_MULTIPLIER = 15;
 

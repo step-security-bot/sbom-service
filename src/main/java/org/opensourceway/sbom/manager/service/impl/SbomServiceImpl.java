@@ -591,7 +591,7 @@ public class SbomServiceImpl implements SbomService {
                     }
                     graph.addNode(node);
                     graph.addEdge(new Edge(startNode.getId(), node.getId()));
-                    startNode.setSize(startNode.getSize() + 2);
+                    startNode.setSize(startNode.getSize() + 1);
                     extractTransitiveDepRecursively(graph, ref, node);
                 });
     }
