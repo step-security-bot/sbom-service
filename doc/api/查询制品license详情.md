@@ -20,9 +20,16 @@ GET /sbom-api/queryLicenseUniversalApi
 
 `isLegal`: license是否合规 boolean        *非必需*
 
+`orderBy`: 排序规则 默认licenseId String        *非必需（待开发）*
+
 `page`: 分页页数 默认0 int        *非必需*
 
 `size`: 单页数量 默认15 int      *非必需*
+
+| orderBy 可选值 | 说明                  |
+|-------------|---------------------|
+| licenseId   | 默认值，按照licenseId升序排列 |
+| count       | 按照license个数降序排列     |
 
 ### HTTP状态码
 
