@@ -1,31 +1,43 @@
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.opensourceway.sbom.enums.SbomFileType;
 import org.opensourceway.sbom.manager.SbomApplicationContextHolder;
 import org.opensourceway.sbom.manager.SbomManagerApplication;
 import org.opensourceway.sbom.manager.TestConstants;
+import org.opensourceway.sbom.manager.dao.ExternalPurlRefRepository;
 import org.opensourceway.sbom.manager.dao.ExternalVulRefRepository;
+import org.opensourceway.sbom.manager.dao.FileRepository;
 import org.opensourceway.sbom.manager.dao.LicenseRepository;
 import org.opensourceway.sbom.manager.dao.PackageRepository;
 import org.opensourceway.sbom.manager.dao.ProductRepository;
 import org.opensourceway.sbom.manager.dao.ProductStatisticsRepository;
+import org.opensourceway.sbom.manager.dao.SbomElementRelationshipRepository;
 import org.opensourceway.sbom.manager.dao.SbomRepository;
 import org.opensourceway.sbom.manager.dao.VulReferenceRepository;
 import org.opensourceway.sbom.manager.dao.VulScoreRepository;
 import org.opensourceway.sbom.manager.dao.VulnerabilityRepository;
+import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.ExternalVulRef;
+import org.opensourceway.sbom.manager.model.File;
 import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.Sbom;
+import org.opensourceway.sbom.manager.model.SbomElementRelationship;
 import org.opensourceway.sbom.manager.model.VulRefSource;
 import org.opensourceway.sbom.manager.model.VulReference;
 import org.opensourceway.sbom.manager.model.VulScore;
 import org.opensourceway.sbom.manager.model.VulScoringSystem;
 import org.opensourceway.sbom.manager.model.Vulnerability;
+import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
+import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
+import org.opensourceway.sbom.manager.model.spdx.RelationshipType;
+import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.utils.CvssSeverity;
 import org.opensourceway.sbom.manager.utils.PurlUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +53,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -72,6 +85,9 @@ public class SbomDataInitTest {
     private ExternalVulRefRepository externalVulRefRepository;
 
     @Autowired
+    private ExternalPurlRefRepository externalPurlRefRepository;
+
+    @Autowired
     private ProductRepository productRepository;
 
     @Autowired
@@ -82,6 +98,12 @@ public class SbomDataInitTest {
 
     @Autowired
     private PackageRepository packageRepository;
+
+    @Autowired
+    private FileRepository fileRepository;
+
+    @Autowired
+    private SbomElementRelationshipRepository elementRelationshipRepository;
 
     @Test
     @Order(1)
@@ -224,6 +246,7 @@ public class SbomDataInitTest {
     }
 
     @Test
+    @Order(3)
     public void uploadOpenEulerSbomFile() throws Exception {
         ClassPathResource classPathResource = new ClassPathResource(TestConstants.SAMPLE_REPODATA_SBOM_FILE_NAME);
         MockMultipartFile file = new MockMultipartFile("uploadFileName", TestConstants.SAMPLE_REPODATA_SBOM_FILE_NAME
@@ -306,4 +329,78 @@ public class SbomDataInitTest {
         product.setProductStatistics(List.of(statistics, anotherStatistics));
         productRepository.save(product);
     }
+
+    @Test
+    @Order(5)
+    public void insertUpstreamAndPatchInfo() {
+        Product product = productRepository.findByName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME).orElse(null);
+        assertThat(product).isNotNull();
+        Optional<Sbom> sbomOptional = sbomRepository.findByProductName(product.getName());
+        assertThat(sbomOptional.isPresent()).isTrue();
+        Sbom sbom = sbomOptional.get();
+
+        List<Package> pkgList = packageRepository.findBySpdxId("SPDXRef-rpm-hive-3.1.2");
+        assertThat(CollectionUtils.isNotEmpty(pkgList)).isTrue();
+        Package pkg = pkgList.get(0);
+
+        fileRepository.deleteBySbomId(sbom.getId());
+        File file = new File();
+        file.setFileTypes(new String[]{SbomFileType.SOURCE.name()});
+        file.setSbom(sbom);
+        file.setSpdxId("hive-test1.patch");
+        file.setFileName("https://gitee.com/src-openeuler/hive/blob/openEuler-22.03-LTS/test1.patch");
+        fileRepository.save(file);
+
+        file = new File();
+        file.setFileTypes(new String[]{SbomFileType.SOURCE.name()});
+        file.setSbom(sbom);
+        file.setSpdxId("hive-test2.patch");
+        file.setFileName("https://gitee.com/src-openeuler/hive/blob/openEuler-22.03-LTS/test2.patch");
+        fileRepository.save(file);
+
+        file = new File();
+        file.setFileTypes(new String[]{SbomFileType.SOURCE.name()});
+        file.setSbom(sbom);
+        file.setSpdxId("hive-test3.patch");
+        file.setFileName("https://gitee.com/src-openeuler/hive/blob/openEuler-22.03-LTS/test3.patch");
+        fileRepository.save(file);
+
+        elementRelationshipRepository.deleteBySbomIdAndRelationshipType(sbom.getId(), RelationshipType.PATCH_APPLIED.name());
+        SbomElementRelationship relationship = new SbomElementRelationship();
+        relationship.setSbom(sbom);
+        relationship.setRelationshipType(RelationshipType.PATCH_APPLIED.name());
+        relationship.setRelatedElementId(pkg.getSpdxId());
+        relationship.setElementId("hive-test1.patch");
+        elementRelationshipRepository.save(relationship);
+
+        relationship = new SbomElementRelationship();
+        relationship.setSbom(sbom);
+        relationship.setRelationshipType(RelationshipType.PATCH_APPLIED.name());
+        relationship.setRelatedElementId(pkg.getSpdxId());
+        relationship.setElementId("hive-test2.patch");
+        elementRelationshipRepository.save(relationship);
+
+        relationship = new SbomElementRelationship();
+        relationship.setSbom(sbom);
+        relationship.setRelationshipType(RelationshipType.PATCH_APPLIED.name());
+        relationship.setRelatedElementId(pkg.getSpdxId());
+        relationship.setElementId("hive-test3.patch");
+        elementRelationshipRepository.save(relationship);
+
+        externalPurlRefRepository.deleteByPkgIdAndCategory(pkg.getId(), ReferenceCategory.SOURCE_MANAGER.name());
+        ExternalPurlRef upstream = new ExternalPurlRef();
+        upstream.setPkg(pkg);
+        upstream.setCategory(ReferenceCategory.SOURCE_MANAGER.name());
+        upstream.setType(ReferenceType.URL.getType());
+        upstream.setPurl(new PackageUrlVo("upstream", null, "http://hive.apache.org/", null));
+        externalPurlRefRepository.save(upstream);
+
+        upstream = new ExternalPurlRef();
+        upstream.setPkg(pkg);
+        upstream.setCategory(ReferenceCategory.SOURCE_MANAGER.name());
+        upstream.setType(ReferenceType.URL.getType());
+        upstream.setPurl(new PackageUrlVo("upstream", null, "https://gitee.com/src-openeuler/hive/tree/openEuler-22.03-LTS/", null));
+        externalPurlRefRepository.save(upstream);
+    }
+
 }
