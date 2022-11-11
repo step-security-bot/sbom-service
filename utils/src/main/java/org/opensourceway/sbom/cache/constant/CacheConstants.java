@@ -8,4 +8,8 @@ public class CacheConstants {
 
     public static final String LICENSE_INFO_MAP_CACHE_KEY_DEFAULT_VALUE = "cacheKey";
 
+    public static final String LICENSE_STANDARD_MAP_CACHE_NAME = "licenseStandardMap";
+
+    public static final String LICENSE_STANDARD_MAP_CACHE_KEY_PATTERN = "#licenseStandard";
+
 }
