@@ -8,6 +8,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.opensourceway.sbom.cache.constant.CacheConstants;
 import org.opensourceway.sbom.clients.license.impl.LicenseClientImpl;
 import org.opensourceway.sbom.clients.license.vo.ComplianceResponse;
 import org.opensourceway.sbom.constants.BatchContextConstants;
@@ -39,6 +40,7 @@ import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
 import org.opensourceway.sbom.manager.service.license.impl.LicenseServiceImpl;
 import org.opensourceway.sbom.manager.utils.CvssSeverity;
 import org.opensourceway.sbom.manager.utils.TestCommon;
+import org.opensourceway.sbom.manager.utils.cache.LicenseStandardMapCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
@@ -84,6 +86,9 @@ class SbomServiceTest {
 
     @Autowired
     private LicenseClientImpl licenseClientImpl;
+
+    @Autowired
+    private LicenseStandardMapCache licenseStandardMapCache;
 
     private static String packageId = null;
 
@@ -778,5 +783,18 @@ class SbomServiceTest {
         assertThat(response.getFinish()).isFalse();
         assertThat(response.getErrorInfo()).isEqualTo(SbomConstants.TASK_STATUS_NOT_EXISTS);
         assertThat(response.getSuccess()).isFalse();
+    }
+
+    @Test
+    public void getStandardLicense() {
+        String license1 = "license-test";
+        assertThat(licenseStandardMapCache.getLicenseStandardMap(CacheConstants.LICENSE_STANDARD_MAP_CACHE_KEY_PATTERN)
+                .getOrDefault(license1.toLowerCase(), license1)).isEqualTo("license-test");
+        String license2 = "agpl-3.0+";
+        assertThat(licenseStandardMapCache.getLicenseStandardMap(CacheConstants.LICENSE_STANDARD_MAP_CACHE_KEY_PATTERN)
+                .getOrDefault(license2.toLowerCase(), license2)).isEqualTo("AGPL-3.0-or-later");
+        String license3 = "AGPL-3.0+";
+        assertThat(licenseStandardMapCache.getLicenseStandardMap(CacheConstants.LICENSE_STANDARD_MAP_CACHE_KEY_PATTERN)
+                .getOrDefault(license3.toLowerCase(), license3)).isEqualTo("AGPL-3.0-or-later");
     }
 }
