@@ -1018,4 +1018,59 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.size").value(15))
                 .andExpect(jsonPath("$.first").value(true));
     }
+
+    @Test
+    public void queryUpstreamSuccess() throws Exception {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-rpm-hive-3.1.2"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+
+        this.mockMvc
+                .perform(get("/sbom-api/queryUpstreamAndPatchInfo/%s".formatted(pkg.getId().toString()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.upstreamList", hasSize(2)))
+                .andExpect(jsonPath("$.patchList", hasSize(3)))
+                .andExpect(jsonPath("$.upstreamList.[0].url").value("http://hive.apache.org/"))
+                .andExpect(jsonPath("$.patchList.[1].url").value("https://gitee.com/src-openeuler/hive/blob/openEuler-22.03-LTS/test2.patch"));
+    }
+
+    @Test
+    public void queryUpstreamForEmpty() throws Exception {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_REPODATA_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-rpm-spark-3.2.0"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+
+        this.mockMvc
+                .perform(get("/sbom-api/queryUpstreamAndPatchInfo/%s".formatted(pkg.getId().toString()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.upstreamList", hasSize(0)))
+                .andExpect(jsonPath("$.patchList", hasSize(0)));
+    }
+
+    @Test
+    public void queryUpstreamForNoPackage() throws Exception {
+        this.mockMvc
+                .perform(get("/sbom-api/queryUpstreamAndPatchInfo/%s".formatted("316ff894-e58f-4f19-ad14-de5a7fb9f711"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.upstreamList", hasSize(0)))
+                .andExpect(jsonPath("$.patchList", hasSize(0)));
+    }
 }
