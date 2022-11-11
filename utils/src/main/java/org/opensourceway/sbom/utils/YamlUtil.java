@@ -7,6 +7,10 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.representer.Representer;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+
 public class YamlUtil<T> {
 
     public static OpenEulerAdvisorVo parseFromStr(String yamlContent) {
@@ -29,6 +33,11 @@ public class YamlUtil<T> {
 
         Yaml yaml = new Yaml(constructor, representer);
         return yaml.load(yamlContent);
+    }
+
+    public static Map<String, String> LoadYamlFromInputStream(InputStream io) throws IOException {
+
+        return new Yaml().load(io);
     }
 
 }

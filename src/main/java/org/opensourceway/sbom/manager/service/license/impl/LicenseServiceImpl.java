@@ -22,6 +22,7 @@ import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.service.license.LicenseService;
 import org.opensourceway.sbom.manager.utils.PurlUtil;
 import org.opensourceway.sbom.manager.utils.cache.LicenseInfoMapCache;
+import org.opensourceway.sbom.manager.utils.cache.LicenseStandardMapCache;
 import org.opensourceway.sbom.openeuler.obs.SbomRepoConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +69,9 @@ public class LicenseServiceImpl implements LicenseService {
 
     @Autowired
     private LicenseInfoMapCache licenseInfoMapCache;
+
+    @Autowired
+    private LicenseStandardMapCache licenseStandardMapCache;
 
     @Value("${isScan}")
     private Boolean isScan;
@@ -211,6 +215,7 @@ public class LicenseServiceImpl implements LicenseService {
                 Package pkg = packageRepository.findById(purlRef.getPkg().getId()).orElseThrow();
                 saveLicenseAndCopyrightForPackage(response, pkg);
                 licenseList.forEach(lic -> {
+                    lic = licenseStandardMapCache.getLicenseStandardMap(CacheConstants.LICENSE_STANDARD_MAP_CACHE_KEY_PATTERN).getOrDefault(lic.toLowerCase(), lic);
                     License license = licenseRepository.findBySpdxLicenseId(lic).orElse(generateNewLicense(lic));
                     if (pkg.getLicenses() == null) {
                         pkg.setLicenses(new HashSet<>());

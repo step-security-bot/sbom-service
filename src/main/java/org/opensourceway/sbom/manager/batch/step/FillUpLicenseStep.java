@@ -10,6 +10,7 @@ import org.opensourceway.sbom.manager.dao.SbomRepository;
 import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Sbom;
 import org.opensourceway.sbom.manager.utils.cache.LicenseInfoMapCache;
+import org.opensourceway.sbom.manager.utils.cache.LicenseStandardMapCache;
 import org.ossreviewtoolkit.utils.spdx.SpdxConstants;
 import org.ossreviewtoolkit.utils.spdx.SpdxException;
 import org.ossreviewtoolkit.utils.spdx.SpdxExpression;
@@ -42,6 +43,9 @@ public class FillUpLicenseStep implements Tasklet {
 
     @Autowired
     private LicenseRepository licenseRepository;
+
+    @Autowired
+    private LicenseStandardMapCache licenseStandardMapCache;
 
     @Override
     public RepeatStatus execute(@NotNull StepContribution contribution, @NotNull ChunkContext chunkContext) {
@@ -78,6 +82,7 @@ public class FillUpLicenseStep implements Tasklet {
         try {
             Map<String, LicenseInfo> licenseInfoMap = licenseInfoMapCache
                     .getLicenseInfoMap(CacheConstants.LICENSE_INFO_MAP_CACHE_KEY_DEFAULT_VALUE);
+            spdxLicense = licenseStandardMapCache.getLicenseStandardMap(CacheConstants.LICENSE_STANDARD_MAP_CACHE_KEY_PATTERN).getOrDefault(spdxLicense.toLowerCase(), spdxLicense);
             SpdxExpression spdxExpression = SpdxExpression.parse(spdxLicense);
 
             if (!spdxExpression.licenses().stream().distinct().allMatch(licenseInfoMap::containsKey)) {
