@@ -19,31 +19,12 @@ public class SbomPublishMock {
     private static final Logger logger = LoggerFactory.getLogger(SbomPublishMock.class);
 
     private static final String REPO_SERVICE_MOCK_SERVICE_URL = "http://127.0.0.1:14441";
-//    private static final String REPO_SERVICE_MOCK_SERVICE_URL = "https://sbom-repo-service.test.osinfra.cn";
 
-    //    private static final String SBOM_SERVICE_MOCK_SERVICE_URL = "https://sbom-service.osinfra.cn";
-    private static final String SBOM_SERVICE_MOCK_SERVICE_URL = "https://sbom-service.test.osinfra.cn";
-//    private static final String SBOM_SERVICE_MOCK_SERVICE_URL = "http://127.0.0.1:13331";
+    private static final String SBOM_SERVICE_MOCK_SERVICE_URL = "http://127.0.0.1:13331";
 
-//    private static final String PUBLISH_SBOM_PRODUCT_NAME = "openEuler-22.03-LTS-x86_64-dvd.iso";
-//    private static final String ISO_FILE_PATH = "D:\\SBOM\\openEuler image\\22.03-LTS\\ISO\\x86_64\\openEuler-22.03-LTS-x86_64-dvd.iso";
+    private static final String PUBLISH_SBOM_PRODUCT_NAME = "openEuler-22.03-LTS-aarch64-dvd.iso";
 
-//    private static final String PUBLISH_SBOM_PRODUCT_NAME = "openEuler-22.03-LTS-everything-x86_64-dvd.iso";
-//    private static final String ISO_FILE_PATH = "D:\\SBOM\\openEuler image\\22.03-LTS\\ISO\\x86_64\\openEuler-22.03-LTS-everything-x86_64-dvd.iso";
-
-//    private static final String PUBLISH_SBOM_PRODUCT_NAME = "openEuler-22.03-LTS-aarch64-dvd.iso";
-//    private static final String ISO_FILE_PATH = "D:\\SBOM\\openEuler image\\22.03-LTS\\ISO\\aarch64\\openEuler-22.03-LTS-aarch64-dvd.iso";
-
-//    private static final String PUBLISH_SBOM_PRODUCT_NAME = "openEuler-22.03-LTS-everything-aarch64-dvd.iso";
-//    private static final String ISO_FILE_PATH = "D:\\SBOM\\openEuler image\\22.03-LTS\\ISO\\aarch64\\openEuler-22.03-LTS-everything-aarch64-dvd.iso";
-
-
-//    private static final String PUBLISH_SBOM_PRODUCT_NAME = "/openEuler-22.03-LTS/update/x86_64";
-//    private static final String ISO_FILE_PATH = "/opt/repo-data/openEuler-22.03-LTS/update/x86_64";
-
-    private static final String PUBLISH_SBOM_PRODUCT_NAME = "openEuler-22.03-LTS-x86_64-dvd.iso";
-    private static final String ISO_FILE_PATH = "/opt/repo-data/openEuler-22.03-LTS/ISO/x86_64/openEuler-22.03-LTS-x86_64-dvd.iso";
-
+    private static final String ISO_FILE_PATH = "D:\\SBOM\\openEuler\\22.03-LTS\\ISO\\aarch64\\openEuler-22.03-LTS-aarch64-dvd.iso";
     private static final ExchangeStrategies strategies = ExchangeStrategies.builder()
             .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize(40 * 1024 * 1024))
             .build();
