@@ -40,13 +40,13 @@ public class SbomElementRelationship {
      * The target element of this directed relationship.
      */
     @Column(columnDefinition = "TEXT", nullable = false, name = "related_element_id")
-    private String RelatedElementId;
+    private String relatedElementId;
 
     /**
      * The type of this relationship.
      */
     @Column(columnDefinition = "TEXT", nullable = false, name = "relationship_type")
-    private String RelationshipType;
+    private String relationshipType;
 
     @Column(columnDefinition = "TEXT")
     private String comment;
@@ -76,19 +76,19 @@ public class SbomElementRelationship {
     }
 
     public String getRelatedElementId() {
-        return RelatedElementId;
+        return relatedElementId;
     }
 
     public void setRelatedElementId(String relatedElementId) {
-        RelatedElementId = relatedElementId;
+        this.relatedElementId = relatedElementId;
     }
 
     public String getRelationshipType() {
-        return RelationshipType;
+        return relationshipType;
     }
 
     public void setRelationshipType(String relationshipType) {
-        RelationshipType = relationshipType;
+        this.relationshipType = relationshipType;
     }
 
     public String getComment() {
