@@ -1,5 +1,6 @@
 package org.opensourceway.sbom.manager.controller;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.dao.spec.ExternalPurlRefCondition;
@@ -22,6 +23,7 @@ import org.opensourceway.sbom.manager.model.vo.request.PublishSbomRequest;
 import org.opensourceway.sbom.manager.model.vo.request.QuerySbomPackagesRequest;
 import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
 import org.opensourceway.sbom.manager.model.vo.response.PublishSbomResponse;
+import org.opensourceway.sbom.manager.model.vo.response.UpstreamAndPatchInfoResponse;
 import org.opensourceway.sbom.manager.service.SbomService;
 import org.opensourceway.sbom.manager.service.repo.RepoService;
 import org.opensourceway.sbom.openeuler.obs.vo.RepoInfoVo;
@@ -643,5 +645,26 @@ public class SbomController {
 
         logger.info("queryVulImpact result has {} nodes, {} edges", graph.getNodes().size(), graph.getEdges().size());
         return ResponseEntity.status(HttpStatus.OK).body(graph);
+    }
+
+    @GetMapping("/queryUpstreamAndPatchInfo/{packageId}")
+    public @ResponseBody ResponseEntity queryUpstreamAndPatchInfo(@PathVariable("packageId") String packageId) {
+        logger.info("query upstream and patch info by packageId:{}", packageId);
+        UpstreamAndPatchInfoResponse response;
+        try {
+            response = repoService.queryUpstreamAndPatchInfo(packageId);
+        } catch (RuntimeException e) {
+            logger.error("query upstream and patch info by packageId:{}, error:", packageId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("query upstream and patch info by packageId:{}, error:", packageId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("queryUpstreamAndPatchInfo error");
+        }
+
+        logger.info("query upstream and patch info by packageId:{}, result size:{} {}",
+                packageId,
+                CollectionUtils.size(response.getUpstreamList()),
+                CollectionUtils.size(response.getPatchList()));
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }
