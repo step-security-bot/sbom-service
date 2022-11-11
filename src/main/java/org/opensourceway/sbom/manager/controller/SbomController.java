@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -455,11 +456,13 @@ public class SbomController {
     ResponseEntity queryLicense(@RequestParam(name = "productName") String productName,
                                 @RequestParam(name = "license", required = false) String license,
                                 @RequestParam(name = "isLegal", required = false) Boolean isLegal,
+                                @RequestParam(name = "orderBy", required = false, defaultValue = "licenseId") String orderBy,
                                 @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
                                 @RequestParam(name = "size", required = false, defaultValue = "15") Integer size) throws Exception {
         logger.info("query package License for productName by universal api: {}", productName);
         PageVo<LicenseVo> licenses;
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = "count".equals(orderBy) ?
+                PageRequest.of(page, size).withSort(Sort.by(Sort.Order.desc(orderBy))) : PageRequest.of(page, size).withSort(Sort.by(Sort.Order.asc(orderBy)));
         licenses = sbomService.queryLicense(productName, license, isLegal, pageable);
         return ResponseEntity.status(HttpStatus.OK).body(licenses);
     }
