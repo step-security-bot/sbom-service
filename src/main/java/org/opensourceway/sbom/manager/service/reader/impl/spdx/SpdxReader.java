@@ -18,7 +18,6 @@ import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
 import org.opensourceway.sbom.manager.model.spdx.SpdxDocument;
 import org.opensourceway.sbom.manager.model.spdx.SpdxPackage;
 import org.opensourceway.sbom.manager.service.reader.SbomReader;
-import org.opensourceway.sbom.manager.service.vul.VulService;
 import org.opensourceway.sbom.manager.utils.PurlUtil;
 import org.opensourceway.sbom.manager.utils.SbomFormat;
 import org.opensourceway.sbom.manager.utils.SbomMapperUtil;
@@ -48,13 +47,6 @@ public class SpdxReader implements SbomReader {
     @Autowired
     private SbomRepository sbomRepository;
 
-    private final List<VulService> vulServices;
-
-    @Autowired
-    public SpdxReader(List<VulService> vulServices) {
-        this.vulServices = vulServices;
-    }
-
     @Override
     public void read(String productName, File file) throws IOException {
         SbomFormat format = SbomMapperUtil.fileToExt(file.getName());
@@ -68,8 +60,7 @@ public class SpdxReader implements SbomReader {
     @Override
     public void read(String productName, SbomFormat format, byte[] fileContent) throws IOException {
         SpdxDocument document = SbomMapperUtil.readDocument(format, SbomSpecification.SPDX_2_2.getDocumentClass(), fileContent);
-        Sbom sbom = persistSbom(productName, document);
-        vulServices.forEach(vulService -> vulService.persistExternalVulRefForSbom(sbom, true));
+        persistSbom(productName, document);
     }
 
     @Override
