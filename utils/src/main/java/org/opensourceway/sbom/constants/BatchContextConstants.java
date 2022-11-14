@@ -8,6 +8,8 @@ public class BatchContextConstants {
 
     public final static String BATCH_SBOM_PRODUCT_NAME_KEY = "BATCH_SBOM_PRODUCT_NAME";
 
+    public final static String BATCH_SBOM_PRODUCT_TYPE_KEY = "BATCH_SBOM_PRODUCT_TYPE";
+
     public final static String BATCH_SBOM_SPEC_KEY = "BATCH_SBOM_SPEC";
 
     public final static String BATCH_SBOM_FORMAT_KEY = "BATCH_SBOM_FORMAT";

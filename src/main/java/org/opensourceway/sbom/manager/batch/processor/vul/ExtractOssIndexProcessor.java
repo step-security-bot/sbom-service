@@ -43,7 +43,8 @@ public class ExtractOssIndexProcessor implements ItemProcessor<List<ExternalPurl
                 chunk.size(),
                 CollectionUtils.isEmpty(chunk) ? "" : chunk.get(0).getId().toString());
 
-        Set<Pair<ExternalPurlRef, Object>> resultSet = ossIndexService.extractVulForPurlRefChunk(sbomId, chunk);
+        String productType = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_TYPE_KEY);
+        Set<Pair<ExternalPurlRef, Object>> resultSet = ossIndexService.extractVulForPurlRefChunk(sbomId, chunk, productType);
         logger.info("finish ExtractOssIndexProcessor sbomId:{}, resultSet size:{}", sbomId, resultSet.size());
         return resultSet;
     }

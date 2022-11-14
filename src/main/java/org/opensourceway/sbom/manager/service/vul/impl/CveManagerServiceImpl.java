@@ -6,13 +6,14 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.opensourceway.sbom.clients.cvemanager.CveManagerClient;
 import org.opensourceway.sbom.clients.cvemanager.model.ComponentReport;
 import org.opensourceway.sbom.clients.cvemanager.model.CveManagerVulnerability;
+import org.opensourceway.sbom.clients.cvemanager.model.IssueStatus;
+import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.dao.ExternalVulRefRepository;
 import org.opensourceway.sbom.manager.dao.PackageRepository;
 import org.opensourceway.sbom.manager.dao.VulnerabilityRepository;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.ExternalVulRef;
 import org.opensourceway.sbom.manager.model.Package;
-import org.opensourceway.sbom.manager.model.Sbom;
 import org.opensourceway.sbom.manager.model.VulRefSource;
 import org.opensourceway.sbom.manager.model.VulReference;
 import org.opensourceway.sbom.manager.model.VulScore;
@@ -32,7 +33,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -43,6 +43,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -65,71 +66,6 @@ public class CveManagerServiceImpl extends AbstractVulService {
 
     @Autowired
     private PackageRepository packageRepository;
-
-    @Override
-    public void persistExternalVulRefForSbom(Sbom sbom, Boolean blocking) {
-        logger.info("Start to persistExternalVulRefForSbom from cve-manager for sbom {}", sbom.getId());
-        if (!cveManagerClient.needRequest()) {
-            logger.warn("cveManagerClient does not request");
-            return;
-        }
-
-        List<ExternalPurlRef> externalPurlRefs = sbom.getPackages().stream()
-                .map(Package::getExternalPurlRefs)
-                .flatMap(List::stream)
-                .toList();
-
-        List<List<ExternalPurlRef>> chunks = ListUtils.partition(externalPurlRefs, getBulkRequestSize());
-        for (int i = 0; i < chunks.size(); i++) {
-            logger.info("fetch vulnerabilities from cve-manager for purl chunk {}, total {}", i + 1, chunks.size());
-            List<ExternalPurlRef> chunk = chunks.get(i);
-            List<String> purls = chunk.stream()
-                    .map(ref -> PurlUtil.canonicalizePurl(ref.getPurl()))
-                    .collect(Collectors.toSet())
-                    .stream().toList();
-            try {
-                Mono<ComponentReport> mono = cveManagerClient.getComponentReport(purls);
-                if (blocking) {
-                    persistExternalVulRef(mono.block(), chunk);
-                } else {
-                    mono.subscribe(report -> persistExternalVulRef(report, chunk));
-                }
-            } catch (Exception e) {
-                logger.error("failed to fetch vulnerabilities from cve-manager for sbom {}", sbom.getId());
-                reportVulFetchFailure(sbom.getId());
-                throw e;
-            }
-        }
-
-        logger.info("End to persistExternalVulRefForSbom from cve-manager for sbom {}", sbom.getId());
-    }
-
-    private void persistExternalVulRef(ComponentReport report, List<ExternalPurlRef> externalPurlRefs) {
-        if (Objects.isNull(report) || CollectionUtils.isEmpty(report.getData())) {
-            return;
-        }
-
-        externalPurlRefs.forEach(ref -> report.getData()
-                .stream()
-                .filter(vul -> StringUtils.equals(PurlUtil.canonicalizePurl(ref.getPurl()), vul.getPurl()))
-                .forEach(vul -> {
-                    Vulnerability vulnerability = vulnerabilityRepository.saveAndFlush(persistVulnerability(vul));
-                    Map<Pair<UUID, String>, ExternalVulRef> existExternalVulRefs = Optional.ofNullable(ref.getPkg().getExternalVulRefs())
-                            .orElse(new ArrayList<>())
-                            .stream()
-                            .collect(Collectors.toMap(it ->
-                                            Pair.of(it.getVulnerability().getId(), PurlUtil.canonicalizePurl(it.getPurl())),
-                                    Function.identity()));
-                    ExternalVulRef externalVulRef = existExternalVulRefs.getOrDefault(Pair.of(vulnerability.getId(), vul.getPurl()), new ExternalVulRef());
-                    externalVulRef.setCategory(ReferenceCategory.SECURITY.name());
-                    externalVulRef.setType(ReferenceType.CVE.getType());
-                    externalVulRef.setStatus(Optional.ofNullable(externalVulRef.getStatus()).orElse(VulStatus.AFFECTED.name()));
-                    externalVulRef.setPurl(PurlUtil.strToPackageUrlVo(vul.getPurl()));
-                    externalVulRef.setVulnerability(vulnerability);
-                    externalVulRef.setPkg(ref.getPkg());
-                    externalVulRefRepository.saveAndFlush(externalVulRef);
-                }));
-    }
 
     private Vulnerability persistVulnerability(CveManagerVulnerability cveManagerVulnerability) {
         Vulnerability vulnerability = vulnerabilityRepository.findByVulIdAndSource(
@@ -170,23 +106,26 @@ public class CveManagerServiceImpl extends AbstractVulService {
                 .stream()
                 .collect(Collectors.toMap(it -> Pair.of(it.getScoringSystem(), it.getScore()), Function.identity()));
 
-        VulScore vulScoreCvss2 = existVulScores.getOrDefault(
-                Pair.of(VulScoringSystem.CVSS2.name(), cveManagerVulnerability.getCvss2Score()), new VulScore());
-        vulScoreCvss2.setScoringSystem(VulScoringSystem.CVSS2.name());
-        vulScoreCvss2.setScore(cveManagerVulnerability.getCvss2Score());
-        vulScoreCvss2.setVector(cveManagerVulnerability.getCvss2Vector());
-        vulScoreCvss2.setVulnerability(vulnerability);
-        vulScoreCvss2.setSeverity(CvssSeverity.calculateCvssSeverity(VulScoringSystem.CVSS2, cveManagerVulnerability.getCvss2Score()).name());
-        vulScores.add(vulScoreCvss2);
+        Double score;
+        String vector;
+        if (!StringUtils.isEmpty(cveManagerVulnerability.getNvdVector())) {
+            score = cveManagerVulnerability.getNvdScore();
+            vector = cveManagerVulnerability.getNvdVector();
+        } else if (!StringUtils.isEmpty(cveManagerVulnerability.getOpenEulerVector())) {
+            score = cveManagerVulnerability.getOpenEulerScore();
+            vector = cveManagerVulnerability.getOpenEulerVector();
+        } else {
+            return vulScores;
+        }
 
-        VulScore vulScoreCvss3 = existVulScores.getOrDefault(
-                Pair.of(VulScoringSystem.CVSS3.name(), cveManagerVulnerability.getCvss3Score()), new VulScore());
-        vulScoreCvss3.setScoringSystem(VulScoringSystem.CVSS3.name());
-        vulScoreCvss3.setScore(cveManagerVulnerability.getCvss3Score());
-        vulScoreCvss3.setVector(cveManagerVulnerability.getCvss3Vector());
-        vulScoreCvss3.setVulnerability(vulnerability);
-        vulScoreCvss3.setSeverity(CvssSeverity.calculateCvssSeverity(VulScoringSystem.CVSS3, cveManagerVulnerability.getCvss3Score()).name());
-        vulScores.add(vulScoreCvss3);
+        VulScoringSystem vulScoringSystem = VulScoringSystem.findVulScoringSystemByName(cveManagerVulnerability.getScoringSystem());
+        VulScore vulScore = existVulScores.getOrDefault(Pair.of(vulScoringSystem.name(), score), new VulScore());
+        vulScore.setScoringSystem(vulScoringSystem.name());
+        vulScore.setScore(score);
+        vulScore.setVector(vector);
+        vulScore.setVulnerability(vulnerability);
+        vulScore.setSeverity(CvssSeverity.calculateCvssSeverity(vulScoringSystem, score).name());
+        vulScores.add(vulScore);
 
         return vulScores;
     }
@@ -202,7 +141,8 @@ public class CveManagerServiceImpl extends AbstractVulService {
     }
 
     @Override
-    public Set<Pair<ExternalPurlRef, Object>> extractVulForPurlRefChunk(UUID sbomId, List<ExternalPurlRef> externalPurlChunk) {
+    public Set<Pair<ExternalPurlRef, Object>> extractVulForPurlRefChunk(UUID sbomId, List<ExternalPurlRef> externalPurlChunk,
+                                                                        String productType) {
         logger.info("Start to extract vulnerability from cve-manager for sbom {}, chunk size:{}", sbomId, externalPurlChunk.size());
         Set<Pair<ExternalPurlRef, Object>> resultSet = new HashSet<>();
 
@@ -221,6 +161,10 @@ public class CveManagerServiceImpl extends AbstractVulService {
                 externalPurlChunk.forEach(purlRef -> response.getData()
                         .stream()
                         .filter(vul -> StringUtils.equals(PurlUtil.canonicalizePurl(purlRef.getPurl()), vul.getPurl()))
+                        .filter(vul -> VulStatus.activeVulStatus.stream().map(VulStatus::getStatus).toList().contains(vul.getStatus()))
+                        .filter(vul -> !Objects.equals(IssueStatus.DELETED.getStatus(), vul.getIssueStatus()))
+                        .filter(vul -> filterProductType(productType, vul.getOwner()))
+                        .filter(vul -> Pattern.compile("^CVE-\\d+-\\d+$").matcher(vul.getCveNum()).matches())
                         .forEach(vul -> resultSet.add(Pair.of(purlRef, vul))));
             } catch (Exception e) {
                 logger.error("failed to extract vulnerabilities from cve-manager for sbom {}", sbomId);
@@ -231,6 +175,14 @@ public class CveManagerServiceImpl extends AbstractVulService {
 
         logger.info("End to extract vulnerability from cve-manager for sbom {}", sbomId);
         return resultSet;
+    }
+
+    private boolean filterProductType(String productType, String vulOwner) {
+        if (StringUtils.equalsIgnoreCase(productType, SbomConstants.PRODUCT_OPENEULER_NAME) &&
+                StringUtils.equalsIgnoreCase(vulOwner, SbomConstants.SOURCE_OPENEULER_NAME)) {
+            return true;
+        }
+        return StringUtils.equalsIgnoreCase(productType, vulOwner);
     }
 
     @Override
@@ -252,7 +204,7 @@ public class CveManagerServiceImpl extends AbstractVulService {
             ExternalVulRef externalVulRef = existExternalVulRefs.getOrDefault(Pair.of(vulnerability.getId(), vul.getPurl()), new ExternalVulRef());
             externalVulRef.setCategory(ReferenceCategory.SECURITY.name());
             externalVulRef.setType(ReferenceType.CVE.getType());
-            externalVulRef.setStatus(Optional.ofNullable(externalVulRef.getStatus()).orElse(VulStatus.AFFECTED.name()));
+            externalVulRef.setStatus(Optional.ofNullable(externalVulRef.getStatus()).orElse(VulStatus.findVulStatusByStatus(vul.getStatus())));
             externalVulRef.setPurl(PurlUtil.strToPackageUrlVo(vul.getPurl()));
             externalVulRef.setVulnerability(vulnerability);
             externalVulRef.setPkg(purlOwnerPackage);

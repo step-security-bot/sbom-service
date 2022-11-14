@@ -44,6 +44,8 @@ public class SelectWaitRawSbomStep implements Tasklet {
 
             jobContext.put(BatchContextConstants.BATCH_RAW_SBOM_ID_KEY, rawSbom.getId());
             jobContext.putString(BatchContextConstants.BATCH_SBOM_PRODUCT_NAME_KEY, rawSbom.getProduct().getName());
+            jobContext.putString(BatchContextConstants.BATCH_SBOM_PRODUCT_TYPE_KEY,
+                    String.valueOf(rawSbom.getProduct().getAttribute().get(BatchContextConstants.BATCH_PRODUCT_TYPE_KEY)));
             jobContext.put(BatchContextConstants.BATCH_RAW_SBOM_BYTES_KEY, rawSbom.getValue());
 
             SbomSpecification specification = SbomSpecification.findSpecification(rawSbom.getSpec(), rawSbom.getSpecVersion());

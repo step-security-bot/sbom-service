@@ -13,7 +13,6 @@ import org.opensourceway.sbom.manager.dao.VulnerabilityRepository;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.ExternalVulRef;
 import org.opensourceway.sbom.manager.model.Package;
-import org.opensourceway.sbom.manager.model.Sbom;
 import org.opensourceway.sbom.manager.model.VulRefSource;
 import org.opensourceway.sbom.manager.model.VulReference;
 import org.opensourceway.sbom.manager.model.VulScore;
@@ -32,7 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,48 +70,6 @@ public class OssIndexServiceImpl extends AbstractVulService {
 
     @Autowired
     private PackageRepository packageRepository;
-
-    @Override
-    public void persistExternalVulRefForSbom(Sbom sbom, Boolean blocking) {
-        logger.info("Start to persistExternalVulRefForSbom from OssIndex for sbom {}", sbom.getId());
-        if (!ossIndexClient.needRequest()) {
-            logger.warn("ossIndexClient does not request");
-            return;
-        }
-
-        List<ExternalPurlRef> externalPurlRefs = sbom.getPackages().stream()
-                .map(Package::getExternalPurlRefs)
-                .flatMap(List::stream)
-                .toList();
-
-        List<List<ExternalPurlRef>> chunks = ListUtils.partition(externalPurlRefs, getBulkRequestSize());
-        for (int i = 0; i < chunks.size(); i++) {
-            logger.info("fetch vulnerabilities from OssIndex for purl chunk {}, total {}", i + 1, chunks.size());
-            List<ExternalPurlRef> chunk = chunks.get(i);
-            Map<ExternalPurlRef, List<String>> refToConvertedPurl = chunk.stream()
-                    .collect(Collectors.toMap(Function.identity(), OssIndexServiceImpl::convertPackageType));
-            List<String> purls = refToConvertedPurl.values().stream()
-                    .flatMap(List::stream)
-                    .collect(Collectors.toSet())
-                    .stream().toList();
-            ListUtils.partition(purls, getBulkRequestSize()).forEach(chunkPurl -> {
-                try {
-                    Mono<ComponentReportElement[]> mono = ossIndexClient.getComponentReport(chunkPurl);
-                    if (blocking) {
-                        persistExternalVulRef(mono.block(), refToConvertedPurl);
-                    } else {
-                        mono.subscribe(report -> persistExternalVulRef(report, refToConvertedPurl));
-                    }
-                } catch (Exception e) {
-                    logger.error("failed to fetch vulnerabilities from OssIndex for sbom {}", sbom.getId());
-                    reportVulFetchFailure(sbom.getId());
-                    throw e;
-                }
-            });
-        }
-
-        logger.info("End to persistExternalVulRefForSbom from OssIndex for sbom {}", sbom.getId());
-    }
 
     private static List<String> convertPackageType(ExternalPurlRef ref) {
         if (ReferenceCategory.PACKAGE_MANAGER.equals(ReferenceCategory.findReferenceCategory(ref.getCategory()))
@@ -155,7 +111,7 @@ public class OssIndexServiceImpl extends AbstractVulService {
                             vulnerability.getId(), PurlUtil.canonicalizePurl(ref.getPurl())), new ExternalVulRef());
                     externalVulRef.setCategory(ReferenceCategory.SECURITY.name());
                     externalVulRef.setType(ReferenceType.CVE.getType());
-                    externalVulRef.setStatus(Optional.ofNullable(externalVulRef.getStatus()).orElse(VulStatus.AFFECTED.name()));
+                    externalVulRef.setStatus(Optional.ofNullable(externalVulRef.getStatus()).orElse(VulStatus.NOT_FIXED.name()));
                     externalVulRef.setPurl(PurlUtil.strToPackageUrlVo(PurlUtil.canonicalizePurl(ref.getPurl())));
                     externalVulRef.setVulnerability(vulnerability);
                     externalVulRef.setPkg(ref.getPkg());
@@ -245,7 +201,8 @@ public class OssIndexServiceImpl extends AbstractVulService {
     }
 
     @Override
-    public Set<Pair<ExternalPurlRef, Object>> extractVulForPurlRefChunk(UUID sbomId, List<ExternalPurlRef> externalPurlChunk) {
+    public Set<Pair<ExternalPurlRef, Object>> extractVulForPurlRefChunk(UUID sbomId, List<ExternalPurlRef> externalPurlChunk,
+                                                                        String productType) {
         logger.info("Start to extract vulnerability from OssIndex for sbom {}, chunk size:{}", sbomId, externalPurlChunk.size());
         Set<Pair<ExternalPurlRef, Object>> resultSet = new HashSet<>();
 
@@ -312,7 +269,7 @@ public class OssIndexServiceImpl extends AbstractVulService {
                     vulnerability.getId(), PurlUtil.canonicalizePurl(purlRef.getPurl())), new ExternalVulRef());
             externalVulRef.setCategory(ReferenceCategory.SECURITY.name());
             externalVulRef.setType(ReferenceType.CVE.getType());
-            externalVulRef.setStatus(Optional.ofNullable(externalVulRef.getStatus()).orElse(VulStatus.AFFECTED.name()));
+            externalVulRef.setStatus(Optional.ofNullable(externalVulRef.getStatus()).orElse(VulStatus.NOT_FIXED.name()));
             externalVulRef.setPurl(PurlUtil.strToPackageUrlVo(PurlUtil.canonicalizePurl(purlRef.getPurl())));
             externalVulRef.setVulnerability(vulnerability);
             externalVulRef.setPkg(purlOwnerPackage);

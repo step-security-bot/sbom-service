@@ -1,9 +1,6 @@
 package org.opensourceway.sbom.manager.batch.decider;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.opensourceway.sbom.manager.dao.ProductRepository;
-import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.constants.BatchFlowExecConstants;
 import org.opensourceway.sbom.constants.SbomConstants;
@@ -14,11 +11,9 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.job.flow.FlowExecutionStatus;
 import org.springframework.batch.core.job.flow.JobExecutionDecider;
 import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public class SkipAnalyzeTraceDataDecider implements JobExecutionDecider {
@@ -29,9 +24,6 @@ public class SkipAnalyzeTraceDataDecider implements JobExecutionDecider {
             SbomConstants.PRODUCT_MINDSPORE_NAME.toLowerCase(),
             SbomConstants.PRODUCT_OPENGAUSS_NAME.toLowerCase());
 
-    @Autowired
-    private ProductRepository productRepository;
-
     @NotNull
     @Override
     public FlowExecutionStatus decide(JobExecution jobExecution, @Nullable StepExecution stepExecution) {
@@ -40,11 +32,7 @@ public class SkipAnalyzeTraceDataDecider implements JobExecutionDecider {
         String productName = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_NAME_KEY);
         logger.info("start SkipAnalyzeTraceDataDecider rawSbomId:{}, productName:{}", rawSbomId, productName);
 
-        Optional<Product> productOptional = productRepository.findByName(productName);
-
-        if (productOptional.isPresent()
-                && NEED_ANALYZE_TRACE_DATA_PRODUCT_LIST.contains(
-                StringUtils.lowerCase(String.valueOf(productOptional.get().getAttribute().get(BatchContextConstants.BATCH_PRODUCT_TYPE_KEY))))) {
+        if (NEED_ANALYZE_TRACE_DATA_PRODUCT_LIST.contains(jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_TYPE_KEY).toLowerCase())) {
             logger.info("SkipAnalyzeTraceDataDecider to inorder, rawSbomId:{}", rawSbomId);
             return new FlowExecutionStatus(BatchFlowExecConstants.FLOW_EXECUTION_STATUS_OF_INORDER);
         } else {

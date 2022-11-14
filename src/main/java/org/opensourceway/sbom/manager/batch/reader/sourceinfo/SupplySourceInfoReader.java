@@ -57,11 +57,9 @@ public class SupplySourceInfoReader implements ItemReader<List<UUID>>, StepExecu
         }
 
         Product product = productRepository.findBySbomId(sbomId);
-        if (!StringUtils.equalsIgnoreCase(
-                SbomConstants.PRODUCT_OPENEULER_NAME, String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_TYPE_KEY)))) {
-            logger.info("SupplySourceInfoReader skip, productType is:{}, sbomId:{}",
-                    product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_TYPE_KEY),
-                    sbomId);
+        String productType = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_TYPE_KEY);
+        if (!StringUtils.equalsIgnoreCase(SbomConstants.PRODUCT_OPENEULER_NAME, productType)) {
+            logger.info("SupplySourceInfoReader skip, productType is:{}, sbomId:{}", productType, sbomId);
             return;
         }
         this.stepExecution.getExecutionContext().putString(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY,

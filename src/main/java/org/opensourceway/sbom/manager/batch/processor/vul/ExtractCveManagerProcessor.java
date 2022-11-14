@@ -43,7 +43,8 @@ public class ExtractCveManagerProcessor implements ItemProcessor<List<ExternalPu
                 chunk.size(),
                 CollectionUtils.isEmpty(chunk) ? "" : chunk.get(0).getId().toString());
 
-        Set<Pair<ExternalPurlRef, Object>> resultSet = cveManagerService.extractVulForPurlRefChunk(sbomId, chunk);
+        String productType = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_TYPE_KEY);
+        Set<Pair<ExternalPurlRef, Object>> resultSet = cveManagerService.extractVulForPurlRefChunk(sbomId, chunk, productType);
 
         logger.info("finish ExtractCveManagerProcessor sbomId:{}, resultSet size:{}", sbomId, resultSet.size());
         return resultSet;
