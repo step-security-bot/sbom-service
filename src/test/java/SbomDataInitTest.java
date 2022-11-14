@@ -205,8 +205,13 @@ public class SbomDataInitTest {
                 .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
                 .findFirst().orElse(null);
         assertThat(pkg).isNotNull();
+        Package pkg1 = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-astunparse-1.6.3"))
+                .findFirst().orElse(null);
+        assertThat(pkg1).isNotNull();
         insertLicense("License-test", pkg, false);
         insertLicense("License-test1", pkg, true);
+        insertLicense("License-test1", pkg1, true);
         insertCopyright(pkg);
     }
 
@@ -232,8 +237,7 @@ public class SbomDataInitTest {
         license.setName("License for test");
         license.setUrl("https://xxx/licenses/License-test");
         license.setIsLegal(isLegal);
-        License licenseRet = licenseRepository.save(license);
-        assertThat(licenseRet.getPackages().size()).isEqualTo(1);
+        licenseRepository.save(license);
     }
 
     private Boolean isContainLicense(Package pkg, License license) {

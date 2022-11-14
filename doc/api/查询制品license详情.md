@@ -20,7 +20,7 @@ GET /sbom-api/queryLicenseUniversalApi
 
 `isLegal`: license是否合规 boolean        *非必需*
 
-`orderBy`: 排序规则 默认licenseId String        *非必需（待开发）*
+`orderBy`: 排序规则 默认licenseId String        *非必需*
 
 `page`: 分页页数 默认0 int        *非必需*
 
@@ -336,6 +336,133 @@ GET /sbom-api/queryLicenseUniversalApi?productName=openEuler-22.03-LTS-everythin
   "number": 0,
   "numberOfElements": 15,
   "first": true,
+  "empty": false
+}
+```
+
+#### 请求-4
+
+GET
+/sbom-api/queryLicenseUniversalApi?productName=openEuler-22.03-LTS-everything-x86_64-dvd.iso&orderBy=count&isLegal=true
+
+#### 返回-4
+
+```json
+{
+  "content": [
+    {
+      "licenseId": "MIT",
+      "licenseName": "MIT License",
+      "licenseUrl": "https://spdx.org/licenses/MIT.html",
+      "count": 8197,
+      "legal": true
+    },
+    {
+      "licenseId": "GPL-2.0-or-later",
+      "licenseName": "GNU General Public License v2.0 or later",
+      "licenseUrl": "https://spdx.org/licenses/GPL-2.0-or-later.html",
+      "count": 7856,
+      "legal": true
+    },
+    {
+      "licenseId": "LGPL-2.0-or-later",
+      "licenseName": "GNU Library General Public License v2 or later",
+      "licenseUrl": "https://spdx.org/licenses/LGPL-2.0-or-later.html",
+      "count": 7043,
+      "legal": true
+    },
+    {
+      "licenseId": "GPL-2.0-only",
+      "licenseName": "GNU General Public License v2.0 only",
+      "licenseUrl": "https://spdx.org/licenses/GPL-2.0-only.html",
+      "count": 6908,
+      "legal": true
+    },
+    {
+      "licenseId": "LicenseRef-scancode-public-domain-disclaimer",
+      "licenseName": null,
+      "licenseUrl": null,
+      "count": 6150,
+      "legal": true
+    },
+    {
+      "licenseId": "UCD",
+      "licenseName": null,
+      "licenseUrl": null,
+      "count": 5784,
+      "legal": true
+    },
+    {
+      "licenseId": "Artistic-2.0",
+      "licenseName": "Artistic License 2.0",
+      "licenseUrl": "https://spdx.org/licenses/Artistic-2.0.html",
+      "count": 5776,
+      "legal": true
+    },
+    {
+      "licenseId": "Apache-2.0",
+      "licenseName": "Apache License 2.0",
+      "licenseUrl": "https://spdx.org/licenses/Apache-2.0.html",
+      "count": 2191,
+      "legal": true
+    },
+    {
+      "licenseId": "BSD-3-Clause",
+      "licenseName": "BSD 3-Clause \"New\" or \"Revised\" License",
+      "licenseUrl": "https://spdx.org/licenses/BSD-3-Clause.html",
+      "count": 1692,
+      "legal": true
+    },
+    {
+      "licenseId": "LGPL-2.1-only",
+      "licenseName": "GNU Lesser General Public License v2.1 only",
+      "licenseUrl": "https://spdx.org/licenses/LGPL-2.1-only.html",
+      "count": 680,
+      "legal": true
+    },
+    {
+      "licenseId": "GPL-3.0-or-later",
+      "licenseName": "GNU General Public License v3.0 or later",
+      "licenseUrl": "https://spdx.org/licenses/GPL-3.0-or-later.html",
+      "count": 474,
+      "legal": true
+    },
+    {
+      "licenseId": "GPL-3.0-only",
+      "licenseName": "GNU General Public License v3.0 only",
+      "licenseUrl": "https://spdx.org/licenses/GPL-3.0-only.html",
+      "count": 473,
+      "legal": true
+    },
+    {
+      "licenseId": "exceptions",
+      "licenseName": null,
+      "licenseUrl": null,
+      "count": 320,
+      "legal": true
+    },
+    {
+      "licenseId": "LGPL-3.0-only",
+      "licenseName": "GNU Lesser General Public License v3.0 only",
+      "licenseUrl": "https://spdx.org/licenses/LGPL-3.0-only.html",
+      "count": 297,
+      "legal": true
+    },
+    {
+      "licenseId": "BSL-1.0",
+      "licenseName": "Boost Software License 1.0",
+      "licenseUrl": "https://spdx.org/licenses/BSL-1.0.html",
+      "count": 294,
+      "legal": true
+    }
+  ],
+  "totalElements": 126,
+  "totalPages": 9,
+  "last": false,
+  "size": 15,
+  "number": 0,
+  "first": true,
+  "numberOfElements": 15,
   "empty": false
 }
 ```
