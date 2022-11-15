@@ -162,7 +162,7 @@ public class CveManagerServiceImpl extends AbstractVulService {
                         .stream()
                         .filter(vul -> StringUtils.equals(PurlUtil.canonicalizePurl(purlRef.getPurl()), vul.getPurl()))
                         .filter(vul -> VulStatus.activeVulStatus.stream().map(VulStatus::getStatus).toList().contains(vul.getStatus()))
-                        .filter(vul -> !Objects.equals(IssueStatus.DELETED.getStatus(), vul.getIssueStatus()))
+                        .filter(vul -> IssueStatus.activeIssueStatus.stream().map(IssueStatus::getStatus).toList().contains(vul.getIssueStatus()))
                         .filter(vul -> filterProductType(productType, vul.getOwner()))
                         .filter(vul -> Pattern.compile("^CVE-\\d+-\\d+$").matcher(vul.getCveNum()).matches())
                         .forEach(vul -> resultSet.add(Pair.of(purlRef, vul))));
