@@ -28,7 +28,7 @@ public class ChecksumSkipMapCache {
         return CacheProperties.builder()
                 .cacheName(CacheConstants.CHECKSUM_SKIP_MAP_CACHE_NAME)
                 .maximumCacheSize(1L)
-                .expireAfterWrite(24 * 60 * 60L)// 1day
+                .expireAfterWrite(60 * 60L)// 1hour
                 .cacheNullValue(true)
                 .build();
     }
