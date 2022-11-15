@@ -348,7 +348,7 @@ class SbomServiceTest {
         assertThat(pkg).isNotNull();
 
         PageVo<VulnerabilityVo> result = sbomService.queryPackageVulnerability(
-                pkg.getId().toString(), PageRequest.of(0, 15));
+                pkg.getId().toString(), null, null, PageRequest.of(0, 15));
         assertThat(result).isNotEmpty();
         assertThat(result.getTotalElements()).isEqualTo(3);
         assertThat(result.getTotalPages()).isEqualTo(1);
@@ -356,6 +356,42 @@ class SbomServiceTest {
         assertVulWithMediumSeverity(result.getContent().get(1), "pkg:pypi/asttokens@2.0.5");
         assertVulWithHighSeverity(result.getContent().get(0), "pkg:pypi/asttokens@2.0.5");
         assertVulWithUnknownSeverity(result.getContent().get(2), "pkg:pypi/asttokens@2.0.5");
+    }
+
+    @Test
+    public void queryPackageVulnerabilityWithSeverity() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+
+        PageVo<VulnerabilityVo> result = sbomService.queryPackageVulnerability(
+                pkg.getId().toString(), "MEDIUM", null, PageRequest.of(0, 15));
+        assertThat(result).isNotEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getTotalPages()).isEqualTo(1);
+
+        assertVulWithMediumSeverity(result.getContent().get(0), "pkg:pypi/asttokens@2.0.5");
+    }
+
+    @Test
+    public void queryPackageVulnerabilityWithVulId() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+        Package pkg = sbom.getPackages().stream()
+                .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-asttokens-2.0.5"))
+                .findFirst().orElse(null);
+        assertThat(pkg).isNotNull();
+
+        PageVo<VulnerabilityVo> result = sbomService.queryPackageVulnerability(
+                pkg.getId().toString(), null, "CVE-2022-00000-test", PageRequest.of(0, 15));
+        assertThat(result).isNotEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getTotalPages()).isEqualTo(1);
+
+        assertVulWithMediumSeverity(result.getContent().get(0), "pkg:pypi/asttokens@2.0.5");
     }
 
     @Test
@@ -368,7 +404,7 @@ class SbomServiceTest {
         assertThat(pkg).isNotNull();
 
         PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
-                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), null, PageRequest.of(0, 15));
+                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), null, null, PageRequest.of(0, 15));
         assertThat(result).isNotEmpty();
         assertThat(result.getTotalElements()).isEqualTo(3);
         assertThat(result.getTotalPages()).isEqualTo(1);
@@ -388,7 +424,7 @@ class SbomServiceTest {
         assertThat(pkg).isNotNull();
 
         PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
-                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), CvssSeverity.HIGH.name(), PageRequest.of(0, 15));
+                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), CvssSeverity.HIGH.name(), null, PageRequest.of(0, 15));
         assertThat(result).isNotEmpty();
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getTotalPages()).isEqualTo(1);
@@ -406,7 +442,7 @@ class SbomServiceTest {
         assertThat(pkg).isNotNull();
 
         PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
-                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), CvssSeverity.MEDIUM.name(), PageRequest.of(0, 15));
+                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), CvssSeverity.MEDIUM.name(), null, PageRequest.of(0, 15));
         assertThat(result).isNotEmpty();
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getTotalPages()).isEqualTo(1);
@@ -424,7 +460,7 @@ class SbomServiceTest {
         assertThat(pkg).isNotNull();
 
         PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
-                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), CvssSeverity.UNKNOWN.name(), PageRequest.of(0, 15));
+                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), CvssSeverity.UNKNOWN.name(), null, PageRequest.of(0, 15));
         assertThat(result).isNotEmpty();
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getTotalPages()).isEqualTo(1);
@@ -442,7 +478,7 @@ class SbomServiceTest {
         assertThat(pkg).isNotNull();
 
         PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
-                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), CvssSeverity.LOW.name(), PageRequest.of(0, 15));
+                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), CvssSeverity.LOW.name(), null, PageRequest.of(0, 15));
         assertThat(result.getTotalElements()).isEqualTo(0);
         assertThat(result.getTotalPages()).isEqualTo(0);
     }
@@ -457,7 +493,7 @@ class SbomServiceTest {
         assertThat(pkg).isNotNull();
 
         PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
-                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), CvssSeverity.NONE.name(), PageRequest.of(0, 15));
+                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), CvssSeverity.NONE.name(), null, PageRequest.of(0, 15));
         assertThat(result.getTotalElements()).isEqualTo(0);
         assertThat(result.getTotalPages()).isEqualTo(0);
     }
@@ -472,7 +508,7 @@ class SbomServiceTest {
         assertThat(pkg).isNotNull();
 
         PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
-                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), CvssSeverity.CRITICAL.name(), PageRequest.of(0, 15));
+                TestConstants.SAMPLE_PRODUCT_NAME, pkg.getId().toString(), CvssSeverity.CRITICAL.name(), null, PageRequest.of(0, 15));
         assertThat(result.getTotalElements()).isEqualTo(0);
         assertThat(result.getTotalPages()).isEqualTo(0);
     }
@@ -483,7 +519,7 @@ class SbomServiceTest {
         assertThat(sbom).isNotNull();
 
         PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
-                TestConstants.SAMPLE_PRODUCT_NAME, null, null, PageRequest.of(0, 15));
+                TestConstants.SAMPLE_PRODUCT_NAME, null, null, null, PageRequest.of(0, 15));
         assertThat(result).isNotEmpty();
         assertThat(result.getTotalElements()).isEqualTo(3);
         assertThat(result.getTotalPages()).isEqualTo(1);
@@ -499,7 +535,7 @@ class SbomServiceTest {
         assertThat(sbom).isNotNull();
 
         PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
-                TestConstants.SAMPLE_PRODUCT_NAME, null, CvssSeverity.HIGH.name(), PageRequest.of(0, 15));
+                TestConstants.SAMPLE_PRODUCT_NAME, null, CvssSeverity.HIGH.name(), null, PageRequest.of(0, 15));
         assertThat(result).isNotEmpty();
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getTotalPages()).isEqualTo(1);
@@ -513,7 +549,7 @@ class SbomServiceTest {
         assertThat(sbom).isNotNull();
 
         PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
-                TestConstants.SAMPLE_PRODUCT_NAME, null, CvssSeverity.MEDIUM.name(), PageRequest.of(0, 15));
+                TestConstants.SAMPLE_PRODUCT_NAME, null, CvssSeverity.MEDIUM.name(), null, PageRequest.of(0, 15));
         assertThat(result).isNotEmpty();
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getTotalPages()).isEqualTo(1);
@@ -527,7 +563,7 @@ class SbomServiceTest {
         assertThat(sbom).isNotNull();
 
         PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
-                TestConstants.SAMPLE_PRODUCT_NAME, null, CvssSeverity.UNKNOWN.name(), PageRequest.of(0, 15));
+                TestConstants.SAMPLE_PRODUCT_NAME, null, CvssSeverity.UNKNOWN.name(), null, PageRequest.of(0, 15));
         assertThat(result).isNotEmpty();
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getTotalPages()).isEqualTo(1);
@@ -541,7 +577,7 @@ class SbomServiceTest {
         assertThat(sbom).isNotNull();
 
         PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
-                TestConstants.SAMPLE_PRODUCT_NAME, null, CvssSeverity.LOW.name(), PageRequest.of(0, 15));
+                TestConstants.SAMPLE_PRODUCT_NAME, null, CvssSeverity.LOW.name(), null, PageRequest.of(0, 15));
         assertThat(result.getTotalElements()).isEqualTo(0);
         assertThat(result.getTotalPages()).isEqualTo(0);
     }
@@ -552,7 +588,7 @@ class SbomServiceTest {
         assertThat(sbom).isNotNull();
 
         PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
-                TestConstants.SAMPLE_PRODUCT_NAME, null, CvssSeverity.NONE.name(), PageRequest.of(0, 15));
+                TestConstants.SAMPLE_PRODUCT_NAME, null, CvssSeverity.NONE.name(), null, PageRequest.of(0, 15));
         assertThat(result.getTotalElements()).isEqualTo(0);
         assertThat(result.getTotalPages()).isEqualTo(0);
     }
@@ -563,9 +599,20 @@ class SbomServiceTest {
         assertThat(sbom).isNotNull();
 
         PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
-                TestConstants.SAMPLE_PRODUCT_NAME, null, CvssSeverity.CRITICAL.name(), PageRequest.of(0, 15));
+                TestConstants.SAMPLE_PRODUCT_NAME, null, CvssSeverity.CRITICAL.name(), null, PageRequest.of(0, 15));
         assertThat(result.getTotalElements()).isEqualTo(0);
         assertThat(result.getTotalPages()).isEqualTo(0);
+    }
+
+    @Test
+    public void queryVulnerabilityByProductNameAndVulId() {
+        Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
+        assertThat(sbom).isNotNull();
+
+        PageVo<VulnerabilityVo> result = sbomService.queryVulnerability(
+                TestConstants.SAMPLE_PRODUCT_NAME, null, null, "CVE-2022-00000-test", PageRequest.of(0, 15));
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getTotalPages()).isEqualTo(1);
     }
 
     private void assertVulWithMediumSeverity(VulnerabilityVo vo, String expectedPurl) {

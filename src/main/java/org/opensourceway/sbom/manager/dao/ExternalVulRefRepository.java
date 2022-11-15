@@ -37,7 +37,8 @@ public interface ExternalVulRefRepository extends JpaRepository<ExternalVulRef, 
             (SELECT vs.scoring_system FROM vul_score vs WHERE vs.vul_id = v.vul_id AND vs.scoring_system = 'CVSS2')
             ) scoring_system FROM all_vul v WHERE id NOT IN (SELECT id FROM cve_manager_dup)
             )
-            SELECT * FROM uni_vul uv
+            SELECT * FROM uni_vul uv WHERE (:severity IS NULL OR uv.severity = :severity)
+            AND (:vulId IS NULL OR uv.v_vul_id = :vulId)
             ORDER BY uv.score DESC NULLS LAST, uv.v_vul_id DESC, uv.scoring_system DESC NULLS LAST
             """,
             countQuery = """
@@ -61,10 +62,14 @@ public interface ExternalVulRefRepository extends JpaRepository<ExternalVulRef, 
             (SELECT vs.scoring_system FROM vul_score vs WHERE vs.vul_id = v.vul_id AND vs.scoring_system = 'CVSS2')
             ) scoring_system FROM all_vul v WHERE id NOT IN (SELECT id FROM cve_manager_dup)
             )
-            SELECT COUNT(1) FROM uni_vul uv
+            SELECT COUNT(1) FROM uni_vul uv WHERE (:severity IS NULL OR uv.severity = :severity)
+            AND (:vulId IS NULL OR uv.v_vul_id = :vulId)
             """,
             nativeQuery = true)
-    Page<ExternalVulRef> findByPackageId(@Param("packageId") UUID packageId, Pageable pageable);
+    Page<ExternalVulRef> findByPackageIdAndSeverityAndVulId(@Param("packageId") UUID packageId,
+                                                            @Param("severity") String severity,
+                                                            @Param("vulId") String vulId,
+                                                            Pageable pageable);
 
     @Query(value = """
             SELECT evr.* FROM external_vul_ref evr JOIN package p ON evr.pkg_id = p.id JOIN vulnerability v ON evr.vul_id = v.id
