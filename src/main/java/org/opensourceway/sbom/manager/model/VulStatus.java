@@ -26,7 +26,7 @@ public enum VulStatus {
         return status;
     }
 
-    public static final List<VulStatus> activeVulStatus = List.of(NOT_ANALYZED, NOT_FIXED);
+    public static final List<VulStatus> activeVulStatus = List.of(NOT_ANALYZED, NOT_FIXED, ABNORMAL_CLOSED);
 
     public static String findVulStatusByStatus(Integer status) {
         for (VulStatus vulStatus : VulStatus.values()) {
