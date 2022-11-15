@@ -192,4 +192,12 @@ public class Sbom {
             this.sbomElementRelationships.addAll(sbomElementRelationships);
         }
     }
+
+    public List<File> getFiles() {
+        return files;
+    }
+
+    public void setFiles(List<File> files) {
+        this.files = files;
+    }
 }

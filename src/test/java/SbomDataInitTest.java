@@ -241,8 +241,8 @@ public class SbomDataInitTest {
     }
 
     private Boolean isContainLicense(Package pkg, License license) {
-        for (Package pkgs : license.getPackages()) {
-            if (pkgs.getId().equals(pkg.getId())) {
+        for (Package tempPkg : license.getPackages()) {
+            if (tempPkg.getId().equals(pkg.getId())) {
                 return true;
             }
         }

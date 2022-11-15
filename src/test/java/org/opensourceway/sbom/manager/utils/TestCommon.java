@@ -40,7 +40,7 @@ public class TestCommon {
         Optional<SpdxPackage> pkgOptional = spdxDocument.getPackages().stream()
                 .filter(tempPkg -> StringUtils.endsWithIgnoreCase("SPDXRef-Package-github-abseil-cpp-20210324.2", tempPkg.getSpdxId()))
                 .findFirst();
-        assertThat(pkgOptional.isPresent());
+        assertThat(pkgOptional.isPresent()).isTrue();
         SpdxPackage pkg = pkgOptional.get();
         assertThat(pkg.getHomepage()).isEqualTo("https://abseil.io");
         assertThat(pkg.getLicenseDeclared()).isEqualTo("Apache-2.0");

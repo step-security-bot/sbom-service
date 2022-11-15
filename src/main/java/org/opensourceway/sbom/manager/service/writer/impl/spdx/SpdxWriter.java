@@ -4,6 +4,7 @@ import org.opensourceway.sbom.manager.dao.SbomRepository;
 import org.opensourceway.sbom.manager.model.Checksum;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.ExternalVulRef;
+import org.opensourceway.sbom.manager.model.File;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.PkgVerfCode;
 import org.opensourceway.sbom.manager.model.PkgVerfCodeExcludedFile;
@@ -11,6 +12,7 @@ import org.opensourceway.sbom.manager.model.Sbom;
 import org.opensourceway.sbom.manager.model.SbomCreator;
 import org.opensourceway.sbom.manager.model.SbomElementRelationship;
 import org.opensourceway.sbom.manager.model.spdx.Algorithm;
+import org.opensourceway.sbom.manager.model.spdx.FileType;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
 import org.opensourceway.sbom.manager.model.spdx.RelationshipType;
@@ -18,6 +20,7 @@ import org.opensourceway.sbom.manager.model.spdx.SpdxChecksum;
 import org.opensourceway.sbom.manager.model.spdx.SpdxCreationInfo;
 import org.opensourceway.sbom.manager.model.spdx.SpdxDocument;
 import org.opensourceway.sbom.manager.model.spdx.SpdxExternalReference;
+import org.opensourceway.sbom.manager.model.spdx.SpdxFile;
 import org.opensourceway.sbom.manager.model.spdx.SpdxPackage;
 import org.opensourceway.sbom.manager.model.spdx.SpdxPackageVerificationCode;
 import org.opensourceway.sbom.manager.model.spdx.SpdxRelationship;
@@ -32,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -59,9 +63,9 @@ public class SpdxWriter implements SbomWriter {
         document.setDocumentNamespace(sbom.getNamespace());
         document.setDocumentDescribes(null);
         document.setPackages(sbom.getPackages().stream().map(this::transformPackage).toList());
-        document.setFiles(null);
+        document.setFiles(sbom.getFiles().stream().filter(Objects::nonNull).map(this::transformFile).toList());
         document.setSnippets(null);
-        document.setRelationships(sbom.getSbomElementRelationships().stream().map(this::transformRelationship).toList());
+        document.setRelationships(sbom.getSbomElementRelationships().stream().filter(Objects::nonNull).map(this::transformRelationship).toList());
 
         return SbomMapperUtil.writeAsBytes(document, format);
     }
@@ -77,7 +81,7 @@ public class SpdxWriter implements SbomWriter {
 
         spdxPackage.setAnnotations(null);
         spdxPackage.setAttributionTexts(null);
-        spdxPackage.setChecksums(pkg.getChecksums().stream().map(this::transformChecksum).toList());
+        spdxPackage.setChecksums(pkg.getChecksums().stream().filter(Objects::nonNull).map(this::transformChecksum).toList());
         spdxPackage.setComment(null);
         spdxPackage.setCopyrightText(pkg.getCopyright());
         spdxPackage.setDescription(pkg.getDescription());
@@ -103,10 +107,6 @@ public class SpdxWriter implements SbomWriter {
     }
 
     private SpdxChecksum transformChecksum(Checksum checksum) {
-        if (Objects.isNull(checksum)) {
-            return null;
-        }
-
         return new SpdxChecksum(Algorithm.valueOf(checksum.getAlgorithm()), checksum.getValue());
     }
 
@@ -122,9 +122,13 @@ public class SpdxWriter implements SbomWriter {
         if (Objects.isNull(ref)) {
             return null;
         }
-
-        return new SpdxExternalReference(ref.getComment(), ReferenceCategory.valueOf(ref.getCategory()),
-                ReferenceType.findReferenceType(ref.getType()), PurlUtil.canonicalizePurl(ref.getPurl()));
+        if (ReferenceType.URL == ReferenceType.findReferenceType(ref.getType())) {
+            return new SpdxExternalReference(ref.getComment(), ReferenceCategory.valueOf(ref.getCategory()),
+                    ReferenceType.findReferenceType(ref.getType()), ref.getPurl().getName());
+        } else {
+            return new SpdxExternalReference(ref.getComment(), ReferenceCategory.valueOf(ref.getCategory()),
+                    ReferenceType.findReferenceType(ref.getType()), PurlUtil.canonicalizePurl(ref.getPurl()));
+        }
     }
 
     private SpdxExternalReference transformExternalVulRef(ExternalVulRef ref) {
@@ -147,11 +151,20 @@ public class SpdxWriter implements SbomWriter {
     }
 
     private SpdxRelationship transformRelationship(SbomElementRelationship relationship) {
-        if (Objects.isNull(relationship)) {
-            return null;
-        }
-
         return new SpdxRelationship(relationship.getElementId(), RelationshipType.valueOf(relationship.getRelationshipType()),
                 relationship.getRelatedElementId(), relationship.getComment());
+    }
+
+    private SpdxFile transformFile(File file) {
+        return new SpdxFile(file.getSpdxId(),
+                null, null, null,
+                file.getCopyrightText(),
+                null, null,
+                file.getFileName(),
+                file.getFileTypes() == null ? null : Arrays.stream(file.getFileTypes()).map(FileType::findFileType).collect(Collectors.toList()),
+                file.getLicenseComments(),
+                file.getLicenseConcluded(),
+                file.getLicenseInfoInFiles() == null ? null : Arrays.asList(file.getLicenseInfoInFiles()),
+                null);
     }
 }

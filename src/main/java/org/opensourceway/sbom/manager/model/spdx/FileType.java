@@ -1,5 +1,7 @@
 package org.opensourceway.sbom.manager.model.spdx;
 
+import org.apache.commons.lang3.StringUtils;
+
 public enum FileType {
     APPLICATION,
 
@@ -22,4 +24,16 @@ public enum FileType {
     TEXT,
 
     VIDEO;
+
+    public static FileType findFileType(String fileTypeName) {
+        if (StringUtils.isEmpty(fileTypeName)) {
+            return null;
+        }
+        for (FileType fileType : FileType.values()) {
+            if (StringUtils.equalsIgnoreCase(fileTypeName, fileType.name())) {
+                return fileType;
+            }
+        }
+        return null;
+    }
 }
