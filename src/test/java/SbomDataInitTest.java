@@ -343,7 +343,7 @@ public class SbomDataInitTest {
         assertThat(sbomOptional.isPresent()).isTrue();
         Sbom sbom = sbomOptional.get();
 
-        List<Package> pkgList = packageRepository.findBySpdxId("SPDXRef-rpm-hive-3.1.2");
+        List<Package> pkgList = packageRepository.findBySbomIdAndSpdxId(sbom.getId(), "SPDXRef-rpm-hive-3.1.2");
         assertThat(CollectionUtils.isNotEmpty(pkgList)).isTrue();
         Package pkg = pkgList.get(0);
 
