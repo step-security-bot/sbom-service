@@ -1,5 +1,6 @@
 package org.opensourceway.sbom.manager.service.checksum.impl;
 
+import org.opensourceway.sbom.cache.constant.CacheConstants;
 import org.opensourceway.sbom.clients.sonatype.SonatypeClient;
 import org.opensourceway.sbom.clients.sonatype.vo.Docs;
 import org.opensourceway.sbom.clients.sonatype.vo.GAVInfo;
@@ -8,6 +9,7 @@ import org.opensourceway.sbom.manager.dao.ExternalPurlRefRepository;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
 import org.opensourceway.sbom.manager.service.checksum.ChecksumService;
+import org.opensourceway.sbom.manager.utils.cache.ChecksumSkipMapCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,18 @@ public class ChecksumServiceImpl implements ChecksumService {
     @Autowired
     private ExternalPurlRefRepository externalPurlRefRepository;
 
+    @Autowired
+    private ChecksumSkipMapCache checksumSkipMapCache;
+
+    private boolean checksumSkip(Docs docs) {
+        List<String> groupToSkip = checksumSkipMapCache.getChecksumSkipMap(CacheConstants.CHECKSUM_SKIP_MAP_CACHE_KEY_PATTERN).get(SbomConstants.CHECKSUM_SKIP_GROUP);
+        if (groupToSkip.contains(docs.getGroup())) {
+            return true;
+        }
+        List<String> artifactToSkip = checksumSkipMapCache.getChecksumSkipMap(CacheConstants.CHECKSUM_SKIP_MAP_CACHE_KEY_PATTERN).get(SbomConstants.CHECKSUM_SKIP_ARTIFACT);
+        return artifactToSkip.contains(docs.getArtifact());
+    }
+
     @Override
     public boolean needRequest() {
         return sonatypeClient.needRequest();
@@ -56,7 +70,7 @@ public class ChecksumServiceImpl implements ChecksumService {
             }
             if (gavInfo.getResponse().getNumFound() != 0) {
                 Docs checksumDocs;
-                if (SbomConstants.CHECKSUM_SKIP_GROUP.equals(gavInfo.getResponse().getDocs().get(0).getGroup()) && gavInfo.getResponse().getNumFound() > 1) {
+                if (checksumSkip(gavInfo.getResponse().getDocs().get(0)) && gavInfo.getResponse().getNumFound() > 1) {
                     checksumDocs = gavInfo.getResponse().getDocs().get(1);
                 } else {
                     checksumDocs = gavInfo.getResponse().getDocs().get(0);
@@ -87,7 +101,6 @@ public class ChecksumServiceImpl implements ChecksumService {
         return resultList;
 
     }
-
 
     @Override
     public void persistExternalGAVRef(List<List<ExternalPurlRef>> externalPurlRefList) {

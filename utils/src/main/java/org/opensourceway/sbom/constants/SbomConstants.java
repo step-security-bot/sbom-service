@@ -57,14 +57,16 @@ public class SbomConstants {
 
     public static final String COPYRIGHT_REGULAR_EXPRESSION = "(?!.*(?:\\{|\\}|\\);))(?:(copyright)[ \\t]*(?:(©|\\(c\\)|&#(?:169|xa9;)|©)[ \\t]+)?)(?:((?:((?:(?:19|20)[0-9]{2}))[^\\w\\n]*)*)([ \\t,\\w]*))";
 
-    public static final String CHECKSUM_SKIP_GROUP = "org.zenframework.z8.dependencies.commons";
+    public static final String CHECKSUM_SKIP_GROUP = "CHECKSUM_SKIP_GROUP";
+
+    public static final String CHECKSUM_SKIP_ARTIFACT = "CHECKSUM_SKIP_ARTIFACT";
 
     public static final Integer MAX_PAGE_SIZE = 10000;
 
     /**
      * {gitUrl}/{orgName}/{repoName}/blob/{branch}/{patchName},e.g.
      * <p>
-     *  <a href="https://gitee.com/src-openeuler/some-modules/blob/openEuler-22.03-LTS/openeuler-xxxxxx.patch">https://gitee.com/src-openeuler/some-modules/blob/openEuler-22.03-LTS/openeuler-xxxxxx.patch</a>
+     * <a href="https://gitee.com/src-openeuler/some-modules/blob/openEuler-22.03-LTS/openeuler-xxxxxx.patch">https://gitee.com/src-openeuler/some-modules/blob/openEuler-22.03-LTS/openeuler-xxxxxx.patch</a>
      */
     public static final String OPENEULER_PATCH_INFO_URL_PATTERN = "%s/%s/%s/blob/%s/%s";
 }
