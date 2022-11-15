@@ -12,4 +12,8 @@ public class CacheConstants {
 
     public static final String LICENSE_STANDARD_MAP_CACHE_KEY_PATTERN = "#licenseStandard";
 
+    public static final String CHECKSUM_SKIP_MAP_CACHE_NAME = "checksumSkipMap";
+
+    public static final String CHECKSUM_SKIP_MAP_CACHE_KEY_PATTERN = "#checksumSkip";
+
 }

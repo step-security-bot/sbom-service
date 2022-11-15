@@ -1,0 +1,5 @@
+CHECKSUM_SKIP_GROUP:
+  - "org.zenframework.z8.dependencies.commons"
+
+CHECKSUM_SKIP_ARTIFACT:
+  - ""
