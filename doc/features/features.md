@@ -16,23 +16,23 @@
   - [X] SBOM元数据存储
   - [X] SBOM数据格式转换
   - [X] SBOM合规数据统计
-- [ ] SBOM应用数据卷积
+- [X] SBOM应用数据卷积
 
   - [X] 漏洞信息卷积
   - [X] License&Copyright数据卷积
-  - [ ] 上游社区信息&Patch信息卷积
+  - [X] 上游社区信息&Patch信息卷积
 - [ ] SBOM随发布件归档
 
   - [X] openEuler社区SBOM随发布件归档
   - [ ] MindSpore社区SBOM随发布件归档
   - [ ] openGauss社区SBOM随发布件归档
-- [ ] SBOM Dashboard功能
+- [X] SBOM Dashboard功能
 
   - [X] 风险看板
   - [X] 成分查询
   - [X] 正向依赖查询
   - [X] 反向依赖查询
-  - [ ] 漏洞范围感知
+  - [X] 漏洞范围感知
 - [ ] 进阶功能
 
   - [X] SBOM文件导出（SPDX协议）
