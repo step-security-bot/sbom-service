@@ -434,13 +434,15 @@ public class SbomController {
 
     @GetMapping("/queryPackageVulnerability/{packageId}")
     public @ResponseBody ResponseEntity queryVulnerabilityByPackageId(@PathVariable("packageId") String packageId,
+                                                                      @RequestParam(required = false) String severity,
+                                                                      @RequestParam(required = false) String vulId,
                                                                       @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
                                                                       @RequestParam(name = "size", required = false, defaultValue = "15") Integer size) {
-        logger.info("query package vulnerability by packageId: {}", packageId);
+        logger.info("query package vulnerability by packageId: {}, severity: {}, vulId: {}", packageId, severity, vulId);
         PageVo<VulnerabilityVo> vulnerabilities;
         Pageable pageable = PageRequest.of(page, size);
         try {
-            vulnerabilities = sbomService.queryPackageVulnerability(packageId, pageable);
+            vulnerabilities = sbomService.queryPackageVulnerability(packageId, severity, vulId, pageable);
         } catch (RuntimeException e) {
             logger.error("query package vulnerability error: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
@@ -609,15 +611,16 @@ public class SbomController {
     public @ResponseBody ResponseEntity queryVulnerability(@PathVariable String productName,
                                                            @RequestParam(required = false) String severity,
                                                            @RequestParam(required = false) String packageId,
+                                                           @RequestParam(required = false) String vulId,
                                                            @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
                                                            @RequestParam(name = "size", required = false, defaultValue = "15") Integer size) {
         productName = productName.substring(1);
-        logger.info("query vulnerability by product name: {}, severity: {}, packageId: {}", productName, severity, packageId);
+        logger.info("query vulnerability by product name: {}, severity: {}, packageId: {}, vulId: {}", productName, severity, packageId, vulId);
 
         PageVo<VulnerabilityVo> vulnerabilities;
         Pageable pageable = PageRequest.of(page, size);
         try {
-            vulnerabilities = sbomService.queryVulnerability(productName, packageId, severity, pageable);
+            vulnerabilities = sbomService.queryVulnerability(productName, packageId, severity, vulId, pageable);
         } catch (RuntimeException e) {
             logger.error("query vulnerability error: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());

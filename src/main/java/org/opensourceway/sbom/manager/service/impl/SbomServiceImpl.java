@@ -505,17 +505,17 @@ public class SbomServiceImpl implements SbomService {
     }
 
     @Override
-    public PageVo<VulnerabilityVo> queryPackageVulnerability(String packageId, Pageable pageable) {
-        Page<ExternalVulRef> result = externalVulRefRepository.findByPackageId(UUID.fromString(packageId), pageable);
+    public PageVo<VulnerabilityVo> queryPackageVulnerability(String packageId, String severity, String vulId, Pageable pageable) {
+        Page<ExternalVulRef> result = externalVulRefRepository.findByPackageIdAndSeverityAndVulId(UUID.fromString(packageId), severity, vulId, pageable);
         return new PageVo<>(new PageImpl<>(result.stream().map(VulnerabilityVo::fromExternalVulRef).toList(),
                 result.getPageable(),
                 result.getTotalElements()));
     }
 
     @Override
-    public PageVo<VulnerabilityVo> queryVulnerability(String productName, String packageId, String severity, Pageable pageable) {
-        Page<Vulnerability> result = vulnerabilityRepository.findByProductNameAndPackageIdAndSeverity(
-                productName, Objects.isNull(packageId) ? null : UUID.fromString(packageId), severity, pageable);
+    public PageVo<VulnerabilityVo> queryVulnerability(String productName, String packageId, String severity, String vulId, Pageable pageable) {
+        Page<Vulnerability> result = vulnerabilityRepository.findByProductNameAndPackageIdAndSeverityAndVulId(
+                productName, Objects.isNull(packageId) ? null : UUID.fromString(packageId), severity, vulId, pageable);
         return new PageVo<>(new PageImpl<>(result.stream().map(VulnerabilityVo::fromVulnerability).toList(),
                 result.getPageable(),
                 result.getTotalElements()));
