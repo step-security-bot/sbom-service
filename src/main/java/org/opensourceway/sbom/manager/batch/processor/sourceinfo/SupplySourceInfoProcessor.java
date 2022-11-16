@@ -1,6 +1,5 @@
 package org.opensourceway.sbom.manager.batch.processor.sourceinfo;
 
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -35,9 +34,7 @@ import org.springframework.lang.Nullable;
 import org.yaml.snakeyaml.scanner.ScannerException;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -125,7 +122,6 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
         if (pkg.getExternalPurlRefs() == null) {
             pkg.setExternalPurlRefs(new ArrayList<>());
         }
-        Map<String, ExternalPurlRef> upstreamPurlMap = new HashMap<>();
 
         for (String upstreamDownloadUrl : repoMeta.getUpstreamDownloadUrls()) {
             try {
@@ -133,8 +129,6 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
                 String advisorContent = giteeApi.getFileContext(upstreamDownloadUrl);
                 String upstreamLocation = advisorParser.parseUpstreamLocation(advisorContent, upstreamDownloadUrl);
                 if (StringUtils.isEmpty(upstreamLocation)) {
-                    continue;
-                } else if (upstreamPurlMap.containsKey(upstreamLocation)) { // multi yaml file maybe duplicate content
                     continue;
                 }
 
@@ -147,16 +141,17 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
                 vo.setType("upstream");
                 vo.setName(upstreamLocation);
                 upstreamPurl.setPurl(vo);
-                upstreamPurlMap.put(upstreamLocation, upstreamPurl);
+                if (pkg.getExternalPurlRefs().contains(upstreamPurl)) {
+                    logger.warn("upstreamPurl:{} has existed in package:{}", upstreamPurl, pkg.getId());
+                    continue;
+                }
+                pkg.getExternalPurlRefs().add(upstreamPurl);
             } catch (ScannerException e) {
                 logger.error("supplyUpstream yaml parse failed, skip it, upstream:{}, error info:{}", upstreamDownloadUrl, e.getMessage());
             } catch (Exception e) {
                 logger.error("supplyUpstream failed, upstream:{}", upstreamDownloadUrl, e);
                 throw new RuntimeException(e);
             }
-        }
-        if (MapUtils.isNotEmpty(upstreamPurlMap)) {
-            pkg.getExternalPurlRefs().addAll(upstreamPurlMap.values());
         }
     }
 

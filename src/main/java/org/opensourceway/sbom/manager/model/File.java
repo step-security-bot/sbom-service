@@ -159,14 +159,13 @@ public class File {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         File file = (File) o;
-        return Objects.equals(id, file.id)
-                && Objects.equals(spdxId, file.spdxId)
+        return Objects.equals(spdxId, file.spdxId)
                 && Objects.equals(fileName, file.fileName)
                 && Objects.equals(Optional.ofNullable(sbom).orElse(new Sbom()).getId(), Optional.ofNullable(file.sbom).orElse(new Sbom()).getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, spdxId, fileName, Optional.ofNullable(sbom).orElse(new Sbom()).getId());
+        return Objects.hash(spdxId, fileName, Optional.ofNullable(sbom).orElse(new Sbom()).getId());
     }
 }

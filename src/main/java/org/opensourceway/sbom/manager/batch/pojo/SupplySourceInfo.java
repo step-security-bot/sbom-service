@@ -6,15 +6,17 @@ import org.opensourceway.sbom.manager.model.SbomElementRelationship;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SupplySourceInfo implements Serializable {
 
     List<Package> pkgList = new ArrayList<>();
 
-    List<File> fileList = new ArrayList<>();
+    Set<File> fileList = new HashSet<>();
 
-    List<SbomElementRelationship> relationshipList = new ArrayList<>();
+    Set<SbomElementRelationship> relationshipList = new HashSet<>();
 
     public List<Package> getPkgList() {
         return pkgList;
@@ -32,7 +34,7 @@ public class SupplySourceInfo implements Serializable {
         this.pkgList = pkgList;
     }
 
-    public List<File> getFileList() {
+    public Set<File> getFileList() {
         return fileList;
     }
 
@@ -44,11 +46,11 @@ public class SupplySourceInfo implements Serializable {
         this.fileList.addAll(files);
     }
 
-    public void setFileList(List<File> fileList) {
+    public void setFileList(Set<File> fileList) {
         this.fileList = fileList;
     }
 
-    public List<SbomElementRelationship> getRelationshipList() {
+    public Set<SbomElementRelationship> getRelationshipList() {
         return relationshipList;
     }
 
@@ -60,7 +62,7 @@ public class SupplySourceInfo implements Serializable {
         this.relationshipList.addAll(relationships);
     }
 
-    public void setRelationshipList(List<SbomElementRelationship> relationshipList) {
+    public void setRelationshipList(Set<SbomElementRelationship> relationshipList) {
         this.relationshipList = relationshipList;
     }
 }
