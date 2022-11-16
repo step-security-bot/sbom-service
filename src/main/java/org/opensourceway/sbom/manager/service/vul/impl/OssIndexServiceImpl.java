@@ -240,7 +240,7 @@ public class OssIndexServiceImpl extends AbstractVulService {
                 } catch (JsonProcessingException ex) {
                     logger.error("convert ComponentReportRequestBody failed", ex);
                 }
-                logger.error("failed to extract vulnerabilities from OssIndex for sbom {}, request body:{}", requestBody, sbomId, e);
+                logger.error("failed to extract vulnerabilities from OssIndex for sbom {}, request body:{}", sbomId, requestBody, e);
                 reportVulFetchFailure(sbomId);
                 throw e;
             }
