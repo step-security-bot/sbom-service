@@ -9,6 +9,7 @@ import org.opensourceway.sbom.manager.dao.SbomRepository;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Sbom;
+import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.manager.service.vul.VulService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,6 +76,7 @@ public class ExternalPurlRefListReader implements ItemReader<List<ExternalPurlRe
         List<ExternalPurlRef> externalPurlRefs = sbomOptional.get().getPackages().stream()
                 .map(Package::getExternalPurlRefs)
                 .flatMap(List::stream)
+                .filter(ref -> ReferenceCategory.COORDINATES_TYPE_NAME_LIST.contains(ref.getCategory()))
                 .toList();
 
         this.chunks = ListUtils.partition(externalPurlRefs, getVulService().getBulkRequestSize())
