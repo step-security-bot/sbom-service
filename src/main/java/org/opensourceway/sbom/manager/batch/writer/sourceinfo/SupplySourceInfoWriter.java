@@ -59,7 +59,11 @@ public class SupplySourceInfoWriter implements ItemWriter<SupplySourceInfo>, Ste
                             .ifPresentOrElse(existFile -> logger.debug("SupplySourceInfoWriter sbom file:{} has existed in sbom:{} ", file.getFileName(), file.getSbom().getId()),
                                     () -> fileRepository.save(file)));
 
-            elementRelationshipRepository.saveAll(sourceInfo.getRelationshipList());
+            sourceInfo.getRelationshipList().forEach(relationship ->
+                    elementRelationshipRepository.querySbomElementRelationship(relationship)
+                            .ifPresentOrElse(existRelationship ->
+                                            logger.debug("SupplySourceInfoWriter sbom element relationship:{} has existed in sbom:{} ", existRelationship.getId(), existRelationship.getSbom().getId()),
+                                    () -> elementRelationshipRepository.save(relationship)));
         });
 
         logger.info("finish SupplySourceInfoWriter sbomId:{}", sbomId);

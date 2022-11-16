@@ -18,6 +18,7 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -118,4 +119,19 @@ public class ExternalPurlRef {
     public void setPkg(Package pkg) {
         this.pkg = pkg;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ExternalPurlRef that = (ExternalPurlRef) o;
+        return Objects.equals(category, that.category) && Objects.equals(type, that.type) && Objects.equals(purl, that.purl)
+                && (Objects.equals(pkg, that.pkg) || (pkg != null && that.pkg != null && Objects.equals(pkg.getId(), that.pkg.getId())));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(category, type, purl, pkg);
+    }
+
 }
