@@ -29,6 +29,12 @@ public enum ReferenceCategory {
             ReferenceCategory.SOURCE_MANAGER
     );
 
+    public static final List<String> COORDINATES_TYPE_NAME_LIST = List.of(
+            ReferenceCategory.PACKAGE_MANAGER.name(),
+            ReferenceCategory.PROVIDE_MANAGER.name(),
+            ReferenceCategory.EXTERNAL_MANAGER.name()
+    );
+
     public static ReferenceCategory findReferenceCategory(String categoryStr) {
         if (StringUtils.isEmpty(categoryStr)) {
             return null;
