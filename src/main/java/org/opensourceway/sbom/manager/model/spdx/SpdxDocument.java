@@ -1,6 +1,7 @@
 package org.opensourceway.sbom.manager.model.spdx;
 
 import com.fasterxml.jackson.annotation.JsonClassDescription;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.opensourceway.sbom.manager.model.sbom.SbomDocument;
@@ -34,15 +35,16 @@ public class SpdxDocument implements SbomDocument, Serializable {
         this.relationships = relationships;
     }
 
+    @JsonCreator
     public SpdxDocument(@JsonProperty("SPDXID") String spdxId,
-                        String spdxVersion,
-                        SpdxCreationInfo creationInfo,
-                        String name,
-                        String dataLicense,
-                        String documentNamespace,
-                        @JsonInclude(JsonInclude.Include.NON_EMPTY) List<String> documentDescribes,
-                        @JsonInclude(JsonInclude.Include.NON_EMPTY) List<SpdxPackage> packages,
-                        @JsonInclude(JsonInclude.Include.NON_EMPTY) List<SpdxRelationship> relationships) {
+                        @JsonProperty("spdxVersion") String spdxVersion,
+                        @JsonProperty("creationInfo") SpdxCreationInfo creationInfo,
+                        @JsonProperty("name") String name,
+                        @JsonProperty("dataLicense") String dataLicense,
+                        @JsonProperty("documentNamespace") String documentNamespace,
+                        @JsonProperty("documentDescribes") @JsonInclude(JsonInclude.Include.NON_EMPTY) List<String> documentDescribes,
+                        @JsonProperty("packages") @JsonInclude(JsonInclude.Include.NON_EMPTY) List<SpdxPackage> packages,
+                        @JsonProperty("relationships") @JsonInclude(JsonInclude.Include.NON_EMPTY) List<SpdxRelationship> relationships) {
         this.spdxId = spdxId;
         this.spdxVersion = spdxVersion;
         this.creationInfo = creationInfo;

@@ -1,11 +1,13 @@
 package org.opensourceway.sbom.manager.model.spdx;
 
+import com.fasterxml.jackson.annotation.JsonClassDescription;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
+@JsonClassDescription
 public class SpdxPackage {
     @JsonProperty("SPDXID")
     private String spdxId;
@@ -81,29 +83,29 @@ public class SpdxPackage {
     @JsonCreator
     public SpdxPackage(
             @JsonProperty("SPDXID") String spdxId,
-            @JsonInclude(JsonInclude.Include.NON_EMPTY) List<SpdxAnnotation> annotations,
-            @JsonInclude(JsonInclude.Include.NON_EMPTY) List<String> attributionTexts,
-            @JsonInclude(JsonInclude.Include.NON_EMPTY) List<SpdxChecksum> checksums,
-            @JsonInclude(JsonInclude.Include.NON_EMPTY) String comment,
-            String copyrightText,
-            @JsonInclude(JsonInclude.Include.NON_EMPTY) String description,
-            String downloadLocation,
-            @JsonInclude(JsonInclude.Include.NON_EMPTY) List<SpdxExternalReference> externalRefs,
-            Boolean filesAnalyzed,
-            @JsonInclude(JsonInclude.Include.NON_EMPTY) List<String> hasFiles,
-            @JsonInclude(JsonInclude.Include.NON_EMPTY) String homepage,
-            @JsonInclude(JsonInclude.Include.NON_EMPTY) String licenseComments,
-            String licenseConcluded,
-            String licenseDeclared,
-            @JsonInclude(JsonInclude.Include.NON_EMPTY) List<String> licenseInfoFromFiles,
-            String name,
-            @JsonInclude(JsonInclude.Include.NON_NULL) String originator,
+            @JsonProperty("annotations") @JsonInclude(JsonInclude.Include.NON_EMPTY) List<SpdxAnnotation> annotations,
+            @JsonProperty("attributionTexts") @JsonInclude(JsonInclude.Include.NON_EMPTY) List<String> attributionTexts,
+            @JsonProperty("checksums") @JsonInclude(JsonInclude.Include.NON_EMPTY) List<SpdxChecksum> checksums,
+            @JsonProperty("comment") @JsonInclude(JsonInclude.Include.NON_EMPTY) String comment,
+            @JsonProperty("copyrightText") String copyrightText,
+            @JsonProperty("description") @JsonInclude(JsonInclude.Include.NON_EMPTY) String description,
+            @JsonProperty("downloadLocation") String downloadLocation,
+            @JsonProperty("externalRefs") @JsonInclude(JsonInclude.Include.NON_EMPTY) List<SpdxExternalReference> externalRefs,
+            @JsonProperty("filesAnalyzed") Boolean filesAnalyzed,
+            @JsonProperty("hasFiles") @JsonInclude(JsonInclude.Include.NON_EMPTY) List<String> hasFiles,
+            @JsonProperty("homepage") @JsonInclude(JsonInclude.Include.NON_EMPTY) String homepage,
+            @JsonProperty("licenseComments") @JsonInclude(JsonInclude.Include.NON_EMPTY) String licenseComments,
+            @JsonProperty("licenseConcluded") String licenseConcluded,
+            @JsonProperty("licenseDeclared") String licenseDeclared,
+            @JsonProperty("licenseInfoFromFiles") @JsonInclude(JsonInclude.Include.NON_EMPTY) List<String> licenseInfoFromFiles,
+            @JsonProperty("name") String name,
+            @JsonProperty("originator") @JsonInclude(JsonInclude.Include.NON_NULL) String originator,
             @JsonProperty("packageFileName") @JsonInclude(JsonInclude.Include.NON_EMPTY) String packageFilename,
-            @JsonInclude(JsonInclude.Include.NON_NULL) SpdxPackageVerificationCode packageVerificationCode,
-            @JsonInclude(JsonInclude.Include.NON_EMPTY) String sourceInfo,
-            @JsonInclude(JsonInclude.Include.NON_EMPTY) String summary,
-            @JsonInclude(JsonInclude.Include.NON_NULL) String supplier,
-            @JsonInclude(JsonInclude.Include.NON_EMPTY) String versionInfo
+            @JsonProperty("packageVerificationCode") @JsonInclude(JsonInclude.Include.NON_NULL) SpdxPackageVerificationCode packageVerificationCode,
+            @JsonProperty("sourceInfo") @JsonInclude(JsonInclude.Include.NON_EMPTY) String sourceInfo,
+            @JsonProperty("summary") @JsonInclude(JsonInclude.Include.NON_EMPTY) String summary,
+            @JsonProperty("supplier") @JsonInclude(JsonInclude.Include.NON_NULL) String supplier,
+            @JsonProperty("versionInfo") @JsonInclude(JsonInclude.Include.NON_EMPTY) String versionInfo
     ) {
         this.spdxId = spdxId;
         this.annotations = annotations;
