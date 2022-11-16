@@ -34,6 +34,26 @@ public class SpdxDocument implements SbomDocument, Serializable {
         this.relationships = relationships;
     }
 
+    public SpdxDocument(@JsonProperty("SPDXID") String spdxId,
+                        String spdxVersion,
+                        SpdxCreationInfo creationInfo,
+                        String name,
+                        String dataLicense,
+                        String documentNamespace,
+                        @JsonInclude(JsonInclude.Include.NON_EMPTY) List<String> documentDescribes,
+                        @JsonInclude(JsonInclude.Include.NON_EMPTY) List<SpdxPackage> packages,
+                        @JsonInclude(JsonInclude.Include.NON_EMPTY) List<SpdxRelationship> relationships) {
+        this.spdxId = spdxId;
+        this.spdxVersion = spdxVersion;
+        this.creationInfo = creationInfo;
+        this.name = name;
+        this.dataLicense = dataLicense;
+        this.documentNamespace = documentNamespace;
+        this.documentDescribes = documentDescribes;
+        this.packages = packages;
+        this.relationships = relationships;
+    }
+
     @JsonProperty("SPDXID")
     String spdxId;
 
