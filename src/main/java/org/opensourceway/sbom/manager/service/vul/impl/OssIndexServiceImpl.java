@@ -1,11 +1,13 @@
 package org.opensourceway.sbom.manager.service.vul.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.opensourceway.sbom.clients.ossindex.OssIndexClient;
 import org.opensourceway.sbom.clients.ossindex.model.ComponentReportElement;
+import org.opensourceway.sbom.clients.ossindex.model.ComponentReportRequestBody;
 import org.opensourceway.sbom.clients.ossindex.model.OssIndexVulnerability;
 import org.opensourceway.sbom.manager.dao.ExternalVulRefRepository;
 import org.opensourceway.sbom.manager.dao.PackageRepository;
@@ -25,6 +27,7 @@ import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
 import org.opensourceway.sbom.manager.service.vul.AbstractVulService;
 import org.opensourceway.sbom.manager.utils.CvssSeverity;
 import org.opensourceway.sbom.manager.utils.PurlUtil;
+import org.opensourceway.sbom.utils.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -231,7 +234,13 @@ public class OssIndexServiceImpl extends AbstractVulService {
                             resultSet.add(Pair.of(purlRef, responseVul));
                         }));
             } catch (Exception e) {
-                logger.error("failed to extract vulnerabilities from OssIndex for sbom {}", sbomId, e);
+                String requestBody = null;
+                try {
+                    requestBody = Mapper.jsonMapper.writeValueAsString(new ComponentReportRequestBody(requestPurlsChunk));
+                } catch (JsonProcessingException ex) {
+                    logger.error("convert ComponentReportRequestBody failed", ex);
+                }
+                logger.error("failed to extract vulnerabilities from OssIndex for sbom {}, request body:{}", requestBody, sbomId, e);
                 reportVulFetchFailure(sbomId);
                 throw e;
             }
