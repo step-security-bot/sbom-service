@@ -142,7 +142,7 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
                 vo.setName(upstreamLocation);
                 upstreamPurl.setPurl(vo);
                 if (pkg.getExternalPurlRefs().contains(upstreamPurl)) {
-                    logger.warn("upstreamPurl:{} has existed in package:{}", upstreamPurl, pkg.getId());
+                    logger.warn("upstreamPurl:{} has existed in package:{}", upstreamPurl.getPurl(), pkg.getId());
                     continue;
                 }
                 pkg.getExternalPurlRefs().add(upstreamPurl);

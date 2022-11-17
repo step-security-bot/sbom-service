@@ -60,16 +60,20 @@ public class SupplySourceInfoWriter implements ItemWriter<SupplySourceInfo>, Ste
             allRelationshipSet.addAll(sourceInfo.getRelationshipList());
         });
 
-        List<File> tempFileList = allFileSet
+        List<File> saveFileList = allFileSet
                 .stream()
                 .filter(tempFile -> !sbom.getFiles().contains(tempFile))
                 .toList();
-        logger.info("=======================current sbom file size:{}, chunk fileSet size:{}, save fileList size:{}", sbom.getFiles().size(), allFileSet.size(), tempFileList.size());
-        fileRepository.saveAll(tempFileList);
-        elementRelationshipRepository.saveAll(allRelationshipSet
+        logger.info("==current sbom file size:{}, chunk fileSet size:{}, save fileList size:{}", sbom.getFiles().size(), allFileSet.size(), saveFileList.size());
+        fileRepository.saveAll(saveFileList);
+
+        List<SbomElementRelationship> saveRelationshipList = allRelationshipSet
                 .stream()
                 .filter(tempRelationship -> !sbom.getSbomElementRelationships().contains(tempRelationship))
-                .toList());
+                .toList();
+        logger.info("==current sbom relationship size:{}, chunk relationshipSet size:{}, save relationshipList size:{}",
+                sbom.getSbomElementRelationships().size(), allRelationshipSet.size(), saveRelationshipList.size());
+        elementRelationshipRepository.saveAll(saveRelationshipList);
 
         logger.info("finish SupplySourceInfoWriter sbomId:{}", sbomId);
     }
