@@ -13,6 +13,7 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -105,5 +106,19 @@ public class SbomElementRelationship {
 
     public void setSbom(Sbom sbom) {
         this.sbom = sbom;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SbomElementRelationship that = (SbomElementRelationship) o;
+        return Objects.equals(elementId, that.elementId) && Objects.equals(relatedElementId, that.relatedElementId) && Objects.equals(relationshipType, that.relationshipType)
+                && Objects.equals(sbom == null ? null : sbom.getId(), that.sbom == null ? null : that.sbom.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(elementId, relatedElementId, relationshipType, sbom == null ? null : sbom.getId());
     }
 }
