@@ -58,7 +58,7 @@ public class Product {
      */
     @Column(columnDefinition = "JSONB", nullable = false)
     @Type(type = "jsonb")
-    private Map<String, ?> attribute;
+    private Map<String, String> attribute;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
@@ -96,11 +96,11 @@ public class Product {
         this.rawSboms = rawSboms;
     }
 
-    public Map<String, ?> getAttribute() {
+    public Map<String, String> getAttribute() {
         return attribute;
     }
 
-    public void setAttribute(Map<String, ?> attribute) {
+    public void setAttribute(Map<String, String> attribute) {
         this.attribute = attribute;
     }
 

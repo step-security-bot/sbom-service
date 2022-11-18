@@ -1,6 +1,8 @@
 package org.opensourceway.sbom.manager.model.vo;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ProductConfigVo implements Serializable {
 
@@ -8,16 +10,7 @@ public class ProductConfigVo implements Serializable {
 
     private String label;
 
-    private String valueType;
-
-    private Integer ord;
-
-    public ProductConfigVo(String name, String label, String valueType, Integer ord) {
-        this.name = name;
-        this.label = label;
-        this.valueType = valueType;
-        this.ord = ord;
-    }
+    private Map<String, ProductConfigVo> valueToNextConfig = new HashMap<>();
 
     public String getName() {
         return name;
@@ -35,19 +28,21 @@ public class ProductConfigVo implements Serializable {
         this.label = label;
     }
 
-    public String getValueType() {
-        return valueType;
+    public Map<String, ProductConfigVo> getValueToNextConfig() {
+        return valueToNextConfig;
     }
 
-    public void setValueType(String valueType) {
-        this.valueType = valueType;
+    public void setValueToNextConfig(Map<String, ProductConfigVo> valueToNextConfig) {
+        this.valueToNextConfig = valueToNextConfig;
     }
 
-    public Integer getOrd() {
-        return ord;
-    }
-
-    public void setOrd(Integer ord) {
-        this.ord = ord;
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("ProductConfigVo{");
+        sb.append("name='").append(name).append('\'');
+        sb.append(", label='").append(label).append('\'');
+        sb.append(", valueToNextConfig=").append(valueToNextConfig);
+        sb.append('}');
+        return sb.toString();
     }
 }

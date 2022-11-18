@@ -54,9 +54,9 @@ public interface SbomService {
 
     List<String> queryProductType();
 
-    List<ProductConfigVo> queryProductConfigByProductType(String productType);
+    ProductConfigVo queryProductConfigByProductType(String productType);
 
-    Product queryProductByFullAttributes(Map<String, ?> attributes) throws JsonProcessingException;
+    Product queryProductByFullAttributes(Map<String, String> attributes) throws JsonProcessingException;
 
     void persistSbomFromTraceData(String productName, String fileName, InputStream inputStream) throws IOException;
 

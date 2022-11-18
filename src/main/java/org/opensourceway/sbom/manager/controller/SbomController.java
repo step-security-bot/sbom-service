@@ -392,7 +392,7 @@ public class SbomController {
     @GetMapping("/queryProductConfig/{productType}")
     public @ResponseBody ResponseEntity queryProductConfigByProductType(@PathVariable("productType") String productType) {
         logger.info("query product config by productType:{}", productType);
-        List<ProductConfigVo> queryResult;
+        ProductConfigVo queryResult;
 
         try {
             queryResult = sbomService.queryProductConfigByProductType(productType);
@@ -404,12 +404,13 @@ public class SbomController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("query product config failed.");
         }
 
-        logger.info("query product config result size:{}", queryResult.size());
+        logger.info("query product config result: {}", queryResult);
         return ResponseEntity.status(HttpStatus.OK).body(queryResult);
     }
 
     @PostMapping("/queryProduct/{productType}")
-    public @ResponseBody ResponseEntity queryProductByFullAttributes(@PathVariable("productType") String productType, @RequestBody Map<String, Object> attributes) {
+    public @ResponseBody ResponseEntity queryProductByFullAttributes(@PathVariable("productType") String productType,
+                                                                     @RequestBody Map<String, String> attributes) {
         logger.info("query product info by productType:{}, attributes:{}", productType, attributes);
         attributes.put("productType", productType);
 

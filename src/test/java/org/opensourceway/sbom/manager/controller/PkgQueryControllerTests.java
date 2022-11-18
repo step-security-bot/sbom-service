@@ -621,30 +621,25 @@ public class PkgQueryControllerTests {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
-                .andExpect(jsonPath("$.*", hasSize(3)))
+                .andExpect(jsonPath("$.*", hasSize(4)))
                 .andExpect(jsonPath("$.[0]").value("openEuler"))
                 .andExpect(jsonPath("$.[1]").value("MindSpore"))
-                .andExpect(jsonPath("$.[2]").value("openGauss"));
+                .andExpect(jsonPath("$.[2]").value("openGauss"))
+                .andExpect(jsonPath("$.[3]").value(TestConstants.TEST_PRODUCT_TYPE));
     }
 
     @Test
     public void queryProductConfigForOpenEuler() throws Exception {
         this.mockMvc
-                .perform(get("/sbom-api/queryProductConfig/%s".formatted(TestConstants.OPENEULER_PRODUCT_TYPE_NAME))
+                .perform(get("/sbom-api/queryProductConfig/%s".formatted(TestConstants.TEST_PRODUCT_TYPE))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
-                .andExpect(jsonPath("$.*", hasSize(4)))
-                .andExpect(jsonPath("$.[0].name").value("version"))
-                .andExpect(jsonPath("$.[0].label").value("版本号"))
-                .andExpect(jsonPath("$.[0].valueType").value(new JsonContainsMatcher("\"label\":\"openEuler-22.03-LTS\",\"value\":\"openEuler-22.03-LTS\"")))
-                .andExpect(jsonPath("$.[0].ord").value(1))
-                .andExpect(jsonPath("$.[3].name").value("arch"))
-                .andExpect(jsonPath("$.[3].label").value("系统架构"))
-                .andExpect(jsonPath("$.[3].valueType").value("enum([{\"label\":\"aarch64\",\"value\":\"aarch64\"},{\"label\":\"x86_64\",\"value\":\"x86_64\"}])"))
-                .andExpect(jsonPath("$.[3].ord").value(4));
+                .andExpect(jsonPath("$.*", hasSize(3)))
+                .andExpect(jsonPath("$.name").value("arg"))
+                .andExpect(jsonPath("$.label").value("测试参数"));
     }
 
     @Test
@@ -656,7 +651,9 @@ public class PkgQueryControllerTests {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
-                .andExpect(jsonPath("$.*", hasSize(0)));
+                .andExpect(jsonPath("$.name").isEmpty())
+                .andExpect(jsonPath("$.label").isEmpty())
+                .andExpect(jsonPath("$.valueToNextConfig").isEmpty());
     }
 
     @Test

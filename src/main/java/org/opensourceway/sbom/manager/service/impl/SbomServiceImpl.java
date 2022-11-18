@@ -24,6 +24,7 @@ import org.opensourceway.sbom.manager.model.ExternalVulRef;
 import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
+import org.opensourceway.sbom.manager.model.ProductConfig;
 import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.ProductType;
 import org.opensourceway.sbom.manager.model.RawSbom;
@@ -415,14 +416,52 @@ public class SbomServiceImpl implements SbomService {
     }
 
     @Override
-    public List<ProductConfigVo> queryProductConfigByProductType(String productType) {
-        return productConfigRepository.findByProductTypeOrderByOrdAsc(productType)
-                .stream()
-                .map(it -> new ProductConfigVo(it.getName(), it.getLabel(), it.getValueType(), it.getOrd()))
-                .toList();
+    public ProductConfigVo queryProductConfigByProductType(String productType) {
+        List<ProductConfig> productConfigs = productConfigRepository.findByProductTypeOrderByOrdAsc(productType);
+        List<Product> products = productRepository.queryProductByPartialAttributes("{\"productType\": \"%s\"}".formatted(productType));
+
+        ProductConfigVo vo = new ProductConfigVo();
+        fillUpProductConfigRecursively(vo, products, productConfigs, 0);
+        return vo;
     }
 
-    public Product queryProductByFullAttributes(Map<String, ?> attributes) throws JsonProcessingException {
+    private void fillUpProductConfigRecursively(ProductConfigVo parentVo, List<Product> products,
+                                                List<ProductConfig> productConfigs, Integer productConfigIdx) {
+        products.stream()
+                .map(product -> product.getAttribute().get(productConfigs.get(productConfigIdx).getName()))
+                .distinct()
+                .forEachOrdered(configValue -> {
+                    ProductConfigVo vo = new ProductConfigVo();
+                    if (productConfigIdx + 1 == productConfigs.size()) {
+                        if (Objects.nonNull(configValue)) {
+                            parentVo.setName(productConfigs.get(productConfigIdx).getName());
+                            parentVo.setLabel(productConfigs.get(productConfigIdx).getLabel());
+                            parentVo.getValueToNextConfig().put(configValue, null);
+                        }
+                        return;
+                    }
+
+                    if (Objects.isNull(configValue)) {
+                        fillUpProductConfigRecursively(parentVo, products, productConfigs, productConfigIdx + 1);
+                        return;
+                    }
+
+                    List<Product> satisfiedProducts = products.stream()
+                            .filter(product -> StringUtils.equals(product.getAttribute().get(productConfigs.get(productConfigIdx).getName()), configValue))
+                            .toList();
+
+                    parentVo.setName(productConfigs.get(productConfigIdx).getName());
+                    parentVo.setLabel(productConfigs.get(productConfigIdx).getLabel());
+                    fillUpProductConfigRecursively(vo, satisfiedProducts, productConfigs, productConfigIdx + 1);
+                    if (Objects.isNull(vo.getName())) {
+                        parentVo.getValueToNextConfig().put(configValue, null);
+                    } else {
+                        parentVo.getValueToNextConfig().put(configValue, vo);
+                    }
+                });
+    }
+
+    public Product queryProductByFullAttributes(Map<String, String> attributes) throws JsonProcessingException {
         String attr = Mapper.objectMapper.writeValueAsString(attributes);
         return productRepository.queryProductByFullAttributes(attr);
     }

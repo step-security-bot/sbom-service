@@ -3,6 +3,7 @@ package org.opensourceway.sbom.manager.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -12,7 +13,9 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -48,12 +51,6 @@ public class ProductConfig {
     private String label;
 
     /**
-     * Value type of config, such as Integer/String/Boolean/enum(x86_64, aarch64).
-     */
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String valueType;
-
-    /**
      * Order of a config.
      */
     @Column(nullable = false)
@@ -66,6 +63,13 @@ public class ProductConfig {
     @JoinColumn(name = "product_type", foreignKey = @ForeignKey(name = "product_type_fk"))
     @JsonIgnore
     private ProductType productType;
+
+    /**
+     * Product config values of a product config.
+     */
+    @OneToMany(mappedBy = "productConfig", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<ProductConfigValue> productConfigValues;
 
     public UUID getId() {
         return id;
@@ -91,14 +95,6 @@ public class ProductConfig {
         this.label = label;
     }
 
-    public String getValueType() {
-        return valueType;
-    }
-
-    public void setValueType(String valueType) {
-        this.valueType = valueType;
-    }
-
     public Integer getOrd() {
         return ord;
     }
@@ -113,5 +109,13 @@ public class ProductConfig {
 
     public void setProductType(ProductType productType) {
         this.productType = productType;
+    }
+
+    public List<ProductConfigValue> getProductConfigValues() {
+        return productConfigValues;
+    }
+
+    public void setProductConfigValues(List<ProductConfigValue> productConfigValues) {
+        this.productConfigValues = productConfigValues;
     }
 }
