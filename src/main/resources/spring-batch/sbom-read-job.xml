@@ -116,11 +116,11 @@
             </flow>
 
             <flow>
-                <step id="supplySourceInfo">
+                <step id="supplySourceInfo" parent="stepDelayRetry">
                     <tasklet>
                         <chunk processor="supplySourceInfoProcessor"
                                writer="supplySourceInfoWriter"
-                               commit-interval="2" retry-limit="2">
+                               commit-interval="2" retry-limit="5">
                             <reader>
                                 <beans:bean id="supplySourceInfoReader"
                                             class="org.opensourceway.sbom.manager.batch.reader.sourceinfo.SupplySourceInfoReader"
@@ -148,6 +148,17 @@
             <listener ref="allStepsListener"/>
         </listeners>
     </job>
+
+    <bean id="stepDelayRetry" class="org.springframework.batch.core.step.factory.FaultTolerantStepFactoryBean"
+          abstract="true">
+        <property name="backOffPolicy">
+            <bean class="org.springframework.retry.backoff.ExponentialBackOffPolicy">
+                <property name="initialInterval" value="5000"/>
+                <property name="maxInterval" value="500000"/>
+                <property name="multiplier" value="3"/>
+            </bean>
+        </property>
+    </bean>
 
     <bean id="selectWaitRawSbomStep"
           class="org.opensourceway.sbom.manager.batch.step.SelectWaitRawSbomStep"/>
