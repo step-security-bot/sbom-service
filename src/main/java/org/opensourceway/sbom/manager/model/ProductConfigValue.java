@@ -19,8 +19,7 @@ import java.util.UUID;
  */
 @Entity
 @Table(indexes = {
-        @Index(name = "config_value_uk", columnList = "product_config_id, value", unique = true),
-        @Index(name = "config_label_uk", columnList = "product_config_id, label", unique = true)
+        @Index(name = "config_value_uk", columnList = "product_config_id, value", unique = true)
 })
 public class ProductConfigValue {
     @Id
@@ -29,13 +28,7 @@ public class ProductConfigValue {
     private UUID id;
 
     /**
-     * Label used by front end.
-     */
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String label;
-
-    /**
-     * Value used by back end.
+     * Allowed value of a product config.
      */
     @Column(columnDefinition = "TEXT", nullable = false)
     private String value;
@@ -54,14 +47,6 @@ public class ProductConfigValue {
 
     public void setId(UUID id) {
         this.id = id;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
     }
 
     public String getValue() {

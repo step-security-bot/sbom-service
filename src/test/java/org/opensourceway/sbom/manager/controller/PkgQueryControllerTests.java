@@ -661,7 +661,7 @@ public class PkgQueryControllerTests {
         Map<String, String> attributes = CollectionUtils.newHashMap(0);
         attributes.put("version", "openEuler-22.03-LTS");
         attributes.put("imageFormat", "ISO");
-        attributes.put("imageType", "everything");
+        attributes.put("imageType", "Everything");
         attributes.put("arch", "x86_64");
 
         this.mockMvc
@@ -681,7 +681,7 @@ public class PkgQueryControllerTests {
     public void queryProductByAttrsForOpenEuler2() throws Exception {
         Map<String, String> attributes = CollectionUtils.newHashMap(0);
         attributes.put("arch", "x86_64");
-        attributes.put("imageType", "everything");
+        attributes.put("imageType", "Everything");
         attributes.put("imageFormat", "ISO");
         attributes.put("version", "openEuler-22.03-LTS");
 

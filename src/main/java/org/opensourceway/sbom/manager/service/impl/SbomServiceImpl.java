@@ -57,6 +57,7 @@ import org.opensourceway.sbom.manager.utils.SbomFormat;
 import org.opensourceway.sbom.manager.utils.SbomMapperUtil;
 import org.opensourceway.sbom.manager.utils.SbomSpecification;
 import org.opensourceway.sbom.manager.utils.UrlUtil;
+import org.opensourceway.sbom.manager.utils.cache.ProductConfigCache;
 import org.opensourceway.sbom.utils.Mapper;
 import org.opensourceway.sbom.utils.VersionUtil;
 import org.slf4j.Logger;
@@ -126,6 +127,9 @@ public class SbomServiceImpl implements SbomService {
 
     @Autowired
     private VulnerabilityRepository vulnerabilityRepository;
+
+    @Autowired
+    private ProductConfigCache productConfigCache;
 
     @Value("${sbom.service.website.domain}")
     private String sbomWebsiteDomain;
@@ -417,48 +421,7 @@ public class SbomServiceImpl implements SbomService {
 
     @Override
     public ProductConfigVo queryProductConfigByProductType(String productType) {
-        List<ProductConfig> productConfigs = productConfigRepository.findByProductTypeOrderByOrdAsc(productType);
-        List<Product> products = productRepository.queryProductByPartialAttributes("{\"productType\": \"%s\"}".formatted(productType));
-
-        ProductConfigVo vo = new ProductConfigVo();
-        fillUpProductConfigRecursively(vo, products, productConfigs, 0);
-        return vo;
-    }
-
-    private void fillUpProductConfigRecursively(ProductConfigVo parentVo, List<Product> products,
-                                                List<ProductConfig> productConfigs, Integer productConfigIdx) {
-        products.stream()
-                .map(product -> product.getAttribute().get(productConfigs.get(productConfigIdx).getName()))
-                .distinct()
-                .forEachOrdered(configValue -> {
-                    ProductConfigVo vo = new ProductConfigVo();
-                    if (productConfigIdx + 1 == productConfigs.size()) {
-                        if (Objects.nonNull(configValue)) {
-                            parentVo.setName(productConfigs.get(productConfigIdx).getName());
-                            parentVo.setLabel(productConfigs.get(productConfigIdx).getLabel());
-                            parentVo.getValueToNextConfig().put(configValue, null);
-                        }
-                        return;
-                    }
-
-                    if (Objects.isNull(configValue)) {
-                        fillUpProductConfigRecursively(parentVo, products, productConfigs, productConfigIdx + 1);
-                        return;
-                    }
-
-                    List<Product> satisfiedProducts = products.stream()
-                            .filter(product -> StringUtils.equals(product.getAttribute().get(productConfigs.get(productConfigIdx).getName()), configValue))
-                            .toList();
-
-                    parentVo.setName(productConfigs.get(productConfigIdx).getName());
-                    parentVo.setLabel(productConfigs.get(productConfigIdx).getLabel());
-                    fillUpProductConfigRecursively(vo, satisfiedProducts, productConfigs, productConfigIdx + 1);
-                    if (Objects.isNull(vo.getName())) {
-                        parentVo.getValueToNextConfig().put(configValue, null);
-                    } else {
-                        parentVo.getValueToNextConfig().put(configValue, vo);
-                    }
-                });
+        return productConfigCache.queryProductConfigByProductType(productType);
     }
 
     public Product queryProductByFullAttributes(Map<String, String> attributes) throws JsonProcessingException {
