@@ -57,7 +57,7 @@ public class ChecksumToGAVTest {
     public void initChecksumSbom() {
         Product product = new Product();
         product.setName(TestConstants.PUBLISH_TEST_CHECKSUM_NAME);
-        product.setAttribute(Map.of("arg", "8"));
+        product.setAttribute(Map.of("productType", "testProduct", "arg", "8"));
         Sbom sbom = new Sbom(product);
         sbom.setName("checksumTest");
         product.setSbom(sbom);

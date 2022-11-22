@@ -289,51 +289,24 @@ class SbomServiceTest {
 
     @Test
     public void queryProductConfigByProductType() {
-        ProductType productType = new ProductType();
-        productType.setType("test_type_2");
-
-        ProductConfig config_1 = new ProductConfig();
-        config_1.setProductType(productType);
-        config_1.setValueType("String");
-        config_1.setOrd(1);
-        config_1.setName("os");
-        config_1.setLabel("操作系统");
-
-        ProductConfig config_2 = new ProductConfig();
-        config_2.setProductType(productType);
-        config_2.setValueType("String");
-        config_2.setOrd(2);
-        config_2.setName("arch");
-        config_2.setLabel("系统架构");
-
-        productType.setProductConfigs(List.of(config_1, config_2));
-        ProductType ret = productTypeRepository.save(productType);
-
-        List<ProductConfigVo> configVos = sbomService.queryProductConfigByProductType("test_type_2");
-        assertThat(configVos.get(0).getName()).isEqualTo("os");
-        assertThat(configVos.get(0).getLabel()).isEqualTo("操作系统");
-        assertThat(configVos.get(0).getValueType()).isEqualTo("String");
-        assertThat(configVos.get(0).getOrd()).isEqualTo(1);
-        assertThat(configVos.get(1).getName()).isEqualTo("arch");
-        assertThat(configVos.get(1).getLabel()).isEqualTo("系统架构");
-        assertThat(configVos.get(1).getValueType()).isEqualTo("String");
-        assertThat(configVos.get(1).getOrd()).isEqualTo(2);
-
-        productTypeRepository.delete(ret);
+        ProductConfigVo configVos = sbomService.queryProductConfigByProductType(TestConstants.TEST_PRODUCT_TYPE);
+        assertThat(configVos.getName()).isEqualTo("arg");
+        assertThat(configVos.getLabel()).isEqualTo("测试参数");
+        assertThat(configVos.getValueToNextConfig().size()).isGreaterThan(0);
     }
 
     @Test
     public void queryProductByFullAttributes() throws JsonProcessingException {
         Product product = new Product();
         product.setName("test_product");
-        product.setAttribute(Map.of("os", "linux", "arch", "x86_64", "test", 1));
+        product.setAttribute(Map.of("os", "linux", "arch", "x86_64", "test", "1"));
         Product ret = productRepository.save(product);
 
-        Product product_found = sbomService.queryProductByFullAttributes(Map.of("os", "linux", "arch", "x86_64", "test", 1));
+        Product product_found = sbomService.queryProductByFullAttributes(Map.of("os", "linux", "arch", "x86_64", "test", "1"));
         assertThat(product_found.getName()).isEqualTo("test_product");
         assertThat(product_found.getAttribute().get("os")).isEqualTo("linux");
         assertThat(product_found.getAttribute().get("arch")).isEqualTo("x86_64");
-        assertThat(product_found.getAttribute().get("test")).isEqualTo(1);
+        assertThat(product_found.getAttribute().get("test")).isEqualTo("1");
 
         productRepository.delete(ret);
     }

@@ -25,4 +25,6 @@ public class TestConstants {
 
     public static final String SAMPLE_OBS_META_SERVICE_FILE_NAME = "specs/obs_meta_service";
 
+    public static final String TEST_PRODUCT_TYPE = "testProduct";
+
 }

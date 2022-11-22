@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -13,6 +14,10 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     @Query(value = "SELECT * FROM product WHERE attribute @> :attr\\:\\:jsonb and attribute <@ :attr\\:\\:jsonb",
             nativeQuery = true)
     Product queryProductByFullAttributes(@Param("attr") String attr);
+
+    @Query(value = "SELECT * FROM product WHERE attribute @> :attr\\:\\:jsonb",
+            nativeQuery = true)
+    List<Product> queryProductByPartialAttributes(@Param("attr") String attr);
 
     Optional<Product> findByName(String name);
 

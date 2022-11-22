@@ -16,4 +16,5 @@ public class CacheConstants {
 
     public static final String CHECKSUM_SKIP_MAP_CACHE_KEY_PATTERN = "#checksumSkip";
 
+    public static final String PRODUCT_CONFIG_CACHE_NAME = "productConfig";
 }

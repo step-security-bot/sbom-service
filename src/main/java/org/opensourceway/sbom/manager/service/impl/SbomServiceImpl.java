@@ -24,6 +24,7 @@ import org.opensourceway.sbom.manager.model.ExternalVulRef;
 import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
+import org.opensourceway.sbom.manager.model.ProductConfig;
 import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.ProductType;
 import org.opensourceway.sbom.manager.model.RawSbom;
@@ -56,6 +57,7 @@ import org.opensourceway.sbom.manager.utils.SbomFormat;
 import org.opensourceway.sbom.manager.utils.SbomMapperUtil;
 import org.opensourceway.sbom.manager.utils.SbomSpecification;
 import org.opensourceway.sbom.manager.utils.UrlUtil;
+import org.opensourceway.sbom.manager.utils.cache.ProductConfigCache;
 import org.opensourceway.sbom.utils.Mapper;
 import org.opensourceway.sbom.utils.VersionUtil;
 import org.slf4j.Logger;
@@ -125,6 +127,9 @@ public class SbomServiceImpl implements SbomService {
 
     @Autowired
     private VulnerabilityRepository vulnerabilityRepository;
+
+    @Autowired
+    private ProductConfigCache productConfigCache;
 
     @Value("${sbom.service.website.domain}")
     private String sbomWebsiteDomain;
@@ -415,14 +420,11 @@ public class SbomServiceImpl implements SbomService {
     }
 
     @Override
-    public List<ProductConfigVo> queryProductConfigByProductType(String productType) {
-        return productConfigRepository.findByProductTypeOrderByOrdAsc(productType)
-                .stream()
-                .map(it -> new ProductConfigVo(it.getName(), it.getLabel(), it.getValueType(), it.getOrd()))
-                .toList();
+    public ProductConfigVo queryProductConfigByProductType(String productType) {
+        return productConfigCache.queryProductConfigByProductType(productType);
     }
 
-    public Product queryProductByFullAttributes(Map<String, ?> attributes) throws JsonProcessingException {
+    public Product queryProductByFullAttributes(Map<String, String> attributes) throws JsonProcessingException {
         String attr = Mapper.objectMapper.writeValueAsString(attributes);
         return productRepository.queryProductByFullAttributes(attr);
     }
