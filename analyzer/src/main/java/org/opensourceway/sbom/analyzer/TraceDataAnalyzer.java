@@ -6,6 +6,7 @@ import org.opensourceway.sbom.analyzer.parser.CollectedInfoParser;
 import org.opensourceway.sbom.analyzer.parser.Http2Parser;
 import org.opensourceway.sbom.analyzer.parser.HttpParser;
 import org.opensourceway.sbom.analyzer.parser.ProcessParser;
+import org.opensourceway.sbom.constants.PublishSbomConstants;
 import org.opensourceway.sbom.utils.FileUtil;
 import org.opensourceway.sbom.utils.Mapper;
 import org.ossreviewtoolkit.analyzer.Analyzer;
@@ -45,6 +46,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -112,11 +114,14 @@ public class TraceDataAnalyzer {
         logger.info("start to parse trace data");
 
         FileUtil.extractTarGzipArchive(inputStream, workspace.toString());
+        FileUtil.extractTarGzipArchive(Paths.get(workspace.toString(), PublishSbomConstants.TRACE_DATA_TAR), workspace.toString());
+        FileUtil.extractTarGzipArchive(Paths.get(workspace.toString(), PublishSbomConstants.DEFINITION_FILE_TAR), workspace.toString());
 
-        List<ProcessIdentifier> allProcess = processParser.getAllProcess(workspace, getTaskId(workspace));
-        Set<CuratedPackage> httpPackages = httpParser.parse(workspace, allProcess);
-        Set<CuratedPackage> http2Packages = http2Parser.parse(workspace, allProcess);
-        Set<CuratedPackage> otherPackages = collectedInfoParser.parse(workspace, allProcess);
+        Path traceDataPath = Paths.get(workspace.toString(), PublishSbomConstants.TRACE_DATA_DIR_NAME);
+        List<ProcessIdentifier> allProcess = processParser.getAllProcess(traceDataPath, getTaskId(traceDataPath));
+        Set<CuratedPackage> httpPackages = httpParser.parse(traceDataPath, allProcess);
+        Set<CuratedPackage> http2Packages = http2Parser.parse(traceDataPath, allProcess);
+        Set<CuratedPackage> otherPackages = collectedInfoParser.parse(traceDataPath, allProcess);
         TreeSet<CuratedPackage> packages = new TreeSet<>();
         for (Set<CuratedPackage> curatedPackages : Arrays.asList(httpPackages, http2Packages, otherPackages)) {
             packages.addAll(curatedPackages);
