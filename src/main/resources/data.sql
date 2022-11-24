@@ -7,7 +7,8 @@ CREATE INDEX IF NOT EXISTS external_purl_ref_purl_idx ON external_purl_ref USING
 INSERT INTO product_type VALUES
 ('openEuler'),
 ('MindSpore'),
-('openGauss')
+('openGauss'),
+('OpenHarmony')
 ON CONFLICT (type) DO NOTHING;
 
 -- Init table product_config
@@ -42,6 +43,13 @@ VALUES
 ('527a8727-2d7e-4db4-b138-acb33405e447', 'version', '版本号', 2, 'openGauss'),
 ('243452d3-da07-4fab-ad74-8767629528fa', 'os', '操作系统', 3, 'openGauss'),
 ('c589facd-4ac6-441d-b8fa-a787ea60c18e', 'arch', '系统架构', 4, 'openGauss')
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, label = EXCLUDED.label, ord = EXCLUDED.ord, product_type = EXCLUDED.product_type;
+
+-- OpenHarmony
+INSERT INTO product_config(id, name, label, ord, product_type)
+VALUES
+('f7856269-0339-4fe7-80fa-de15042d40d9', 'version', '版本号', 1, 'OpenHarmony')
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, label = EXCLUDED.label, ord = EXCLUDED.ord, product_type = EXCLUDED.product_type;
 
@@ -119,12 +127,23 @@ ON CONFLICT (id) DO UPDATE
 
 -- openGauss
 INSERT INTO product_config_value(id, value, product_config_id)
-VALUES('372c2093-83ec-418c-97f2-fdf6373e36a9', 'openGauss', '8f27d9b1-696b-4700-9fc0-385a45fc0c56')
+VALUES
+('372c2093-83ec-418c-97f2-fdf6373e36a9', 'openGauss Enterprise-Edition', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
+('33e5cbf3-c1ff-4eb2-8857-a497b495fce8', 'openGauss Simplified', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
+('8282f0a2-873b-4941-a077-a1c8e0d56a07', 'openGauss Lite', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
+('d4d8f4e1-2836-4337-a15e-12a40518aeed', 'openGauss JDBC', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
+('1afd7a75-3a93-43e9-a5a9-ead4a4b077b5', 'openGauss Python-psycopg2', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
+('8c813871-5272-4d9b-8a9a-7f4fd8b94de0', 'Data Studio', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
+('3ddfdcaf-8588-481b-bec7-0112e204c177', 'Chameleon', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
+('cacdf592-c8d0-4cc1-87b9-aa64ffb52598', 'Online Migration', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
+('e2178149-4da2-487d-9095-70a6e8181337', 'Reverse Migration', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
+('44140167-8719-4bc8-a173-97f342a0a22b', 'Data Checker', '8f27d9b1-696b-4700-9fc0-385a45fc0c56')
 ON CONFLICT (id) DO UPDATE
     SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
 
 INSERT INTO product_config_value(id, value, product_config_id)
-VALUES('600e3be9-725e-4d84-a1dc-0f147cd7d728', '3.1.0', '527a8727-2d7e-4db4-b138-acb33405e447')
+VALUES
+('600e3be9-725e-4d84-a1dc-0f147cd7d728', '3.1.0', '527a8727-2d7e-4db4-b138-acb33405e447')
 ON CONFLICT (id) DO UPDATE
     SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
 
@@ -139,6 +158,12 @@ INSERT INTO product_config_value(id, value, product_config_id)
 VALUES
 ('b66a2815-4821-433b-a8f7-a07c0e86e0b5', 'aarch64', 'c589facd-4ac6-441d-b8fa-a787ea60c18e'),
 ('0ceb1360-0743-49bb-9d63-ebcd7c75f3f0', 'x86_64', 'c589facd-4ac6-441d-b8fa-a787ea60c18e')
+ON CONFLICT (id) DO UPDATE
+    SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
+
+-- OpenHarmony
+INSERT INTO product_config_value(id, value, product_config_id)
+VALUES('da6b13a9-edb6-43d8-8b63-f6859abcadef', '3.1-Release', 'f7856269-0339-4fe7-80fa-de15042d40d9')
 ON CONFLICT (id) DO UPDATE
     SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
 
@@ -180,7 +205,33 @@ ON CONFLICT (id) DO UPDATE
 -- Insert openGauss products
 INSERT INTO product(id, name, attribute)
 VALUES
-('6c1bca0c-b8f2-40f5-90fe-75a376430748', 'openGauss-3.1.0-CentOS-64bit', '{"productType": "openGauss", "productName": "openGauss", "version": "3.1.0", "os": "CentOS", "arch": "x86_64"}'::jsonb)
+('6c1bca0c-b8f2-40f5-90fe-75a376430748', 'x86/openGauss-3.1.0-CentOS-64bit-all.tar.gz', '{"productType": "openGauss", "productName": "openGauss Enterprise-Edition", "version": "3.1.0", "os": "CentOS", "arch": "x86_64"}'::jsonb),
+('89776ab6-3493-4057-a192-aa5796709bc1', 'x86/openGauss-3.1.0-CentOS-64bit.tar.bz2', '{"productType": "openGauss", "productName": "openGauss Simplified", "version": "3.1.0", "os": "CentOS", "arch": "x86_64"}'::jsonb),
+('6aef07c9-ab24-4fb0-b319-c9209f817cef', 'x86/openGauss-Lite-3.1.0-CentOS-x86_64.tar.gz', '{"productType": "openGauss", "productName": "openGauss Lite", "version": "3.1.0", "os": "CentOS", "arch": "x86_64"}'::jsonb),
+('99264359-6450-45e3-b174-17bd012f3a01', 'arm/openGauss-3.1.0-openEuler-64bit-all.tar.gz', '{"productType": "openGauss", "productName": "openGauss Enterprise-Edition", "version": "3.1.0", "os": "openEuler", "arch": "aarch64"}'::jsonb),
+('2899d9e2-dc03-4345-8860-ae5ee6fb94ec', 'arm/openGauss-3.1.0-openEuler-64bit.tar.bz2', '{"productType": "openGauss", "productName": "openGauss Simplified", "version": "3.1.0", "os": "openEuler", "arch": "aarch64"}'::jsonb),
+('8d61701a-5f3b-43b4-a391-6a4116f4a484', 'arm/openGauss-Lite-3.1.0-openEuler-aarch64.tar.gz', '{"productType": "openGauss", "productName": "openGauss Lite", "version": "3.1.0", "os": "openEuler", "arch": "aarch64"}'::jsonb),
+('7e11957d-f8da-4230-961d-3e89fd7a833e', 'x86_openEuler/openGauss-3.1.0-openEuler-64bit-all.tar.gz', '{"productType": "openGauss", "productName": "openGauss Enterprise-Edition", "version": "3.1.0", "os": "openEuler", "arch": "x86_64"}'::jsonb),
+('2e960119-e5ae-4a8a-b251-fe918f407c0d', 'x86_openEuler/openGauss-3.1.0-openEuler-64bit.tar.bz2', '{"productType": "openGauss", "productName": "openGauss Simplified", "version": "3.1.0", "os": "openEuler", "arch": "x86_64"}'::jsonb),
+('fe908dc5-bc8d-4213-b91c-8b88f7bee0b5', 'x86_openEuler/openGauss-Lite-3.1.0-openEuler-x86_64.tar.gz', '{"productType": "openGauss", "productName": "openGauss Lite", "version": "3.1.0", "os": "openEuler", "arch": "x86_64"}'::jsonb),
+('e0666636-d8af-4cd1-9f04-cdc76d18c13b', 'x86/openGauss-3.1.0-JDBC.tar.gz', '{"productType": "openGauss", "productName": "openGauss JDBC", "version": "3.1.0", "os": "CentOS", "arch": "x86_64"}'::jsonb),
+('69b9ce97-5be9-427f-b4a0-825ab1ee9070', 'arm/openGauss-3.1.0-JDBC.tar.gz', '{"productType": "openGauss", "productName": "openGauss JDBC", "version": "3.1.0", "os": "openEuler", "arch": "aarch64"}'::jsonb),
+('f5aa7756-154b-499c-814d-662eb70855d5', 'x86_openEuler/openGauss-3.1.0-JDBC.tar.gz', '{"productType": "openGauss", "productName": "openGauss JDBC", "version": "3.1.0", "os": "openEuler", "arch": "x86_64"}'::jsonb),
+('5169272f-4d19-44c3-8c55-e57f164d399e', 'x86/openGauss-3.1.0-CentOS-x86_64-Python.tar.gz', '{"productType": "openGauss", "productName": "openGauss Python-psycopg2", "version": "3.1.0", "os": "CentOS", "arch": "x86_64"}'::jsonb),
+('b676a0e5-6838-4c9f-923f-308f25ab0c37', 'arm/openGauss-3.1.0-openEuler-aarch64-Python.tar.gz', '{"productType": "openGauss", "productName": "openGauss Python-psycopg2", "version": "3.1.0", "os": "openEuler", "arch": "aarch64"}'::jsonb),
+('a4794e73-1197-4b49-9ab6-8bca49bf24d0', 'x86_openEuler/openGauss-3.1.0-openEuler-x86_64-Python.tar.gz', '{"productType": "openGauss", "productName": "openGauss Python-psycopg2", "version": "3.1.0", "os": "openEuler", "arch": "x86_64"}'::jsonb),
+('3f391dfb-3986-47db-8bcb-3649c63b40b8', 'tools/DataStudio_win_64.zip', '{"productType": "openGauss", "productName": "Data Studio", "version": "3.1.0"}'::jsonb),
+('278c3713-6ec9-4c42-9b5a-b2028e6dc256', 'tools/chameleon-3.1.0-py3-none-any.whl', '{"productType": "openGauss", "productName": "Chameleon", "version": "3.1.0"}'::jsonb),
+('6002ae95-e595-46f7-ac74-7ff7d1b8c7c9', 'tools/online-migration-mysql2openGauss-3.1.0.tar.gz', '{"productType": "openGauss", "productName": "Online Migration", "version": "3.1.0"}'::jsonb),
+('136e382f-2a18-4fc8-86ad-e55a83e70946', 'tools/openGauss-reverse-migration-mysql-3.1.0.tar.gz', '{"productType": "openGauss", "productName": "Reverse Migration", "version": "3.1.0"}'::jsonb),
+('7ca73c8e-ee2e-4a6f-89ec-0f42c01a3c5a', 'tools/openGauss-datachecker-performance-3.1.0.tar.gz', '{"productType": "openGauss", "productName": "Data Checker", "version": "3.1.0"}'::jsonb)
+ON CONFLICT (id) DO UPDATE
+    SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
+
+-- OpenHarmony
+INSERT INTO product(id, name, attribute)
+VALUES
+('65d0a8d7-94ee-4f98-9992-889187e53206', 'harmonyos/os/3.1-Release/standard_hi3516.tar.gz', '{"productType": "OpenHarmony", "version": "3.1-Release"}'::jsonb)
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
 

@@ -621,11 +621,7 @@ public class PkgQueryControllerTests {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
-                .andExpect(jsonPath("$.*", hasSize(4)))
-                .andExpect(jsonPath("$.[0]").value("openEuler"))
-                .andExpect(jsonPath("$.[1]").value("MindSpore"))
-                .andExpect(jsonPath("$.[2]").value("openGauss"))
-                .andExpect(jsonPath("$.[3]").value(TestConstants.TEST_PRODUCT_TYPE));
+                .andExpect(jsonPath("$.*", hasSize(5)));
     }
 
     @Test

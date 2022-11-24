@@ -16,13 +16,14 @@ import org.springframework.lang.Nullable;
 import java.util.List;
 import java.util.UUID;
 
-public class SkipAnalyzeTraceDataDecider implements JobExecutionDecider {
+public class SkipAnalyzeSbomContentDecider implements JobExecutionDecider {
 
-    private final static Logger logger = LoggerFactory.getLogger(SkipAnalyzeTraceDataDecider.class);
+    private final static Logger logger = LoggerFactory.getLogger(SkipAnalyzeSbomContentDecider.class);
 
     private final static List<String> NEED_ANALYZE_TRACE_DATA_PRODUCT_LIST = List.of(
             SbomConstants.PRODUCT_MINDSPORE_NAME.toLowerCase(),
-            SbomConstants.PRODUCT_OPENGAUSS_NAME.toLowerCase());
+            SbomConstants.PRODUCT_OPENGAUSS_NAME.toLowerCase(),
+            SbomConstants.PRODUCT_OPENHARMONY_NAME.toLowerCase());
 
     @NotNull
     @Override
