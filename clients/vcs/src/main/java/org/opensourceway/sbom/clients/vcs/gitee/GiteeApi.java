@@ -169,7 +169,7 @@ public class GiteeApi implements VcsApi {
                 })
                 .retrieve()
                 .bodyToMono(String.class)
-                .retryWhen(Retry.backoff(1, Duration.ofSeconds(2)))
+                .retryWhen(Retry.backoff(3, Duration.ofSeconds(10)))
                 .block();
     }
 
