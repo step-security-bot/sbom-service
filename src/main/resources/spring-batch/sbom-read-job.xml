@@ -12,18 +12,18 @@
     <job id="readSbomJob" xmlns="http://www.springframework.org/schema/batch">
         <step id="selectWaitRawSbomTask">
             <tasklet ref="selectWaitRawSbomStep"/>
-            <next on="*" to="skipAnalyzeTraceDataDecision"/>
+            <next on="*" to="skipAnalyzeSbomContentDecision"/>
             <end on="STOPPED"/>
             <!-- <fail on="FAILED" exit-code="FAILED" /> -->
         </step>
 
-        <decision id="skipAnalyzeTraceDataDecision" decider="skipAnalyzeTraceDataDecider">
-            <next on="INORDER" to="traceDataAnalyzerTask"/>
+        <decision id="skipAnalyzeSbomContentDecision" decider="skipAnalyzeSbomContentDecider">
+            <next on="INORDER" to="AnalyzeSbomContentTask"/>
             <next on="*" to="parseSbomMetadataTask"/>
         </decision>
 
-        <step id="traceDataAnalyzerTask" next="parseSbomMetadataTask">
-            <tasklet ref="traceDataAnalyzerStep"/>
+        <step id="AnalyzeSbomContentTask" next="parseSbomMetadataTask">
+            <tasklet ref="AnalyzeSbomContentStep"/>
         </step>
 
         <step id="parseSbomMetadataTask" next="persistSbomMetadataTask">
@@ -204,11 +204,11 @@
     <bean id="selectWaitRawSbomStep"
           class="org.opensourceway.sbom.manager.batch.step.SelectWaitRawSbomStep"/>
 
-    <bean id="skipAnalyzeTraceDataDecider"
-          class="org.opensourceway.sbom.manager.batch.decider.SkipAnalyzeTraceDataDecider"/>
+    <bean id="skipAnalyzeSbomContentDecider"
+          class="org.opensourceway.sbom.manager.batch.decider.SkipAnalyzeSbomContentDecider"/>
 
-    <bean id="traceDataAnalyzerStep"
-          class="org.opensourceway.sbom.manager.batch.step.TraceDataAnalyzerStep"/>
+    <bean id="AnalyzeSbomContentStep"
+          class="org.opensourceway.sbom.manager.batch.step.AnalyzeSbomContentStep"/>
 
     <bean id="parseSbomMetadataStep"
           class="org.opensourceway.sbom.manager.batch.step.ParseSbomMetadataStep"/>
