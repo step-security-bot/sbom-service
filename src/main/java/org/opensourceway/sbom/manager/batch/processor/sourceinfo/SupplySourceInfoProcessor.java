@@ -68,6 +68,7 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
         logger.info("start SupplySourceInfoProcessor sbomId:{}, productVersion:{}, first pkg id:{}", sbomId, productVersion, pkgIdList.get(0).toString());
 
         SupplySourceInfo supplySourceInfo = new SupplySourceInfo();
+        List<String> noRepoMetaPkgList = new ArrayList<>();
 
         pkgIdList.forEach(pkgId -> {
             try {
@@ -85,15 +86,17 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
                     supplyDownloadLocation(supplySourceInfo, pkg, repoMeta);
                     supplyUpstream(supplySourceInfo, pkg, repoMeta);
                     supplyPatchInfo(supplySourceInfo, pkg, repoMeta);
-                }, () -> logger.error("SupplySourceInfoStep can't find package's repoMeta, sbomId:{}, pkgName:{}, branch:{}",
-                        sbomId,
-                        pkg.getName(),
-                        productVersion));
+                }, () -> noRepoMetaPkgList.add(pkg.getName()));
             } catch (Exception e) {
                 logger.error("SupplySourceInfoProcessor failed, package id:{}", pkgId, e);
                 throw new RuntimeException(e);
             }
         });
+
+        logger.warn("SupplySourceInfoStep can't find package's repoMeta, sbomId:{}, branch:{}, pkgName list:{}",
+                sbomId,
+                productVersion,
+                noRepoMetaPkgList);
 
         logger.info("finish SupplySourceInfoProcessor sbomId:{}", sbomId);
         return supplySourceInfo;
