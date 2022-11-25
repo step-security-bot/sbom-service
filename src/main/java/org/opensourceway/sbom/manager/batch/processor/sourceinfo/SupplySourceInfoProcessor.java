@@ -1,5 +1,6 @@
 package org.opensourceway.sbom.manager.batch.processor.sourceinfo;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -93,10 +94,12 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
             }
         });
 
-        logger.warn("SupplySourceInfoStep can't find package's repoMeta, sbomId:{}, branch:{}, pkgName list:{}",
-                sbomId,
-                productVersion,
-                noRepoMetaPkgList);
+        if (CollectionUtils.isNotEmpty(noRepoMetaPkgList)) {
+            logger.warn("SupplySourceInfoStep can't find package's repoMeta, sbomId:{}, branch:{}, pkgName list:{}",
+                    sbomId,
+                    productVersion,
+                    noRepoMetaPkgList);
+        }
 
         logger.info("finish SupplySourceInfoProcessor sbomId:{}", sbomId);
         return supplySourceInfo;
