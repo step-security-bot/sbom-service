@@ -45,18 +45,18 @@ public class OpenEulerAdvisorParser {
             case "gitee" -> location = parseCommonAdvisor(advisor, giteeDomainUrl);
             case "gnu-ftp" -> location = parseCommonAdvisor(advisor, gnuFtpDomainUrl);
             case "gitlab.gnome" -> location = parseCommonAdvisor(advisor, gitlabGnomeDomainUrl);
-            case "git", "svn", "cvs", "sourceforge", "fossil", "hg", "hg-raw" ->
+            case "git", "svn", "cvs", "ftp", "sourceforge", "fossil", "hg", "hg-raw" ->
                     location = parseDownloadAdvisor(advisor);
             case "github.gnome" -> location = parseGithubGnomeAdvisor(advisor, githubDomainUrl);
             case "pypi", "metacpan" -> location = upstreamDownloadUrl;
             default -> {
-                logger.error("OpenEulerAdvisorParser not support vcs control:{}, advisorContent:{}", advisor.getVersionControl(), advisorContent);
+                logger.error("OpenEulerAdvisorParser not support vcs control:{}, advisorContent:{}, upstreamDownloadUrl:{}", advisor.getVersionControl(), advisorContent, upstreamDownloadUrl);
                 location = upstreamDownloadUrl;
             }
         }
 
         if (location == null) {
-            logger.error("OpenEulerAdvisorParser not support, advisorContent:{}", advisorContent);
+            logger.error("OpenEulerAdvisorParser not support, advisorContent:{}, upstreamDownloadUrl:{}", advisorContent, upstreamDownloadUrl);
         }
         return location;
     }

@@ -15,7 +15,10 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -36,9 +39,17 @@ public class ExtractLicenseWriter implements ItemWriter<Set<Pair<ExternalPurlRef
         UUID sbomId = this.jobContext.containsKey(BatchContextConstants.BATCH_SBOM_ID_KEY) ?
                 (UUID) this.jobContext.get(BatchContextConstants.BATCH_SBOM_ID_KEY) : null;
         logger.info("start ExtractLicenseWriter sbomId:{}, chunk size:{}", sbomId, chunks.size());
+
+        Map<String, List<String>> illegalLicenseInfo = new HashMap<>();
         for (Set<Pair<ExternalPurlRef, Object>> externalLicenseRefSet : chunks) {
-            licenseService.persistExternalLicenseRefChunk(externalLicenseRefSet);
+            Map<String, List<String>> chunkLicInfo = licenseService.persistExternalLicenseRefChunk(externalLicenseRefSet);
+            chunkLicInfo.forEach((pkgName, licList) -> {
+                List<String> templist = illegalLicenseInfo.getOrDefault(pkgName, new ArrayList<>());
+                templist.addAll(licList);
+                illegalLicenseInfo.put(pkgName, templist);
+            });
         }
+        logger.warn("illegal licenses info in chunks:{}", illegalLicenseInfo);
         logger.info("finish ExtractLicenseWriter sbomId:{}", sbomId);
     }
 

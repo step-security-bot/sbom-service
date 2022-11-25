@@ -203,7 +203,8 @@ public class LicenseServiceImpl implements LicenseService {
     }
 
     @Override
-    public void persistExternalLicenseRefChunk(Set<Pair<ExternalPurlRef, Object>> externalLicenseRefSet) {
+    public Map<String, List<String>> persistExternalLicenseRefChunk(Set<Pair<ExternalPurlRef, Object>> externalLicenseRefSet) {
+        Map<String, List<String>> illegalLicenseInfo = new HashMap<>();
         int numOfNotScan = 0;
         for (Pair<ExternalPurlRef, Object> externalLicenseRefPair : externalLicenseRefSet) {
             ExternalPurlRef purlRef = externalLicenseRefPair.getLeft();
@@ -228,7 +229,9 @@ public class LicenseServiceImpl implements LicenseService {
                     }
                     if (illegalLicenseList.contains(lic)) {
                         license.setIsLegal(false);
-                        logger.warn("license {} for {} is not legal", lic, purlRef.getPkg().getName());
+                        List<String> licList = illegalLicenseInfo.getOrDefault(purlRef.getPkg().getName(), new ArrayList<>());
+                        licList.add(lic);
+                        illegalLicenseInfo.put(purlRef.getPkg().getName(), licList);
                     } else {
                         license.setIsLegal(true);
                     }
@@ -242,6 +245,7 @@ public class LicenseServiceImpl implements LicenseService {
             }
         }
         logger.info("The num of package not scanned license: {}", numOfNotScan);
+        return illegalLicenseInfo;
     }
 
     private void saveLicenseAndCopyrightForPackage(ComplianceResponse response, Package pkg) {
