@@ -64,18 +64,19 @@ public class SupplySourceInfoWriter implements ItemWriter<SupplySourceInfo>, Ste
                 .stream()
                 .filter(tempFile -> !sbom.getFiles().contains(tempFile))
                 .toList();
-        logger.info("==current sbom file size:{}, chunk fileSet size:{}, save fileList size:{}", sbom.getFiles().size(), allFileSet.size(), saveFileList.size());
         fileRepository.saveAll(saveFileList);
 
         List<SbomElementRelationship> saveRelationshipList = allRelationshipSet
                 .stream()
                 .filter(tempRelationship -> !sbom.getSbomElementRelationships().contains(tempRelationship))
                 .toList();
-        logger.info("==current sbom relationship size:{}, chunk relationshipSet size:{}, save relationshipList size:{}",
-                sbom.getSbomElementRelationships().size(), allRelationshipSet.size(), saveRelationshipList.size());
         elementRelationshipRepository.saveAll(saveRelationshipList);
 
-        logger.info("finish SupplySourceInfoWriter sbomId:{}", sbomId);
+        logger.info("finish SupplySourceInfoWriter sbomId:{}, sbom already has files:{}, chunk files:{}, save files:{};" +
+                        " sbom already has relationships:{}, chunk relationships:{}, save relationships:{}",
+                sbomId, sbom.getFiles().size(), allFileSet.size(), saveFileList.size(),
+                sbom.getSbomElementRelationships().size(), allRelationshipSet.size(), saveRelationshipList.size()
+        );
     }
 
     @Override

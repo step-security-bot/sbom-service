@@ -35,9 +35,9 @@
         </step>
 
         <!-- In org.opensourceway.sbom.manager.batch.job.JobConfiguration.restartSbomReadJob, use this step id decide rawSbom record's new taskStatus -->
-        <step id="resolveMavenDepTask" next="sbomConsumers">
+        <step id="resolveMavenDepTask" next="sbomConsumers" parent="stepDelayRetry">
             <tasklet>
-                <chunk commit-interval="3">
+                <chunk commit-interval="3" retry-limit="3">
                     <reader>
                         <beans:bean id="packageWithChecksumListReader"
                                     class="org.opensourceway.sbom.manager.batch.reader.checksum.PackageWithChecksumListReader"
@@ -58,6 +58,9 @@
                             <beans:constructor-arg ref="checksumServiceImpl"/>
                         </beans:bean>
                     </writer>
+                    <retryable-exception-classes>
+                        <include class="java.lang.RuntimeException"/>
+                    </retryable-exception-classes>
                 </chunk>
             </tasklet>
         </step>
