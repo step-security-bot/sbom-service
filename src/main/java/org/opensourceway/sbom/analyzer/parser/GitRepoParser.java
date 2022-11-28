@@ -1,21 +1,38 @@
 package org.opensourceway.sbom.analyzer.parser;
 
+import org.apache.commons.lang3.StringUtils;
 import org.opensourceway.sbom.analyzer.model.GitRepoDefault;
 import org.opensourceway.sbom.analyzer.model.GitRepoManifest;
 import org.opensourceway.sbom.analyzer.model.GitRepoProject;
 import org.opensourceway.sbom.analyzer.model.GitRepoRemote;
 import org.opensourceway.sbom.analyzer.pkggen.VcsPackageGenerator;
+import org.opensourceway.sbom.clients.vcs.VcsApi;
+import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.constants.PublishSbomConstants;
+import org.opensourceway.sbom.constants.SbomConstants;
+import org.opensourceway.sbom.manager.dao.ProductRepository;
+import org.opensourceway.sbom.manager.dao.RepoMetaRepository;
+import org.opensourceway.sbom.manager.model.Product;
+import org.opensourceway.sbom.manager.model.RepoMeta;
 import org.opensourceway.sbom.utils.Mapper;
 import org.ossreviewtoolkit.model.CuratedPackage;
+import org.ossreviewtoolkit.model.Identifier;
+import org.ossreviewtoolkit.model.Package;
+import org.ossreviewtoolkit.model.utils.ExtensionsKt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -28,8 +45,26 @@ import java.util.stream.Collectors;
 
 @Component
 public class GitRepoParser {
+
+    private static final Logger logger = LoggerFactory.getLogger(GitRepoParser.class);
+
+    private static final String THIRD_PARTY_REPO_PREFIX = "third_party_";
+
     @Autowired
     private VcsPackageGenerator vcsPackageGenerator;
+
+    @Autowired
+    private RepoMetaRepository repoMetaRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    @Qualifier("giteeApi")
+    private VcsApi giteeApi;
+
+    @Value("${gitee.domain.url}")
+    private String giteeDomainUrl;
 
     public Set<CuratedPackage> parse(Path gitRepoDirPath) throws IOException {
         Path defaultManifest = Paths.get(gitRepoDirPath.toString(), PublishSbomConstants.GIT_REPO_DEFAULT_MANIFEST);
@@ -166,9 +201,68 @@ public class GitRepoParser {
         for (String url: List.of(remote.getFetch(), remote.getReview())) {
             Matcher matcher = Pattern.compile("https://.*").matcher(url);
             if (matcher.matches()) {
-                return url.replaceAll("https://.*\\.gitee\\.com", "https://gitee.com");
+                return url.replaceAll("https://.*\\.gitee\\.com", giteeDomainUrl);
             }
         }
         throw new RuntimeException("Can't get url from remote [%s]".formatted(remote.getName()));
+    }
+
+    public Set<CuratedPackage> correctPackageNameVersion(String productName, Set<CuratedPackage> packages) {
+        Product product = productRepository.findByName(productName)
+                .orElseThrow(() -> new RuntimeException("can't find %s's product metadata".formatted(productName)));
+        String productType = product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_TYPE_KEY);
+
+        Set<CuratedPackage> correctedPackages = new HashSet<>();
+        packages.stream()
+                .map(CuratedPackage::getPkg)
+                .filter(pkg -> StringUtils.equalsIgnoreCase(productType, SbomConstants.PRODUCT_OPENHARMONY_NAME)
+                        && pkg.getId().getName().startsWith(THIRD_PARTY_REPO_PREFIX))
+                .forEach(pkg -> {
+                    logger.info("Convert name and version for OpenHarmony third packages: {}", pkg.getId().getName());
+                    handleOpenHarmonyThirdPartyRepo(productType, pkg, correctedPackages);
+                });
+
+        packages.stream()
+                .map(CuratedPackage::getPkg)
+                .filter(pkg -> !StringUtils.equalsIgnoreCase(productType, SbomConstants.PRODUCT_OPENHARMONY_NAME)
+                        || !pkg.getId().getName().startsWith(THIRD_PARTY_REPO_PREFIX))
+                .forEach(pkg -> correctedPackages.add(pkg.toCuratedPackage()));
+
+        return correctedPackages;
+    }
+
+    private void handleOpenHarmonyThirdPartyRepo(String productType, Package pkg, Set<CuratedPackage> correctedPackages) {
+        RepoMeta repoMeta = repoMetaRepository.findByProductTypeAndRepoNameAndBranch(productType, pkg.getId().getName(), pkg.getVcs().getRevision())
+                .orElse(null);
+
+        if (Objects.isNull(repoMeta)) {
+            correctedPackages.add(pkg.toCuratedPackage());
+            return;
+        }
+
+        Identifier identifier = new Identifier(pkg.getId().getType(), pkg.getId().getNamespace(),
+                getUpstreamName(pkg, repoMeta), getUpstreamVersion(pkg, repoMeta));
+
+        Package correctedPkg = new Package(identifier, ExtensionsKt.toPurl(identifier), "", pkg.getAuthors(),
+                pkg.getDeclaredLicenses(), pkg.getDeclaredLicensesProcessed(), pkg.getConcludedLicense(), pkg.getDescription(),
+                pkg.getHomepageUrl(), pkg.getBinaryArtifact(), pkg.getSourceArtifact(),
+                pkg.getVcs(), pkg.getVcsProcessed(), pkg.isMetaDataOnly(), pkg.isModified());
+        correctedPackages.add(correctedPkg.toCuratedPackage());
+    }
+
+    private String getUpstreamName(Package pkg, RepoMeta repoMeta) {
+        String upstreamName = getUpstreamInfo(pkg.getId().getName().replace(THIRD_PARTY_REPO_PREFIX, ""), repoMeta).get("upstream_name");
+        return ObjectUtils.isEmpty(upstreamName) ? pkg.getId().getName() : upstreamName;
+    }
+
+    private String getUpstreamVersion(Package pkg, RepoMeta repoMeta) {
+        String upstreamVersion = getUpstreamInfo(pkg.getId().getName().replace(THIRD_PARTY_REPO_PREFIX, ""), repoMeta).get("upstream_version");
+        return ObjectUtils.isEmpty(upstreamVersion) ? pkg.getId().getVersion() : upstreamVersion;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, String> getUpstreamInfo(String pkgName, RepoMeta repoMeta) {
+        return (Map<String, String>) Optional.ofNullable(repoMeta.getExtendedAttr())
+                .map(it -> it.getOrDefault(pkgName, Map.of())).orElse(Map.of());
     }
 }

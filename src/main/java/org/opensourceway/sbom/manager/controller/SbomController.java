@@ -8,6 +8,7 @@ import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.RawSbom;
+import org.opensourceway.sbom.manager.model.RepoMeta;
 import org.opensourceway.sbom.manager.model.echarts.Graph;
 import org.opensourceway.sbom.manager.model.vo.BinaryManagementVo;
 import org.opensourceway.sbom.manager.model.vo.CopyrightVo;
@@ -581,6 +582,7 @@ public class SbomController {
         return ResponseEntity.status(HttpStatus.OK).body(vo);
     }
 
+    @Deprecated
     private Boolean isFetchRepoMetaRunning = Boolean.FALSE;
 
     @GetMapping("/fetchOpenEulerRepoMeta")
@@ -605,6 +607,34 @@ public class SbomController {
         }
 
         logger.info("finish manual launch fetch-openEuler-repo-meta job, coast:{} ms", System.currentTimeMillis() - start);
+        return ResponseEntity.status(HttpStatus.OK).body("OK");
+    }
+
+    @Deprecated
+    private Boolean isOpenHarmonyFetchRepoMetaRunning = Boolean.FALSE;
+
+    @GetMapping("/fetchOpenHarmonyRepoMeta")
+    @Deprecated
+    public @ResponseBody ResponseEntity fetchOpenHarmonyRepoMeta() {
+        if (isOpenHarmonyFetchRepoMetaRunning) {
+            logger.warn("start manual launch fetch-OpenHarmony-repo-meta, has job running");
+            return ResponseEntity.status(HttpStatus.OK).body("Running");
+        } else {
+            isOpenHarmonyFetchRepoMetaRunning = Boolean.TRUE;
+            logger.info("start manual launch fetch-OpenHarmony-repo-meta");
+        }
+
+        long start = System.currentTimeMillis();
+        try {
+            List<RepoMeta> result = repoService.fetchOpenHarmonyRepoMeta();
+            logger.info("fetch-OpenHarmony-repo-meta result size:{}", result.size());
+        } catch (Exception e) {
+            logger.error("manual launch fetch-OpenHarmony-repo-meta job failed", e);
+        } finally {
+            isOpenHarmonyFetchRepoMetaRunning = Boolean.FALSE;
+        }
+
+        logger.info("finish manual launch fetch-OpenHarmony-repo-meta job, coast:{} ms", System.currentTimeMillis() - start);
         return ResponseEntity.status(HttpStatus.OK).body("OK");
     }
 

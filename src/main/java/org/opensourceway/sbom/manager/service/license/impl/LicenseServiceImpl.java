@@ -105,6 +105,8 @@ public class LicenseServiceImpl implements LicenseService {
                 purl = dealMindsporePurl(packageUrlVo);
             } else if (SbomConstants.PRODUCT_OPENEULER_NAME.equals(productType)) {
                 purl = dealOpenEulerPurl(packageUrlVo, product);
+            } else if (SbomConstants.PRODUCT_OPENHARMONY_NAME.equals(productType)) {
+                purl = dealOpenHarmonyPurl(packageUrlVo, product);
             }
         } catch (MalformedPackageURLException e) {
             logger.error("failed to get purl for License ");
@@ -153,6 +155,30 @@ public class LicenseServiceImpl implements LicenseService {
                     packageUrlVo.getName(), packageUrlVo.getVersion(), null, null)));
         } else {
             return null;
+        }
+    }
+
+    /***
+     * change OpenHarmony purl format to get license
+     * for example:
+     * pkg:gitee/openharmony/libxml2@2.9.10 -> pkg:gitee/openharmony/third_party_libxml2@OpenHarmony-v3.1-Release
+     * pkg:gitee/openharmony/customization_enterprise_device_management@3.1-Release -> pkg:gitee/openharmony/customization_enterprise_device_management@OpenHarmony-v3.1-Release
+     ***/
+    private String dealOpenHarmonyPurl(PackageUrlVo packageUrlVo, Product product) throws MalformedPackageURLException {
+        if (!"gitee".equals(packageUrlVo.getType())) {
+            return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(),
+                    packageUrlVo.getName(), packageUrlVo.getVersion(), null, null)));
+        } else {
+            List<RepoMeta> repoMetaList = repoMetaRepository.queryRepoMetaByPackageName(SbomConstants.PRODUCT_OPENHARMONY_NAME,
+                    String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY)), packageUrlVo.getName());
+            String repoName = packageUrlVo.getName();
+            if (!CollectionUtils.isEmpty(repoMetaList) && !repoMetaList.get(0).getRepoName().isEmpty()) {
+                repoName = repoMetaList.get(0).getRepoName();
+            }
+            return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(),
+                    repoName, String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY)),
+                    null, null)));
+
         }
     }
 

@@ -18,12 +18,17 @@
         </step>
 
         <decision id="skipAnalyzeSbomContentDecision" decider="skipAnalyzeSbomContentDecider">
-            <next on="INORDER" to="AnalyzeSbomContentTask"/>
+            <next on="INORDER_TRACE_DATA" to="AnalyzeTraceDataTask"/>
+            <next on="INORDER_DEFINITION_FILE" to="AnalyzeDefinitionFileTask"/>
             <next on="*" to="parseSbomMetadataTask"/>
         </decision>
 
-        <step id="AnalyzeSbomContentTask" next="parseSbomMetadataTask">
-            <tasklet ref="AnalyzeSbomContentStep"/>
+        <step id="AnalyzeTraceDataTask" next="parseSbomMetadataTask">
+            <tasklet ref="analyzeTraceDataStep"/>
+        </step>
+
+        <step id="AnalyzeDefinitionFileTask" next="parseSbomMetadataTask">
+            <tasklet ref="analyzeDefinitionFileStep"/>
         </step>
 
         <step id="parseSbomMetadataTask" next="persistSbomMetadataTask">
@@ -210,8 +215,11 @@
     <bean id="skipAnalyzeSbomContentDecider"
           class="org.opensourceway.sbom.manager.batch.decider.SkipAnalyzeSbomContentDecider"/>
 
-    <bean id="AnalyzeSbomContentStep"
-          class="org.opensourceway.sbom.manager.batch.step.AnalyzeSbomContentStep"/>
+    <bean id="analyzeTraceDataStep"
+          class="org.opensourceway.sbom.manager.batch.step.AnalyzeTraceDataStep"/>
+
+    <bean id="analyzeDefinitionFileStep"
+          class="org.opensourceway.sbom.manager.batch.step.AnalyzeDefinitionFileStep"/>
 
     <bean id="parseSbomMetadataStep"
           class="org.opensourceway.sbom.manager.batch.step.ParseSbomMetadataStep"/>

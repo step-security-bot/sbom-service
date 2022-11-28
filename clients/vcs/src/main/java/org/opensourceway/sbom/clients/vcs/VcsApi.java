@@ -25,4 +25,8 @@ public interface VcsApi {
     default String getFileContext(String downloadUrl) {
         throw new RuntimeException("not implemented");
     }
+
+    default List<String> getOrgRepoNames(String org, Integer page, Integer perPage) {
+        throw new RuntimeException("not implemented");
+    }
 }

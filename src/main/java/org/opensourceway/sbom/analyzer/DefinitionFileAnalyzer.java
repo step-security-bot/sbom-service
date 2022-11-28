@@ -36,7 +36,7 @@ public class DefinitionFileAnalyzer extends AbstractBaseAnalyzer {
     }
 
     @Override
-    protected TreeSet<CuratedPackage> parsePackages(Path workspace) throws IOException {
+    protected TreeSet<CuratedPackage> parsePackages(String productName, Path workspace) throws IOException {
         TreeSet<CuratedPackage> packages = new TreeSet<>();
 
         Path defFileDir = Paths.get(workspace.toString(), PublishSbomConstants.DEFINITION_FILE_DIR_NAME);
@@ -51,7 +51,7 @@ public class DefinitionFileAnalyzer extends AbstractBaseAnalyzer {
             return packages;
         }
 
-        packages.addAll(gitRepoParser.parse(gitRepoDir));
+        packages.addAll(gitRepoParser.correctPackageNameVersion(productName, gitRepoParser.parse(gitRepoDir)));
         return packages;
     }
 }

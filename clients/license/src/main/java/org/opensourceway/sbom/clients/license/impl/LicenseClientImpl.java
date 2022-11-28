@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -53,8 +54,17 @@ public class LicenseClientImpl implements LicenseClient {
     @Value("${spdx.license.url}")
     private String licenseInfoBaseUrl;
 
+    @Value("${spring.codec.max-in-memory-size}")
+    private String maxInMemorySize;
+
     private WebClient createWebClient(String defaultBaseUrl) {
-        return WebClient.create(defaultBaseUrl);
+        ExchangeStrategies strategies = ExchangeStrategies.builder()
+                .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize((int) DataSize.parse(maxInMemorySize).toBytes()))
+                .build();
+        return WebClient.builder()
+                .baseUrl(defaultBaseUrl)
+                .exchangeStrategies(strategies)
+                .build();
     }
 
     private WebClient createWebClientForPlainText(String defaultBaseUrl) {

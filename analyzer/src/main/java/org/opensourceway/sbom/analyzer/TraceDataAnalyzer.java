@@ -44,7 +44,7 @@ public class TraceDataAnalyzer extends AbstractBaseAnalyzer {
     }
 
     @Override
-    protected TreeSet<CuratedPackage> parsePackages(Path workspace) throws IOException {
+    protected TreeSet<CuratedPackage> parsePackages(String productName, Path workspace) throws IOException {
         Path traceDataPath = Paths.get(workspace.toString(), PublishSbomConstants.TRACE_DATA_DIR_NAME);
         List<ProcessIdentifier> allProcess = processParser.getAllProcess(traceDataPath, getTaskId(traceDataPath));
         Set<CuratedPackage> httpPackages = httpParser.parse(traceDataPath, allProcess);
