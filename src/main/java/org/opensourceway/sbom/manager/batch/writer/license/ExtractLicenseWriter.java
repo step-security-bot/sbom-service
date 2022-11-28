@@ -1,5 +1,6 @@
 package org.opensourceway.sbom.manager.batch.writer.license;
 
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.opensourceway.sbom.constants.BatchContextConstants;
@@ -49,7 +50,9 @@ public class ExtractLicenseWriter implements ItemWriter<Set<Pair<ExternalPurlRef
                 illegalLicenseInfo.put(pkgName, templist);
             });
         }
-        logger.warn("illegal licenses info in chunks:{}", illegalLicenseInfo);
+        if (MapUtils.isNotEmpty(illegalLicenseInfo)) {
+            logger.warn("illegal licenses info in chunks:{}", illegalLicenseInfo);
+        }
         logger.info("finish ExtractLicenseWriter sbomId:{}", sbomId);
     }
 

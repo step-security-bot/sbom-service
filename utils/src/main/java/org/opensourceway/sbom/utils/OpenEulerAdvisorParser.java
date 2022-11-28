@@ -45,7 +45,7 @@ public class OpenEulerAdvisorParser {
             case "gitee" -> location = parseCommonAdvisor(advisor, giteeDomainUrl);
             case "gnu-ftp" -> location = parseCommonAdvisor(advisor, gnuFtpDomainUrl);
             case "gitlab.gnome" -> location = parseCommonAdvisor(advisor, gitlabGnomeDomainUrl);
-            case "git", "svn", "cvs", "ftp", "sourceforge", "fossil", "hg", "hg-raw" ->
+            case "git", "svn", "cvs", "central", "ftp", "sourceforge", "fossil", "hg", "hg-raw", "http://emma.sourceforge.net/", "npm", "registry" ->
                     location = parseDownloadAdvisor(advisor);
             case "github.gnome" -> location = parseGithubGnomeAdvisor(advisor, githubDomainUrl);
             case "pypi", "metacpan" -> location = upstreamDownloadUrl;

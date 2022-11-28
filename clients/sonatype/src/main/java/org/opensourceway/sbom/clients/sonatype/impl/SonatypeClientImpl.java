@@ -36,7 +36,7 @@ public class SonatypeClientImpl implements SonatypeClient {
                 )
                 .retrieve()
                 .bodyToMono(GAVInfo.class)
-                .retryWhen(Retry.backoff(3, Duration.ofSeconds(10)));
+                .retryWhen(Retry.backoff(3, Duration.ofSeconds(30)));
         return mono.block();
     }
 }
