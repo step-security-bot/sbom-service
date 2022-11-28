@@ -37,6 +37,9 @@ public class RepoMetaHandlerImpl implements RepoMetaHandler {
     @Value("${openharmony.newest.versions}")
     private String[] openHarmonyNewestVersions;
 
+    @Value("${gitee.domain.url}")
+    private String giteeDomainUrl;
+
     @Autowired
     @Qualifier("giteeApi")
     private VcsApi giteeApi;
@@ -71,7 +74,7 @@ public class RepoMetaHandlerImpl implements RepoMetaHandler {
     private void handleThirdPartyRepo(String repo, String version, Set<RepoMetaVo> repoMetaVos) {
         try {
             String thirdPartyMetaUrl = MessageFormat.format("{0}/{1}/{2}/raw/{3}/{4}",
-                    "https://gitee.com", OPEN_HARMONY_GITEE_ORG, repo, version, THIRD_PARTY_META_FILE);
+                    giteeDomainUrl, OPEN_HARMONY_GITEE_ORG, repo, version, THIRD_PARTY_META_FILE);
             String thirdPartyMeta = giteeApi.getFileContext(thirdPartyMetaUrl);
             List<ThirdPartyMetaVo> vos = Mapper.jsonMapper.readValue(thirdPartyMeta, new TypeReference<>() {});
             RepoMetaVo vo = new RepoMetaVo();
@@ -79,7 +82,7 @@ public class RepoMetaHandlerImpl implements RepoMetaHandler {
             vo.setBranch(version);
             vo.setPackageNames(new String[]{repo.replace(THIRD_PARTY_REPO_PREFIX, "")});
             vo.setDownloadLocation(MessageFormat.format("{0}/{1}/{2}",
-                    "https://gitee.com", OPEN_HARMONY_GITEE_ORG, repo));
+                    giteeDomainUrl, OPEN_HARMONY_GITEE_ORG, repo));
             vo.setExtendedAttr(Map.of(repo.replace(THIRD_PARTY_REPO_PREFIX, ""),
                     Map.of("upstream_name", repo.replace(THIRD_PARTY_REPO_PREFIX, ""),
                             "upstream_version", vos.get(0).getVersion().strip(),
@@ -100,7 +103,7 @@ public class RepoMetaHandlerImpl implements RepoMetaHandler {
         vo.setBranch(version);
         vo.setPackageNames(new String[]{repo});
         vo.setDownloadLocation(MessageFormat.format("{0}/{1}/{2}",
-                "https://gitee.com", OPEN_HARMONY_GITEE_ORG, repo));
+                giteeDomainUrl, OPEN_HARMONY_GITEE_ORG, repo));
         repoMetaVos.add(vo);
     }
 }

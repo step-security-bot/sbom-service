@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
@@ -61,6 +62,9 @@ public class GitRepoParser {
     @Autowired
     @Qualifier("giteeApi")
     private VcsApi giteeApi;
+
+    @Value("${gitee.domain.url}")
+    private String giteeDomainUrl;
 
     public Set<CuratedPackage> parse(Path gitRepoDirPath) throws IOException {
         Path defaultManifest = Paths.get(gitRepoDirPath.toString(), PublishSbomConstants.GIT_REPO_DEFAULT_MANIFEST);
@@ -197,7 +201,7 @@ public class GitRepoParser {
         for (String url: List.of(remote.getFetch(), remote.getReview())) {
             Matcher matcher = Pattern.compile("https://.*").matcher(url);
             if (matcher.matches()) {
-                return url.replaceAll("https://.*\\.gitee\\.com", "https://gitee.com");
+                return url.replaceAll("https://.*\\.gitee\\.com", giteeDomainUrl);
             }
         }
         throw new RuntimeException("Can't get url from remote [%s]".formatted(remote.getName()));
