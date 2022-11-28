@@ -31,10 +31,12 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.Nullable;
+import org.springframework.util.ObjectUtils;
 import org.yaml.snakeyaml.scanner.ScannerException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -65,7 +67,10 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
         UUID sbomId = this.jobContext.containsKey(BatchContextConstants.BATCH_SBOM_ID_KEY) ?
                 (UUID) this.jobContext.get(BatchContextConstants.BATCH_SBOM_ID_KEY) : null;
         String productVersion = stepExecution.getExecutionContext().getString(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY);
-        logger.info("start SupplySourceInfoProcessor sbomId:{}, productVersion:{}, first pkg id:{}", sbomId, productVersion, pkgIdList.get(0).toString());
+        String productType = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_TYPE_KEY);
+
+        logger.info("start SupplySourceInfoProcessor sbomId:{}, productType:{}, productVersion:{}, first pkg id:{}",
+                sbomId, productType, productVersion, pkgIdList.get(0).toString());
 
         SupplySourceInfo supplySourceInfo = new SupplySourceInfo();
         List<String> noRepoMetaPkgList = new ArrayList<>();
@@ -78,13 +83,13 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
                     return;
                 }
                 Package pkg = packageOptional.get();
-                List<RepoMeta> repoMetaList = repoMetaRepository.queryRepoMetaByPackageName(SbomConstants.PRODUCT_OPENEULER_NAME,
+                List<RepoMeta> repoMetaList = repoMetaRepository.queryRepoMetaByPackageName(productType,
                         productVersion,
                         pkg.getName());
 
                 repoMetaList.stream().findFirst().ifPresentOrElse(repoMeta -> {
                     supplyDownloadLocation(supplySourceInfo, pkg, repoMeta);
-                    supplyUpstream(supplySourceInfo, pkg, repoMeta);
+                    supplyUpstream(supplySourceInfo, pkg, repoMeta, productType);
                     supplyPatchInfo(supplySourceInfo, pkg, repoMeta);
                 }, () -> noRepoMetaPkgList.add(pkg.getName()));
             } catch (Exception e) {
@@ -93,10 +98,12 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
             }
         });
 
-        logger.warn("SupplySourceInfoStep can't find package's repoMeta, sbomId:{}, branch:{}, pkgName list:{}",
-                sbomId,
-                productVersion,
-                noRepoMetaPkgList);
+        if (!ObjectUtils.isEmpty(noRepoMetaPkgList)) {
+            logger.warn("SupplySourceInfoStep can't find package's repoMeta, sbomId:{}, branch:{}, pkgName list:{}",
+                    sbomId,
+                    productVersion,
+                    noRepoMetaPkgList);
+        }
 
         logger.info("finish SupplySourceInfoProcessor sbomId:{}", sbomId);
         return supplySourceInfo;
@@ -118,7 +125,15 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
         supplySourceInfo.addPkg(pkg);
     }
 
-    private void supplyUpstream(SupplySourceInfo supplySourceInfo, Package pkg, RepoMeta repoMeta) {
+    private void supplyUpstream(SupplySourceInfo supplySourceInfo, Package pkg, RepoMeta repoMeta, String productType) {
+        if (StringUtils.equalsIgnoreCase(productType, SbomConstants.PRODUCT_OPENEULER_NAME)) {
+            supplyUpstreamForOpenEuler(supplySourceInfo, pkg, repoMeta);
+        } else if (StringUtils.equalsIgnoreCase(productType, SbomConstants.PRODUCT_OPENHARMONY_NAME)) {
+            supplyUpstreamForOpenHarmony(supplySourceInfo, pkg, repoMeta);
+        }
+    }
+
+    private void supplyUpstreamForOpenEuler(SupplySourceInfo supplySourceInfo, Package pkg, RepoMeta repoMeta) {
         if (ArrayUtils.isEmpty(repoMeta.getUpstreamDownloadUrls())) {
             return;
         }
@@ -155,6 +170,39 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
                 logger.error("supplyUpstream failed, upstream:{}", upstreamDownloadUrl, e);
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void supplyUpstreamForOpenHarmony(SupplySourceInfo supplySourceInfo, Package pkg, RepoMeta repoMeta) {
+        Map<String, String> upstreamInfo = (Map<String, String>) Optional.ofNullable(repoMeta.getExtendedAttr())
+                .map(it -> it.getOrDefault(pkg.getName(), Map.of())).orElse(Map.of());
+        String upstreamUrl = upstreamInfo.get("upstream_url");
+        if (StringUtils.isEmpty(upstreamUrl)) {
+            return;
+        }
+        if (pkg.getExternalPurlRefs() == null) {
+            pkg.setExternalPurlRefs(new ArrayList<>());
+        }
+
+        try {
+            ExternalPurlRef upstreamPurl = new ExternalPurlRef();
+            upstreamPurl.setCategory(ReferenceCategory.SOURCE_MANAGER.name());
+            upstreamPurl.setType(ReferenceType.URL.getType());
+            upstreamPurl.setPkg(pkg);
+
+            PackageUrlVo vo = new PackageUrlVo();
+            vo.setType("upstream");
+            vo.setName(upstreamUrl);
+            upstreamPurl.setPurl(vo);
+            if (pkg.getExternalPurlRefs().contains(upstreamPurl)) {
+                logger.warn("upstreamPurl: {} already exists in package: {}", upstreamPurl.getPurl(), pkg.getId());
+                return;
+            }
+            pkg.getExternalPurlRefs().add(upstreamPurl);
+        } catch (Exception e) {
+            logger.error("supplyUpstream failed, upstream:{}", upstreamUrl, e);
+            throw new RuntimeException(e);
         }
     }
 

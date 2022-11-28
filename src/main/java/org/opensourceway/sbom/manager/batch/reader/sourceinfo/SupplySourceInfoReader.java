@@ -36,6 +36,9 @@ public class SupplySourceInfoReader implements ItemReader<List<UUID>>, StepExecu
 
     private static final Logger logger = LoggerFactory.getLogger(SupplySourceInfoReader.class);
 
+    private static final List<String> SUPPLY_SOURCE_INFO_PRODUCT_TYPES = List.of(
+            SbomConstants.PRODUCT_OPENEULER_NAME, SbomConstants.PRODUCT_OPENHARMONY_NAME);
+
     @Autowired
     private PackageRepository packageRepository;
 
@@ -58,7 +61,7 @@ public class SupplySourceInfoReader implements ItemReader<List<UUID>>, StepExecu
 
         Product product = productRepository.findBySbomId(sbomId);
         String productType = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_TYPE_KEY);
-        if (!StringUtils.equalsIgnoreCase(SbomConstants.PRODUCT_OPENEULER_NAME, productType)) {
+        if (SUPPLY_SOURCE_INFO_PRODUCT_TYPES.stream().noneMatch(it -> StringUtils.equalsIgnoreCase(it, productType))) {
             logger.info("SupplySourceInfoReader skip, productType is:{}, sbomId:{}", productType, sbomId);
             return;
         }

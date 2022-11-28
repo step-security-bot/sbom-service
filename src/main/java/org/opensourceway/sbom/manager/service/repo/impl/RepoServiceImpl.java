@@ -16,6 +16,8 @@ import org.opensourceway.sbom.manager.model.vo.response.UpstreamAndPatchInfoResp
 import org.opensourceway.sbom.manager.service.repo.RepoService;
 import org.opensourceway.sbom.openeuler.obs.RepoMetaParser;
 import org.opensourceway.sbom.openeuler.obs.vo.RepoInfoVo;
+import org.opensourceway.sbom.openharmony.RepoMetaHandler;
+import org.opensourceway.sbom.openharmony.vo.RepoMetaVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
@@ -50,6 +53,9 @@ public class RepoServiceImpl implements RepoService {
 
     @Autowired
     private ExternalPurlRefRepository externalPurlRefRepository;
+
+    @Autowired
+    private RepoMetaHandler repoMetaHandler;
 
     @Override
     public Set<RepoInfoVo> fetchOpenEulerRepoMeta() throws IOException {
@@ -93,5 +99,26 @@ public class RepoServiceImpl implements RepoService {
             response.setPatchList(patchResult);
         }
         return response;
+    }
+
+    @Override
+    public List<RepoMeta> fetchOpenHarmonyRepoMeta() {
+        Set<RepoMetaVo> vos = repoMetaHandler.fetchRepoMeta();
+        Set<RepoMeta> repoMetas = vos.stream()
+                .map(this::convertRepoMetaVo)
+                .collect(Collectors.toSet());
+        return repoMetaRepository.saveAll(repoMetas);
+    }
+
+    private RepoMeta convertRepoMetaVo(RepoMetaVo vo) {
+        RepoMeta repoMeta = repoMetaRepository.findByProductTypeAndRepoNameAndBranch(
+                SbomConstants.PRODUCT_OPENHARMONY_NAME, vo.getRepoName(), vo.getBranch()).orElse(new RepoMeta());
+        repoMeta.setProductType(SbomConstants.PRODUCT_OPENHARMONY_NAME);
+        repoMeta.setRepoName(vo.getRepoName());
+        repoMeta.setPackageNames(vo.getPackageNames());
+        repoMeta.setDownloadLocation(vo.getDownloadLocation());
+        repoMeta.setBranch(vo.getBranch());
+        repoMeta.setExtendedAttr(vo.getExtendedAttr());
+        return repoMeta;
     }
 }

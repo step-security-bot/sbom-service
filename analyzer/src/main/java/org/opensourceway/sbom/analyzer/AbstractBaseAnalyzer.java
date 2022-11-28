@@ -68,7 +68,7 @@ public abstract class AbstractBaseAnalyzer implements SbomContentAnalyzer {
 
             workspace = Files.createTempDirectory("SbomContentAnalyzer-" + productName.replace("/", "_") + "-");
 
-            parseSbomContent(inputStream, workspace);
+            parseSbomContent(productName, inputStream, workspace);
             OrtResult ortResult = ortAnalyze(workspace);
             SpdxDocument spdxDocument = ortSpdxReport(ortResult, productName);
             byte[] sbomBytes = Mapper.jsonSbomMapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(spdxDocument);
@@ -85,11 +85,11 @@ public abstract class AbstractBaseAnalyzer implements SbomContentAnalyzer {
         }
     }
 
-    private void parseSbomContent(InputStream inputStream, Path workspace) throws IOException {
+    private void parseSbomContent(String productName, InputStream inputStream, Path workspace) throws IOException {
         logger.info("start to parse sbom content");
 
         extractInputStream(inputStream, workspace);
-        TreeSet<CuratedPackage> packages = parsePackages(workspace);
+        TreeSet<CuratedPackage> packages = parsePackages(productName, workspace);
 
         Identifier identifier = new Identifier(PROJECT_MANAGER_TYPE, "", PROJECT_NAME, "");
         Project project = new Project(identifier, "", "", new TreeSet<>(), new TreeSet<>(),
@@ -108,7 +108,7 @@ public abstract class AbstractBaseAnalyzer implements SbomContentAnalyzer {
 
     protected abstract void extractInputStream(InputStream inputStream, Path workspace) throws IOException;
 
-    protected abstract TreeSet<CuratedPackage> parsePackages(Path workspace) throws IOException;
+    protected abstract TreeSet<CuratedPackage> parsePackages(String productName, Path workspace) throws IOException;
 
     private Map<String, DependencyGraph> generateDependencyGraphs(Set<CuratedPackage> packages, Project project) {
         List<Identifier> packageIds = packages.stream().map(p -> p.getPkg().getId()).toList();

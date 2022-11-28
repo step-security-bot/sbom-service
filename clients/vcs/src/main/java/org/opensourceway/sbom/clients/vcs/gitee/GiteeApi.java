@@ -31,6 +31,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -169,8 +170,39 @@ public class GiteeApi implements VcsApi {
                 })
                 .retrieve()
                 .bodyToMono(String.class)
-                .retryWhen(Retry.backoff(3, Duration.ofSeconds(10)))
+                .retryWhen(Retry.backoff(3, Duration.ofSeconds(10))
+                        .filter(throwable -> !(throwable instanceof WebClientResponseException.NotFound)))
                 .block();
+    }
+
+    /**
+     * @param org gitee organization name
+     * @return repo names of the org
+     * API DOC: <a href="https://gitee.com/api/v5/swagger#/getV5OrgsOrgRepos">获取一个组织的仓库</a>
+     */
+    @Override
+    public List<String> getOrgRepoNames(String org, Integer page, Integer perPage) {
+        GiteeRepoInfo.RepoInfo[] repoInfos = createWebClient().get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/v5/orgs/%s/repos".formatted(org))
+                        .queryParam("page", page)
+                        .queryParam("per_page", perPage)
+                        .build())
+                .headers(httpHeaders -> {
+                    if (!ObjectUtils.isEmpty(token)) {
+                        httpHeaders.add("Authorization", "token %s".formatted(token));
+                    }
+                })
+                .retrieve()
+                .bodyToMono(GiteeRepoInfo.RepoInfo[].class)
+                .retryWhen(Retry.backoff(3, Duration.ofSeconds(10))
+                        .filter(throwable -> throwable instanceof WebClientResponseException.TooManyRequests))
+                .retryWhen(Retry.backoff(3, Duration.ofSeconds(1)))
+                .block();
+
+        return Arrays.stream(Optional.ofNullable(repoInfos).orElse(new GiteeRepoInfo.RepoInfo[]{}))
+                .map(GiteeRepoInfo.RepoInfo::name)
+                .toList();
     }
 
 }

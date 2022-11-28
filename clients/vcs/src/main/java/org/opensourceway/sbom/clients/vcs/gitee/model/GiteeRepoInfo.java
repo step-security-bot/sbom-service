@@ -12,9 +12,9 @@ public class GiteeRepoInfo {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record RepoInfo(Owner owner, String license, String description, String homepage,
-                    @JsonProperty("html_url") String repoUrl) implements Serializable {
+                    @JsonProperty("html_url") String repoUrl, String name) implements Serializable {
         public RepoInfo() {
-            this(new Owner(""), "", "", "", "");
+            this(new Owner(""), "", "", "", "", "");
         }
     }
 }

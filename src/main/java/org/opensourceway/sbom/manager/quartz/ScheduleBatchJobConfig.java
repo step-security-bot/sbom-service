@@ -65,4 +65,22 @@ public class ScheduleBatchJobConfig {
                 .build();
     }
 
+    @Bean
+    public JobDetail fetchOpenHarmonyRepoMetaJobDetail() {
+        return JobBuilder.newJob(FetchOpenHarmonyRepoMetaJob.class)
+                .withIdentity("fetchOpenHarmonyRepoMeta")
+                .storeDurably()
+                .build();
+    }
+
+    @Bean
+    public Trigger fetchOpenHarmonyRepoMetaJobTrigger() {
+        return TriggerBuilder.newTrigger()
+                .forJob(fetchOpenHarmonyRepoMetaJobDetail())
+                .withIdentity("fetchOpenHarmonyRepoMeta")
+                .startNow()
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 0 ? * SAT *"))
+                .build();
+    }
+
 }

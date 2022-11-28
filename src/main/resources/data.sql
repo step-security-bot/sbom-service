@@ -163,7 +163,7 @@ ON CONFLICT (id) DO UPDATE
 
 -- OpenHarmony
 INSERT INTO product_config_value(id, value, product_config_id)
-VALUES('da6b13a9-edb6-43d8-8b63-f6859abcadef', '3.1-Release', 'f7856269-0339-4fe7-80fa-de15042d40d9')
+VALUES('da6b13a9-edb6-43d8-8b63-f6859abcadef', 'OpenHarmony-v3.1-Release', 'f7856269-0339-4fe7-80fa-de15042d40d9')
 ON CONFLICT (id) DO UPDATE
     SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
 
@@ -231,7 +231,7 @@ ON CONFLICT (id) DO UPDATE
 -- OpenHarmony
 INSERT INTO product(id, name, attribute)
 VALUES
-('65d0a8d7-94ee-4f98-9992-889187e53206', 'harmonyos/os/3.1-Release/standard_hi3516.tar.gz', '{"productType": "OpenHarmony", "version": "3.1-Release"}'::jsonb)
+('65d0a8d7-94ee-4f98-9992-889187e53206', 'harmonyos/os/3.1-Release/standard_hi3516.tar.gz', '{"productType": "OpenHarmony", "version": "OpenHarmony-v3.1-Release"}'::jsonb)
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
 

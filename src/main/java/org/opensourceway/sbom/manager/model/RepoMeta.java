@@ -1,6 +1,10 @@
 package org.opensourceway.sbom.manager.model;
 
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
 import org.opensourceway.sbom.openeuler.obs.vo.RepoInfoVo;
 
 import javax.persistence.Column;
@@ -9,11 +13,15 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
+import java.util.Map;
 import java.util.UUID;
 
 @Entity
 @Table(indexes = {
         @Index(name = "repo_name_uk", columnList = "product_type, repo_name, branch", unique = true)
+})
+@TypeDefs({
+        @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 })
 public class RepoMeta {
 
@@ -45,6 +53,10 @@ public class RepoMeta {
 
     @Column(columnDefinition = "TEXT[]", name = "package_names")
     private String[] packageNames;
+
+    @Column(columnDefinition = "JSONB")
+    @Type(type = "jsonb")
+    private Map<String, Object> extendedAttr;
 
     public UUID getId() {
         return id;
@@ -116,6 +128,14 @@ public class RepoMeta {
 
     public void setPackageNames(String[] packageNames) {
         this.packageNames = packageNames;
+    }
+
+    public Map<String, Object> getExtendedAttr() {
+        return extendedAttr;
+    }
+
+    public void setExtendedAttr(Map<String, Object> extendedAttr) {
+        this.extendedAttr = extendedAttr;
     }
 
     public static RepoMeta fromRepoInfoVo(String productType, RepoInfoVo repoInfoVo) {
