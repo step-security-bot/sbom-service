@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -59,14 +60,16 @@ public class RepoMetaHandlerImpl implements RepoMetaHandler {
             }
 
             repoNames.forEach(repo -> {
-                        for (String version : openHarmonyNewestVersions) {
+                giteeApi.getRepoTags(OPEN_HARMONY_GITEE_ORG, repo).stream()
+                        .filter(tag -> Arrays.stream(openHarmonyNewestVersions).toList().contains(tag))
+                        .forEach(tag -> {
                             if (repo.startsWith(THIRD_PARTY_REPO_PREFIX)) {
-                                handleThirdPartyRepo(repo, version, repoMetaVos);
+                                handleThirdPartyRepo(repo, tag, repoMetaVos);
                             } else {
-                                handleNonThirdPartyRepo(repo, version, repoMetaVos);
+                                handleNonThirdPartyRepo(repo, tag, repoMetaVos);
                             }
-                        }
-                    });
+                        });
+            });
             page += 1;
         }
     }
@@ -92,7 +95,7 @@ public class RepoMetaHandlerImpl implements RepoMetaHandler {
             logger.warn("The {} of repo [{}] with version [{}] is invalid", THIRD_PARTY_META_FILE, repo, version);
             handleNonThirdPartyRepo(repo, version, repoMetaVos);
         } catch (RuntimeException e) {
-            logger.warn("The {} of repo [{}] with version [{}] doesn't exist", THIRD_PARTY_META_FILE, repo, version);
+            logger.warn("Unknown exception occurs when fetch repo meta for repo [{}] with version [{}]", repo, version, e);
             handleNonThirdPartyRepo(repo, version, repoMetaVos);
         }
     }

@@ -29,4 +29,8 @@ public interface VcsApi {
     default List<String> getOrgRepoNames(String org, Integer page, Integer perPage) {
         throw new RuntimeException("not implemented");
     }
+
+    default List<String> getRepoTags(String org, String repo) {
+        throw new RuntimeException("not implemented");
+    }
 }
