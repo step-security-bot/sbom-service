@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.opensourceway.sbom.clients.vcs.VcsApi;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeFileInfo;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeRepoInfo;
+import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeTagInfo;
 import org.opensourceway.sbom.utils.WebClientExceptionFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -205,4 +206,30 @@ public class GiteeApi implements VcsApi {
                 .toList();
     }
 
+    /**
+     * @param org gitee organization name
+     * @param repo gitee repo name
+     * @return tags of the repo
+     * API DOC: <a href="https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoTags">列出仓库的所有tags</a>
+     */
+    @Override
+    public List<String> getRepoTags(String org, String repo) {
+        GiteeTagInfo[] tags = createWebClient().get()
+                .uri("/api/v5/repos/%s/%s/tags".formatted(org, repo))
+                .headers(httpHeaders -> {
+                    if (!ObjectUtils.isEmpty(token)) {
+                        httpHeaders.add("Authorization", "token %s".formatted(token));
+                    }
+                })
+                .retrieve()
+                .bodyToMono(GiteeTagInfo[].class)
+                .retryWhen(Retry.backoff(3, Duration.ofSeconds(10))
+                        .filter(throwable -> throwable instanceof WebClientResponseException.TooManyRequests))
+                .retryWhen(Retry.backoff(3, Duration.ofSeconds(1)))
+                .block();
+
+        return Arrays.stream(Optional.ofNullable(tags).orElse(new GiteeTagInfo[]{}))
+                .map(GiteeTagInfo::name)
+                .toList();
+    }
 }
