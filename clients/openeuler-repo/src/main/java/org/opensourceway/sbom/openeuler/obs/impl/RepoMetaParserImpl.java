@@ -219,12 +219,6 @@ public class RepoMetaParserImpl implements RepoMetaParser {
     }
 
     @Override
-    public void fetchRepoUpstreamInfo(RepoInfoVo repoInfo) {
-        // TODO completed fo openEuler upstream info
-        throw new RuntimeException("not implemented");
-    }
-
-    @Override
     public Set<RepoInfoVo> parseRepoInfoFromZip(Path sourceZipPath) throws IOException {
         Set<RepoInfoVo> repoInfoSet = new LinkedHashSet<>();
         ZipFile zipFile = new ZipFile(sourceZipPath.toFile());

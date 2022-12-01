@@ -91,8 +91,6 @@ public class RepoServiceImpl implements RepoService {
             repoInfo.setLastCommitId(repoChangeInfo.getSecond());
             repoMetaParser.fetchRepoBuildFileInfo(repoInfo);
             repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfo);
-            // TODO parse upstream info form yaml
-            // repoMetaParser.fetchRepoUpstreamInfo(repoInfoSet);
         }
 
         logger.info("save new openEuler repo meta set size:{}", repoInfoSet.size());

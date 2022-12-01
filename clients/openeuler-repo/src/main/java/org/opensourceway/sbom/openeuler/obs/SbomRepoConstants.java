@@ -11,6 +11,8 @@ public class SbomRepoConstants {
 
     public static final String LAST_COMMIT_ID_KEY = "lastCommitId";
 
+    public static final String UPSTREAM_ATTR_KEY = "upstreamUrls";
+
     public static final String SPEC_FILE_NAME_REGEX = ".*(\\.spec)";
 
     public static final String YAML_FILE_NAME_REGEX = ".*(\\.yaml)";
