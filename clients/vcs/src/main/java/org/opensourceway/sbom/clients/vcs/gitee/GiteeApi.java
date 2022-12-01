@@ -2,6 +2,7 @@ package org.opensourceway.sbom.clients.vcs.gitee;
 
 import org.apache.commons.lang3.StringUtils;
 import org.opensourceway.sbom.clients.vcs.VcsApi;
+import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeBranchInfo;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeFileInfo;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeRepoInfo;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeTagInfo;
@@ -153,6 +154,9 @@ public class GiteeApi implements VcsApi {
         if (files == null) {
             return Collections.emptyList();
         }
+        if (StringUtils.isEmpty(fileNameRegex)) {
+            return Arrays.stream(files).collect(Collectors.toList());
+        }
 
         Pattern regex = Pattern.compile(fileNameRegex, Pattern.CASE_INSENSITIVE);
         return Arrays.stream(files)
@@ -207,7 +211,7 @@ public class GiteeApi implements VcsApi {
     }
 
     /**
-     * @param org gitee organization name
+     * @param org  gitee organization name
      * @param repo gitee repo name
      * @return tags of the repo
      * API DOC: <a href="https://gitee.com/api/v5/swagger#/getV5ReposOwnerRepoTags">列出仓库的所有tags</a>
@@ -231,5 +235,24 @@ public class GiteeApi implements VcsApi {
         return Arrays.stream(Optional.ofNullable(tags).orElse(new GiteeTagInfo[]{}))
                 .map(GiteeTagInfo::name)
                 .toList();
+    }
+
+    @Override
+    public List<GiteeBranchInfo.BranchInfo> getRepoBranches(String org, String repo) {
+        GiteeBranchInfo.BranchInfo[] branches = createWebClient().get()
+                .uri(URI.create("%s/api/v5/repos/%s/%s/branches".formatted(this.defaultBaseUrl,
+                        org,
+                        repo)))
+                .headers(httpHeaders -> {
+                    if (!ObjectUtils.isEmpty(token)) {
+                        httpHeaders.add("Authorization", "token %s".formatted(token));
+                    }
+                })
+                .retrieve()
+                .bodyToMono(GiteeBranchInfo.BranchInfo[].class)
+                .retryWhen(Retry.backoff(3, Duration.ofSeconds(10))
+                        .filter(WebClientExceptionFilter::is5xxException))
+                .block(Duration.ofSeconds(30));
+        return Arrays.stream(Optional.ofNullable(branches).orElse(new GiteeBranchInfo.BranchInfo[]{})).toList();
     }
 }

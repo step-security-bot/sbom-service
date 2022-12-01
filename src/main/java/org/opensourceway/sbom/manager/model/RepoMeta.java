@@ -5,6 +5,7 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
+import org.opensourceway.sbom.openeuler.obs.SbomRepoConstants;
 import org.opensourceway.sbom.openeuler.obs.vo.RepoInfoVo;
 
 import javax.persistence.Column;
@@ -13,6 +14,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -140,6 +142,7 @@ public class RepoMeta {
 
     public static RepoMeta fromRepoInfoVo(String productType, RepoInfoVo repoInfoVo) {
         RepoMeta repoMeta = new RepoMeta();
+        repoMeta.setId(repoInfoVo.getId());
         repoMeta.setProductType(productType);
         repoMeta.setRepoName(repoInfoVo.getRepoName());
         repoMeta.setBranch(repoInfoVo.getBranch());
@@ -148,6 +151,9 @@ public class RepoMeta {
         repoMeta.setUpstreamDownloadUrls(repoInfoVo.getUpstreamDownloadUrls() == null ? null : repoInfoVo.getUpstreamDownloadUrls().toArray(new String[0]));
         repoMeta.setPatchInfo(repoInfoVo.getPatchInfo() == null ? null : repoInfoVo.getPatchInfo().toArray(new String[0]));
         repoMeta.setPackageNames(repoInfoVo.getPackageNames() == null ? null : repoInfoVo.getPackageNames().toArray(new String[0]));
+        HashMap<String, Object> extendedAttr = new HashMap<>();
+        extendedAttr.put(SbomRepoConstants.LAST_COMMIT_ID_KEY, repoInfoVo.getLastCommitId());
+        repoMeta.setExtendedAttr(extendedAttr);
         return repoMeta;
     }
 }

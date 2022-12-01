@@ -1,5 +1,6 @@
 package org.opensourceway.sbom.clients.vcs;
 
+import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeBranchInfo;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeFileInfo;
 import reactor.core.publisher.Mono;
 
@@ -31,6 +32,10 @@ public interface VcsApi {
     }
 
     default List<String> getRepoTags(String org, String repo) {
+        throw new RuntimeException("not implemented");
+    }
+
+    default List<GiteeBranchInfo.BranchInfo> getRepoBranches(String org, String repo) {
         throw new RuntimeException("not implemented");
     }
 }

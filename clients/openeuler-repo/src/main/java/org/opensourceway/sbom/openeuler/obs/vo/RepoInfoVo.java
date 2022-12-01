@@ -4,12 +4,17 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 public class RepoInfoVo implements Serializable {
+
+    private UUID id;
 
     private String repoName;
 
     private String branch;
+
+    private String lastCommitId;
 
     private String downloadLocation;
 
@@ -22,6 +27,14 @@ public class RepoInfoVo implements Serializable {
     private List<String> packageNames;
 
     public RepoInfoVo() {
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public RepoInfoVo(String repoName, String branch) {
@@ -43,6 +56,14 @@ public class RepoInfoVo implements Serializable {
 
     public void setBranch(String branch) {
         this.branch = branch;
+    }
+
+    public String getLastCommitId() {
+        return lastCommitId;
+    }
+
+    public void setLastCommitId(String lastCommitId) {
+        this.lastCommitId = lastCommitId;
     }
 
     public String getDownloadLocation() {
@@ -130,8 +151,10 @@ public class RepoInfoVo implements Serializable {
     @Override
     public String toString() {
         return "RepoInfo{" +
-                "repoName='" + repoName + '\'' +
+                "id='" + id + '\'' +
+                ", repoName='" + repoName + '\'' +
                 ", branch='" + branch + '\'' +
+                ", lastCommitId='" + lastCommitId + '\'' +
                 ", downloadLocation='" + downloadLocation + '\'' +
                 ", specDownloadUrl='" + specDownloadUrl + '\'' +
                 ", upstreamDownloadUrls=" + upstreamDownloadUrls +

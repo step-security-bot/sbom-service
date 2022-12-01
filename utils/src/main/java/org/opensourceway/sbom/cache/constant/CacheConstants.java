@@ -17,4 +17,8 @@ public class CacheConstants {
     public static final String CHECKSUM_SKIP_MAP_CACHE_KEY_PATTERN = "#checksumSkip";
 
     public static final String PRODUCT_CONFIG_CACHE_NAME = "productConfig";
+
+    public static final String OPENEULER_REPO_BRANCHES_CACHE_NAME = "openEulerRepoBranches";
+
+    public static final String OPENEULER_REPO_BRANCHES_CACHE_KEY_PATTERN = "'repo_branches_' + #org + '_' + #repo";
 }

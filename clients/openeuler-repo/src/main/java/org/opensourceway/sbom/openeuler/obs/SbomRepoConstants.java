@@ -9,6 +9,8 @@ public class SbomRepoConstants {
 
     public static final String OBS_META_REPO_BRANCH = "master";
 
+    public static final String LAST_COMMIT_ID_KEY = "lastCommitId";
+
     public static final String SPEC_FILE_NAME_REGEX = ".*(\\.spec)";
 
     public static final String YAML_FILE_NAME_REGEX = ".*(\\.yaml)";
