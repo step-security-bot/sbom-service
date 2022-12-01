@@ -71,11 +71,11 @@ public class LicenseClientImpl implements LicenseClient {
         return WebClient.builder()
                 .baseUrl(defaultBaseUrl)
                 .exchangeStrategies(ExchangeStrategies.builder().codecs(configurer -> {
-                            ObjectMapper mapper = new ObjectMapper();
-                            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-                            configurer.customCodecs().register(new Jackson2JsonDecoder(
-                                    mapper, MimeTypeUtils.parseMimeType(MediaType.TEXT_PLAIN_VALUE)));
-                        }).build())
+                    ObjectMapper mapper = new ObjectMapper();
+                    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                    configurer.customCodecs().register(new Jackson2JsonDecoder(
+                            mapper, MimeTypeUtils.parseMimeType(MediaType.TEXT_PLAIN_VALUE)));
+                }).build())
                 .build();
     }
 
@@ -100,9 +100,7 @@ public class LicenseClientImpl implements LicenseClient {
                 .bodyToMono(ComplianceResponse[].class)
                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(1)));
 
-        ComplianceResponse[] result = mono.block();
-
-        return result;
+        return mono.block();
     }
 
     // get a json which has the info and url for all the licenses
@@ -135,7 +133,8 @@ public class LicenseClientImpl implements LicenseClient {
             httpPost.setConfig(config);
 
             MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-            builder.addTextBody("url", purl, ContentType.MULTIPART_FORM_DATA);
+            builder.addTextBody("url", purl, ContentType.MULTIPART_FORM_DATA)
+                    .addTextBody("async", "True", ContentType.MULTIPART_FORM_DATA);
             httpPost.setEntity(builder.build());
 
             httpClient = HttpClients.createDefault();
