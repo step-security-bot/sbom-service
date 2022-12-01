@@ -19,6 +19,4 @@ public interface RepoMetaParser {
 
     void fetchRepoPackageAndPatchInfo(RepoInfoVo repoInfo);
 
-    void fetchRepoUpstreamInfo(RepoInfoVo repoInfo);
-
 }

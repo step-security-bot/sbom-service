@@ -9,7 +9,7 @@ import org.opensourceway.sbom.clients.vcs.gitee.GiteeApi;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeBranchInfo;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeFileInfo;
 import org.opensourceway.sbom.constants.SbomConstants;
-import org.opensourceway.sbom.openeuler.obs.OpenEulerRepoCache;
+import org.opensourceway.sbom.openeuler.obs.cache.OpenEulerRepoCache;
 import org.opensourceway.sbom.openeuler.obs.RepoMetaParser;
 import org.opensourceway.sbom.openeuler.obs.SbomRepoConstants;
 import org.opensourceway.sbom.openeuler.obs.vo.MetaServiceDomain;
@@ -216,12 +216,6 @@ public class RepoMetaParserImpl implements RepoMetaParser {
                     e);
             repoInfo.setLastCommitId(null);
         }
-    }
-
-    @Override
-    public void fetchRepoUpstreamInfo(RepoInfoVo repoInfo) {
-        // TODO completed fo openEuler upstream info
-        throw new RuntimeException("not implemented");
     }
 
     @Override

@@ -1,4 +1,4 @@
-package org.opensourceway.sbom.openeuler.obs;
+package org.opensourceway.sbom.openeuler.obs.cache;
 
 import org.opensourceway.sbom.cache.config.CacheProperties;
 import org.opensourceway.sbom.cache.constant.CacheConstants;

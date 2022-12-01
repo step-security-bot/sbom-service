@@ -251,6 +251,8 @@ public class GiteeApi implements VcsApi {
                 .retrieve()
                 .bodyToMono(GiteeBranchInfo.BranchInfo[].class)
                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(10))
+                        .filter(throwable -> throwable instanceof WebClientResponseException.TooManyRequests))
+                .retryWhen(Retry.backoff(3, Duration.ofSeconds(10))
                         .filter(WebClientExceptionFilter::is5xxException))
                 .block(Duration.ofSeconds(30));
         return Arrays.stream(Optional.ofNullable(branches).orElse(new GiteeBranchInfo.BranchInfo[]{})).toList();
