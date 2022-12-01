@@ -2,9 +2,10 @@ package org.opensourceway.sbom.manager.service.license;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
+import org.opensourceway.sbom.manager.model.License;
+import org.opensourceway.sbom.manager.model.Package;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -14,9 +15,8 @@ public interface LicenseService {
 
     boolean needRequest();
 
-    Set<Pair<ExternalPurlRef, Object>> extractLicenseForPurlRefChunk(UUID sbomId,
-                                                                     List<ExternalPurlRef> externalPurlChunk);
+    List<Pair<Package, License>> extractLicenseForPurlRefChunk(UUID sbomId, List<ExternalPurlRef> externalPurlChunk);
 
-    Map<String, List<String>> persistExternalLicenseRefChunk(Set<Pair<ExternalPurlRef, Object>> externalLicenseRefSet);
+    void persistExternalLicenseRefChunk(Pair<Set<Package>, Set<License>> licenseAndPkgListToSave);
 
 }

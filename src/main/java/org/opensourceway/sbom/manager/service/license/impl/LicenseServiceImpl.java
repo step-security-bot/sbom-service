@@ -1,6 +1,7 @@
 package org.opensourceway.sbom.manager.service.license.impl;
 
 import com.github.packageurl.MalformedPackageURLException;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.opensourceway.sbom.cache.constant.CacheConstants;
@@ -96,25 +97,6 @@ public class LicenseServiceImpl implements LicenseService {
     }
 
 
-    public String getPurlsForLicense(PackageUrlVo packageUrlVo, Product product) {
-        String purl = "";
-        String productType = String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_TYPE_KEY));
-        try {
-
-            if (SbomConstants.PRODUCT_MINDSPORE_NAME.equals(productType)) {
-                purl = dealMindsporePurl(packageUrlVo);
-            } else if (SbomConstants.PRODUCT_OPENEULER_NAME.equals(productType)) {
-                purl = dealOpenEulerPurl(packageUrlVo, product);
-            } else if (SbomConstants.PRODUCT_OPENHARMONY_NAME.equals(productType)) {
-                purl = dealOpenHarmonyPurl(packageUrlVo, product);
-            }
-        } catch (MalformedPackageURLException e) {
-            logger.error("failed to get purl for License ");
-            return null;
-        }
-        return purl;
-    }
-
     /***
      * change openEuler purl format to get license
      * for example:
@@ -122,7 +104,6 @@ public class LicenseServiceImpl implements LicenseService {
      ***/
     private String dealOpenEulerPurl(PackageUrlVo packageUrlVo, Product product) throws MalformedPackageURLException {
         if (!"rpm".equals(packageUrlVo.getType())) {
-
             return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(),
                     packageUrlVo.getName(), packageUrlVo.getVersion(), null, null)));
         } else {
@@ -178,8 +159,79 @@ public class LicenseServiceImpl implements LicenseService {
             return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(),
                     repoName, String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY)),
                     null, null)));
-
         }
+    }
+
+    private void saveLicenseAndCopyrightForPackage(ComplianceResponse response, Package pkg) {
+        if (response.getResult().getRepoCopyrightLegal().size() != 0) {
+            pkg.setCopyright(response.getResult().getRepoCopyrightLegal().get(0));
+        }
+        if (response.getResult().getRepoLicense().size() != 0) {
+            pkg.setLicenseConcluded(response.getResult().getRepoLicense().get(0));
+        }
+    }
+
+    private License generateNewLicense(String lic) {
+        License license = new License();
+        license.setSpdxLicenseId(lic);
+
+        // use cache
+        Map<String, LicenseInfo> licenseInfoMap = licenseInfoMapCache.getLicenseInfoMap(CacheConstants.LICENSE_INFO_MAP_CACHE_KEY_DEFAULT_VALUE);
+        if (!ObjectUtils.isEmpty(licenseInfoMap) && licenseInfoMap.containsKey(lic)) {
+            LicenseInfo licenseInfo = licenseInfoMap.get(lic);
+            license.setName(licenseInfo.getName());
+            license.setUrl(licenseInfo.getReference());
+        }
+        return license;
+    }
+
+    private void setLicenseAndPkgInfo(Map<String, List<String>> illegalLicenseInfo, List<Pair<Package, License>> dataToSave, ExternalPurlRef purlRef, ComplianceResponse response) {
+        List<String> illegalLicenseList = response.getResult().getRepoLicenseIllegal();
+        List<String> licenseList = new ArrayList<>(illegalLicenseList);
+        licenseList.addAll(response.getResult().getRepoLicenseLegal());
+        Package pkg = packageRepository.findById(purlRef.getPkg().getId()).orElseThrow();
+        saveLicenseAndCopyrightForPackage(response, pkg);
+        licenseList.forEach(lic -> {
+            lic = licenseStandardMapCache.getLicenseStandardMap(CacheConstants.LICENSE_STANDARD_MAP_CACHE_KEY_PATTERN).getOrDefault(lic.toLowerCase(), lic);
+            License license = licenseRepository.findBySpdxLicenseId(lic).orElse(generateNewLicense(lic));
+            if (pkg.getLicenses() == null) {
+                pkg.setLicenses(new HashSet<>());
+            }
+            if (license.getPackages() == null) {
+                license.setPackages(new HashSet<>());
+            } else if (!isContainPackage(pkg, license)) {
+                pkg.getLicenses().add(license);
+                license.getPackages().add(pkg);
+            }
+            if (illegalLicenseList.contains(lic)) {
+                license.setIsLegal(false);
+                List<String> licList = illegalLicenseInfo.getOrDefault(purlRef.getPkg().getName(), new ArrayList<>());
+                licList.add(lic);
+                illegalLicenseInfo.put(purlRef.getPkg().getName(), licList);
+            } else {
+                license.setIsLegal(true);
+            }
+            dataToSave.add(Pair.of(pkg, license));
+        });
+    }
+
+    public String getPurlsForLicense(PackageUrlVo packageUrlVo, Product product) {
+        String purl = "";
+        String productType = String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_TYPE_KEY));
+        try {
+
+            if (SbomConstants.PRODUCT_MINDSPORE_NAME.equals(productType)) {
+                purl = dealMindsporePurl(packageUrlVo);
+            } else if (SbomConstants.PRODUCT_OPENEULER_NAME.equals(productType)) {
+                purl = dealOpenEulerPurl(packageUrlVo, product);
+            } else if (SbomConstants.PRODUCT_OPENHARMONY_NAME.equals(productType)) {
+                purl = dealOpenHarmonyPurl(packageUrlVo, product);
+            }
+        } catch (MalformedPackageURLException e) {
+            logger.error("failed to get purl for License ");
+            return null;
+        }
+        return purl;
     }
 
     @Override
@@ -193,10 +245,8 @@ public class LicenseServiceImpl implements LicenseService {
     }
 
     @Override
-    public Set<Pair<ExternalPurlRef, Object>> extractLicenseForPurlRefChunk(UUID sbomId,
-                                                                            List<ExternalPurlRef> externalPurlChunk) {
-        logger.info("Start to extract License for sbom {}, chunk size:{}", sbomId,
-                externalPurlChunk.size());
+    public List<Pair<Package, License>> extractLicenseForPurlRefChunk(UUID sbomId, List<ExternalPurlRef> externalPurlChunk) {
+        logger.info("Start to extract License for sbom {}, chunk size:{}", sbomId, externalPurlChunk.size());
         Set<Pair<ExternalPurlRef, Object>> resultSet = new HashSet<>();
         Product product = productRepository.findBySbomId(sbomId);
 
@@ -213,7 +263,7 @@ public class LicenseServiceImpl implements LicenseService {
             List<String> purls = new ArrayList<>(repoPurlSet);
             ComplianceResponse[] responseArr = licenseClient.getComplianceResponse(purls);
             if (Objects.isNull(responseArr) || responseArr.length == 0) {
-                return resultSet;
+                return List.of();
             }
             externalPurlChunk.forEach(ref ->
                     Arrays.stream(responseArr)
@@ -225,44 +275,19 @@ public class LicenseServiceImpl implements LicenseService {
             throw new RuntimeException(e);
         }
         logger.info("End to extract license for sbom {}", sbomId);
-        return resultSet;
+        return getLicenseAndPkgToSave(resultSet);
     }
 
-    @Override
-    public Map<String, List<String>> persistExternalLicenseRefChunk(Set<Pair<ExternalPurlRef, Object>> externalLicenseRefSet) {
+
+    public List<Pair<Package, License>> getLicenseAndPkgToSave(Set<Pair<ExternalPurlRef, Object>> externalLicenseRefSet) {
         Map<String, List<String>> illegalLicenseInfo = new HashMap<>();
+        List<Pair<Package, License>> dataToSave = new ArrayList<>();
         int numOfNotScan = 0;
         for (Pair<ExternalPurlRef, Object> externalLicenseRefPair : externalLicenseRefSet) {
             ExternalPurlRef purlRef = externalLicenseRefPair.getLeft();
             ComplianceResponse response = (ComplianceResponse) externalLicenseRefPair.getRight();
             if (response.getResult().getIsSca().equals("true")) {
-                List<String> illegalLicenseList = response.getResult().getRepoLicenseIllegal();
-                List<String> licenseList = new ArrayList<>(illegalLicenseList);
-                licenseList.addAll(response.getResult().getRepoLicenseLegal());
-                Package pkg = packageRepository.findById(purlRef.getPkg().getId()).orElseThrow();
-                saveLicenseAndCopyrightForPackage(response, pkg);
-                licenseList.forEach(lic -> {
-                    lic = licenseStandardMapCache.getLicenseStandardMap(CacheConstants.LICENSE_STANDARD_MAP_CACHE_KEY_PATTERN).getOrDefault(lic.toLowerCase(), lic);
-                    License license = licenseRepository.findBySpdxLicenseId(lic).orElse(generateNewLicense(lic));
-                    if (pkg.getLicenses() == null) {
-                        pkg.setLicenses(new HashSet<>());
-                    }
-                    if (license.getPackages() == null) {
-                        license.setPackages(new HashSet<>());
-                    } else if (!isContainPackage(pkg, license)) {
-                        pkg.getLicenses().add(license);
-                        license.getPackages().add(pkg);
-                    }
-                    if (illegalLicenseList.contains(lic)) {
-                        license.setIsLegal(false);
-                        List<String> licList = illegalLicenseInfo.getOrDefault(purlRef.getPkg().getName(), new ArrayList<>());
-                        licList.add(lic);
-                        illegalLicenseInfo.put(purlRef.getPkg().getName(), licList);
-                    } else {
-                        license.setIsLegal(true);
-                    }
-                    licenseRepository.save(license);
-                });
+                setLicenseAndPkgInfo(illegalLicenseInfo, dataToSave, purlRef, response);
             } else {
                 if (Boolean.TRUE.equals(isScan) && response.getPurl().startsWith("pkg:git")) {
                     scanLicense(response);
@@ -271,30 +296,23 @@ public class LicenseServiceImpl implements LicenseService {
             }
         }
         logger.info("The num of package not scanned license: {}", numOfNotScan);
-        return illegalLicenseInfo;
+        Map<String, List<String>> chunkIllegalLicenseInfo = new HashMap<>();
+        illegalLicenseInfo.forEach((pkgName, licList) -> {
+            List<String> templist = chunkIllegalLicenseInfo.getOrDefault(pkgName, new ArrayList<>());
+            templist.addAll(licList);
+            chunkIllegalLicenseInfo.put(pkgName, templist);
+        });
+        if (MapUtils.isNotEmpty(chunkIllegalLicenseInfo)) {
+            logger.warn("illegal licenses info in chunks:{}", illegalLicenseInfo);
+        }
+        return dataToSave;
     }
 
-    private void saveLicenseAndCopyrightForPackage(ComplianceResponse response, Package pkg) {
-        if (response.getResult().getRepoCopyrightLegal().size() != 0) {
-            pkg.setCopyright(response.getResult().getRepoCopyrightLegal().get(0));
-        }
-        if (response.getResult().getRepoLicense().size() != 0) {
-            pkg.setLicenseConcluded(response.getResult().getRepoLicense().get(0));
-        }
-        packageRepository.save(pkg);
+
+    @Override
+    public void persistExternalLicenseRefChunk(Pair<Set<Package>, Set<License>> licenseAndPkgListToSave) {
+        packageRepository.saveAll(licenseAndPkgListToSave.getLeft());
+        licenseRepository.saveAll(licenseAndPkgListToSave.getRight());
     }
 
-    private License generateNewLicense(String lic) {
-        License license = new License();
-        license.setSpdxLicenseId(lic);
-
-        // use cache
-        Map<String, LicenseInfo> licenseInfoMap = licenseInfoMapCache.getLicenseInfoMap(CacheConstants.LICENSE_INFO_MAP_CACHE_KEY_DEFAULT_VALUE);
-        if (!ObjectUtils.isEmpty(licenseInfoMap) && licenseInfoMap.containsKey(lic)) {
-            LicenseInfo licenseInfo = licenseInfoMap.get(lic);
-            license.setName(licenseInfo.getName());
-            license.setUrl(licenseInfo.getReference());
-        }
-        return license;
-    }
 }
