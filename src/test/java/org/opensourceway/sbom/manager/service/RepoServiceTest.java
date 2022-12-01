@@ -53,8 +53,10 @@ public class RepoServiceTest {
         repoInfoSet.add(new RepoInfoVo("kata_integration", "openEuler-22.03-LTS"));
         repoInfoSet.add(new RepoInfoVo("kata-containers", "openEuler-22.03-LTS"));
 
-        repoMetaParser.fetchRepoBuildFileInfo(repoInfoSet);
-        repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfoSet);
+        for (RepoInfoVo repoInfo : repoInfoSet) {
+            repoMetaParser.fetchRepoBuildFileInfo(repoInfo);
+            repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfo);
+        }
 
         List<RepoMeta> deleteIds = repoMetaRepository.deleteByProductType(TestConstants.PUBLISH_SAMPLE_PRODUCT_NAME);
         System.out.printf("delete %s's old data size:%s%n", SbomConstants.PRODUCT_OPENEULER_NAME, deleteIds == null ? 0 : deleteIds.size());
@@ -64,7 +66,7 @@ public class RepoServiceTest {
         }
 
 
-        assertThat(repoInfoSet.size()).isEqualTo(5);
+        assertThat(repoInfoSet.size()).isEqualTo(6);
 
         List<RepoInfoVo> repoInfoList = repoInfoSet.stream().toList();
         assertThat(repoInfoList.get(0).getPatchInfo().get(0)).isEqualTo("CVE-2021-3652.patch");
@@ -77,6 +79,13 @@ public class RepoServiceTest {
         assertThat(repoInfoList.get(1).getPackageNames().size()).isEqualTo(3);
 
         assertThat(repoInfoList.get(2).getPackageNames().size()).isEqualTo(140);
+
+        assertThat(repoInfoList.get(3).getLastCommitId()).isNull();
+        assertThat(repoInfoList.get(3).getDownloadLocation()).isNull();
+        assertThat(repoInfoList.get(3).getSpecDownloadUrl()).isNull();
+        assertThat(repoInfoList.get(3).getUpstreamDownloadUrls()).isNull();
+        assertThat(repoInfoList.get(3).getPatchInfo()).isNull();
+        assertThat(repoInfoList.get(3).getPackageNames()).isNull();
 
         // clear data
         deleteIds = repoMetaRepository.deleteByProductType(TestConstants.PUBLISH_SAMPLE_PRODUCT_NAME);

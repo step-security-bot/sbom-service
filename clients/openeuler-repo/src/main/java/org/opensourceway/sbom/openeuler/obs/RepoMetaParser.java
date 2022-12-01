@@ -1,6 +1,7 @@
 package org.opensourceway.sbom.openeuler.obs;
 
 import org.opensourceway.sbom.openeuler.obs.vo.RepoInfoVo;
+import org.springframework.data.util.Pair;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -12,10 +13,12 @@ public interface RepoMetaParser {
 
     Set<RepoInfoVo> parseRepoInfoFromZip(Path sourceZipPath) throws IOException;
 
-    void fetchRepoBuildFileInfo(Set<RepoInfoVo> repoInfoSet);
+    Pair<Boolean, String> isRepoChanged(RepoInfoVo repoInfo, String lastCommitId);
 
-    void fetchRepoPackageAndPatchInfo(Set<RepoInfoVo> repoInfoSet);
+    void fetchRepoBuildFileInfo(RepoInfoVo repoInfo);
 
-    void fetchRepoUpstreamInfo(Set<RepoInfoVo> repoInfoSet);
+    void fetchRepoPackageAndPatchInfo(RepoInfoVo repoInfo);
+
+    void fetchRepoUpstreamInfo(RepoInfoVo repoInfo);
 
 }

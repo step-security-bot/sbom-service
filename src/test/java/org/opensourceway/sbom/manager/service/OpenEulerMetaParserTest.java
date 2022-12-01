@@ -71,15 +71,16 @@ public class OpenEulerMetaParserTest {
         repoInfoSet.add(new RepoInfoVo("three-eight-nine-ds-base", "openEuler-22.03-LTS"));
         repoInfoSet.add(new RepoInfoVo("CUnit", "openEuler-22.03-LTS"));
         repoInfoSet.add(new RepoInfoVo("texlive-split-m", "openEuler-22.03-LTS"));
-        repoInfoSet.add(new RepoInfoVo("openEuler-kernel", "openEuler-22.03-LTS"));// will be removed after fetchRepoBuildFileInfo
         repoInfoSet.add(new RepoInfoVo("kata_integration", "openEuler-22.03-LTS"));
         repoInfoSet.add(new RepoInfoVo("kata-containers", "openEuler-22.03-LTS"));
         repoInfoSet.add(new RepoInfoVo("openEuler-repos", "openEuler-22.03-LTS"));
         repoInfoSet.add(new RepoInfoVo("apache-commons-beanutils", "openEuler-22.03-LTS"));
+        repoInfoSet.add(new RepoInfoVo("openEuler-kernel", "openEuler-22.03-LTS"));
 
-        repoMetaParser.fetchRepoBuildFileInfo(repoInfoSet);
-        repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfoSet);
-        assertThat(repoInfoSet.size()).isEqualTo(7);
+        for (RepoInfoVo repoInfo : repoInfoSet) {
+            repoMetaParser.fetchRepoBuildFileInfo(repoInfo);
+            repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfo);
+        }
 
         List<RepoInfoVo> repoInfoList = repoInfoSet.stream().toList();
         assertThat(repoInfoList.get(0).getDownloadLocation()).isEqualTo("https://gitee.com/src-openeuler/three-eight-nine-ds-base/tree/openEuler-22.03-LTS");
@@ -110,6 +111,13 @@ public class OpenEulerMetaParserTest {
         assertThat(repoInfoList.get(6).getPackageNames().size()).isEqualTo(2);
         assertThat(repoInfoList.get(6).getPackageNames().get(0)).isEqualTo("apache-commons-beanutils");
         assertThat(repoInfoList.get(6).getPackageNames().get(1)).isEqualTo("apache-commons-beanutils-javadoc");
+
+        assertThat(repoInfoList.get(7).getLastCommitId()).isNull();
+        assertThat(repoInfoList.get(7).getDownloadLocation()).isNull();
+        assertThat(repoInfoList.get(7).getSpecDownloadUrl()).isNull();
+        assertThat(repoInfoList.get(7).getUpstreamDownloadUrls()).isNull();
+        assertThat(repoInfoList.get(7).getPatchInfo()).isNull();
+        assertThat(repoInfoList.get(7).getPackageNames()).isNull();
     }
 
     /**
@@ -117,12 +125,25 @@ public class OpenEulerMetaParserTest {
      */
     @Test
     public void specNotExistTest() {
-        Set<RepoInfoVo> repoInfoSet = new LinkedHashSet<>();
-        repoInfoSet.add(new RepoInfoVo("jakarta-server-pages", "openEuler-22.03-LTS"));
-        repoInfoSet.add(new RepoInfoVo("python-croniter", "openEuler-22.03-LTS"));
+        RepoInfoVo repoInfo1 = new RepoInfoVo("jakarta-server-pages", "openEuler-22.03-LTS");
+        RepoInfoVo repoInfo2 = new RepoInfoVo("python-croniter", "openEuler-22.03-LTS");
 
-        repoMetaParser.fetchRepoBuildFileInfo(repoInfoSet);
-        assertThat(repoInfoSet.size()).isEqualTo(0);
+        repoMetaParser.fetchRepoBuildFileInfo(repoInfo1);
+        repoMetaParser.fetchRepoBuildFileInfo(repoInfo2);
+
+        assertThat(repoInfo1.getLastCommitId()).isNull();
+        assertThat(repoInfo1.getDownloadLocation()).isNull();
+        assertThat(repoInfo1.getSpecDownloadUrl()).isNull();
+        assertThat(repoInfo1.getUpstreamDownloadUrls()).isNull();
+        assertThat(repoInfo1.getPatchInfo()).isNull();
+        assertThat(repoInfo1.getPackageNames()).isNull();
+
+        assertThat(repoInfo2.getLastCommitId()).isNull();
+        assertThat(repoInfo2.getDownloadLocation()).isNull();
+        assertThat(repoInfo2.getSpecDownloadUrl()).isNull();
+        assertThat(repoInfo2.getUpstreamDownloadUrls()).isNull();
+        assertThat(repoInfo2.getPatchInfo()).isNull();
+        assertThat(repoInfo2.getPackageNames()).isNull();
     }
 
     @Test
@@ -233,7 +254,9 @@ public class OpenEulerMetaParserTest {
         temp.setSpecDownloadUrl("https://gitee.com/src-openeuler/valgrind/raw/openEuler-22.03-LTS/valgrind.spec");
         repoInfoSet.add(temp);
 
-        repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfoSet);
+        for (RepoInfoVo repoInfo : repoInfoSet) {
+            repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfo);
+        }
         boolean isSuccess = true;
         for (RepoInfoVo repoInfoVo : repoInfoSet) {
             if (CollectionUtils.isEmpty((repoInfoVo.getPackageNames()))) {
@@ -279,7 +302,9 @@ public class OpenEulerMetaParserTest {
         temp.setSpecDownloadUrl("https://gitee.com/src-openeuler/tbb/raw/openEuler-22.03-LTS/tbb.spec");
         repoInfoSet.add(temp);
 
-        repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfoSet);
+        for (RepoInfoVo repoInfo : repoInfoSet) {
+            repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfo);
+        }
 
         List<RepoInfoVo> repoInfoList = repoInfoSet.stream().toList();
         assertThat(repoInfoList.get(0).getPackageNames().size()).isEqualTo(4);
@@ -317,7 +342,9 @@ public class OpenEulerMetaParserTest {
         temp.setSpecDownloadUrl("https://gitee.com/src-openeuler/vim/raw/openEuler-22.03-LTS/vim.spec");
         repoInfoSet.add(temp);
 
-        repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfoSet);
+        for (RepoInfoVo repoInfo : repoInfoSet) {
+            repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfo);
+        }
 
         assertThat(repoInfoSet.size()).isEqualTo(3);
     }
@@ -345,7 +372,9 @@ public class OpenEulerMetaParserTest {
         temp.setSpecDownloadUrl("https://gitee.com/src-openeuler/python-pycurl/raw/openEuler-22.03-LTS/python-pycurl.spec");
         repoInfoSet.add(temp);
 
-        repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfoSet);
+        for (RepoInfoVo repoInfo : repoInfoSet) {
+            repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfo);
+        }
         assertThat(repoInfoSet.size()).isEqualTo(4);
         boolean isSuccess = true;
         for (RepoInfoVo repoInfoVo : repoInfoSet) {
@@ -371,7 +400,9 @@ public class OpenEulerMetaParserTest {
         temp.setSpecDownloadUrl("https://gitee.com/src-openeuler/tesseract-tessdata/raw/openEuler-22.03-LTS/tesseract-tessdata.spec");
         repoInfoSet.add(temp);
 
-        repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfoSet);
+        for (RepoInfoVo repoInfo : repoInfoSet) {
+            repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfo);
+        }
 
         assertThat(repoInfoSet.size()).isEqualTo(2);
         boolean isSuccess = true;
@@ -406,7 +437,9 @@ public class OpenEulerMetaParserTest {
         temp.setSpecDownloadUrl("https://gitee.com/src-openeuler/ovirt-engine-nodejs-modules/raw/openEuler-22.03-LTS/ovirt-engine-nodejs-modules.spec");
         repoInfoSet.add(temp);
 
-        repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfoSet);
+        for (RepoInfoVo repoInfo : repoInfoSet) {
+            repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfo);
+        }
         assertThat(repoInfoSet.size()).isEqualTo(4);
         boolean isSuccess = true;
         for (RepoInfoVo repoInfoVo : repoInfoSet) {
@@ -435,7 +468,9 @@ public class OpenEulerMetaParserTest {
         temp.setSpecDownloadUrl("https://gitee.com/src-openeuler/security-tool/raw/openEuler-22.03-LTS/security-tool.spec");
         repoInfoSet.add(temp);
 
-        repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfoSet);
+        for (RepoInfoVo repoInfo : repoInfoSet) {
+            repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfo);
+        }
         assertThat(repoInfoSet.size()).isEqualTo(2);
 
         List<RepoInfoVo> repoInfoList = repoInfoSet.stream().toList();
@@ -452,7 +487,9 @@ public class OpenEulerMetaParserTest {
         temp.setSpecDownloadUrl("https://gitee.com/src-openeuler/grilo/raw/openEuler-22.03-LTS/grilo.spec");
         repoInfoSet.add(temp);
 
-        repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfoSet);
+        for (RepoInfoVo repoInfo : repoInfoSet) {
+            repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfo);
+        }
 
         List<RepoInfoVo> repoInfoList = repoInfoSet.stream().toList();
         assertThat(repoInfoList.get(0).getPackageNames().get(0)).isEqualTo("grilo");

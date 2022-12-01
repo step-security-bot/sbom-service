@@ -1,8 +1,10 @@
 package org.opensourceway.sbom.manager.utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.opensourceway.sbom.clients.vcs.VcsApi;
+import org.opensourceway.sbom.clients.vcs.gitee.GiteeApi;
+import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeBranchInfo;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeFileInfo;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.TestConstants;
@@ -30,7 +32,7 @@ public class GiteeTest {
 
     @Autowired
     @Qualifier("giteeApi")
-    private VcsApi giteeApi;
+    private GiteeApi giteeApi;
 
     @Test
     public void downloadRepoArchiveTest() throws IOException {
@@ -68,6 +70,18 @@ public class GiteeTest {
     }
 
     @Test
+    public void getAllFileContextTest() {
+        List<GiteeFileInfo> fileInfos = giteeApi.findRepoFiles(ARCHIVE_DOWNLOAD_ORG,
+                ARCHIVE_DOWNLOAD_REPO,
+                ARCHIVE_DOWNLOAD_BRANCH,
+                SbomConstants.LINUX_FILE_SYSTEM_SEPARATOR, null);
+        Assertions.assertThat(fileInfos.size()).isEqualTo(12);
+        Assertions.assertThat(fileInfos.get(0).name()).isEqualTo("389-ds-base-1.4.3.20.tar.bz2");
+        Assertions.assertThat(fileInfos.get(5).name()).isEqualTo("CVE-2021-3514.patch");
+        Assertions.assertThat(fileInfos.get(11).name()).isEqualTo("jemalloc.yaml");
+    }
+
+    @Test
     public void getMultiFileContextTest() {
         List<GiteeFileInfo> fileInfos = giteeApi.findRepoFiles(ARCHIVE_DOWNLOAD_ORG,
                 ARCHIVE_DOWNLOAD_REPO,
@@ -88,6 +102,30 @@ public class GiteeTest {
                     ARCHIVE_DOWNLOAD_BRANCH,
                     SbomConstants.LINUX_FILE_SYSTEM_SEPARATOR,
                     SbomRepoConstants.SPEC_FILE_NAME_REGEX);
+        } catch (Exception e) {
+            exception = e;
+        }
+
+        Assertions.assertThat(exception).isNotNull();
+        Assertions.assertThat(exception instanceof WebClientResponseException.NotFound).isNotNull();
+    }
+
+    @Test
+    public void getRepoBranchesTest() {
+        List<GiteeBranchInfo.BranchInfo> branchList = giteeApi.getRepoBranches(ARCHIVE_DOWNLOAD_ORG, ARCHIVE_DOWNLOAD_REPO);
+
+        Optional<GiteeBranchInfo.BranchInfo> branchOptional = branchList.stream()
+                .filter(branch -> StringUtils.equalsIgnoreCase(branch.name(), ARCHIVE_DOWNLOAD_BRANCH)).findFirst();
+
+        Assertions.assertThat(branchOptional.isPresent()).isTrue();
+        Assertions.assertThat(StringUtils.isNotEmpty(branchOptional.get().commit().sha())).isTrue();
+    }
+
+    @Test
+    public void getNotExistRepoBranches() {
+        Exception exception = null;
+        try {
+            giteeApi.getRepoBranches(ARCHIVE_DOWNLOAD_ORG, "openEuler-kernel");
         } catch (Exception e) {
             exception = e;
         }
