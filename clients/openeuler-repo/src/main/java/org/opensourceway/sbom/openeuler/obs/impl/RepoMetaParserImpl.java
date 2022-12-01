@@ -5,7 +5,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.computer.whunter.rpm.parser.RpmSpecParser;
-import org.opensourceway.sbom.clients.vcs.VcsApi;
+import org.opensourceway.sbom.clients.vcs.gitee.GiteeApi;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeBranchInfo;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeFileInfo;
 import org.opensourceway.sbom.constants.SbomConstants;
@@ -63,7 +63,7 @@ public class RepoMetaParserImpl implements RepoMetaParser {
 
     @Autowired
     @Qualifier("giteeApi")
-    private VcsApi giteeApi;
+    private GiteeApi giteeApi;
 
     @Autowired
     private OpenEulerRepoCache openEulerRepoCache;

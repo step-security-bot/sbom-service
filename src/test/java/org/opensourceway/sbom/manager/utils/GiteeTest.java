@@ -3,7 +3,7 @@ package org.opensourceway.sbom.manager.utils;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.opensourceway.sbom.clients.vcs.VcsApi;
+import org.opensourceway.sbom.clients.vcs.gitee.GiteeApi;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeBranchInfo;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeFileInfo;
 import org.opensourceway.sbom.constants.SbomConstants;
@@ -32,7 +32,7 @@ public class GiteeTest {
 
     @Autowired
     @Qualifier("giteeApi")
-    private VcsApi giteeApi;
+    private GiteeApi giteeApi;
 
     @Test
     public void downloadRepoArchiveTest() throws IOException {

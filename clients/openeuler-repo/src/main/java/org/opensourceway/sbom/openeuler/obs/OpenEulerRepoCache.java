@@ -2,7 +2,7 @@ package org.opensourceway.sbom.openeuler.obs;
 
 import org.opensourceway.sbom.cache.config.CacheProperties;
 import org.opensourceway.sbom.cache.constant.CacheConstants;
-import org.opensourceway.sbom.clients.vcs.VcsApi;
+import org.opensourceway.sbom.clients.vcs.gitee.GiteeApi;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeBranchInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +21,7 @@ public class OpenEulerRepoCache {
 
     @Autowired
     @Qualifier("giteeApi")
-    private VcsApi giteeApi;
+    private GiteeApi giteeApi;
 
     /**
      * @return {@link CacheProperties}
