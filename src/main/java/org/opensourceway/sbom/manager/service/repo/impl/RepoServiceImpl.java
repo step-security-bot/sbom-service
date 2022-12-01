@@ -1,6 +1,7 @@
 package org.opensourceway.sbom.manager.service.repo.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.dao.ExternalPurlRefRepository;
 import org.opensourceway.sbom.manager.dao.FileRepository;
@@ -15,17 +16,20 @@ import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
 import org.opensourceway.sbom.manager.model.vo.response.UpstreamAndPatchInfoResponse;
 import org.opensourceway.sbom.manager.service.repo.RepoService;
 import org.opensourceway.sbom.openeuler.obs.RepoMetaParser;
+import org.opensourceway.sbom.openeuler.obs.SbomRepoConstants;
 import org.opensourceway.sbom.openeuler.obs.vo.RepoInfoVo;
 import org.opensourceway.sbom.openharmony.RepoMetaHandler;
 import org.opensourceway.sbom.openharmony.vo.RepoMetaVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -60,18 +64,40 @@ public class RepoServiceImpl implements RepoService {
     @Override
     public Set<RepoInfoVo> fetchOpenEulerRepoMeta() throws IOException {
         Set<RepoInfoVo> repoInfoSet = repoMetaParser.fetchObsMetaSourceCode();
-        repoMetaParser.fetchRepoBuildFileInfo(repoInfoSet);
-        repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfoSet);
 
-        // TODO parse upstream info form yaml
-        // repoMetaParser.fetchRepoUpstreamInfo(repoInfoSet);
+        Iterator<RepoInfoVo> repoInfoIt = repoInfoSet.iterator();
+        int counter = 0;
 
-        logger.info("fetch openEuler repo meta set size:{}", repoInfoSet.size());
-        List<RepoMeta> deleteIds = repoMetaRepository.deleteByProductType(SbomConstants.PRODUCT_OPENEULER_NAME);
-        logger.info("delete {}'s old data size:{}", SbomConstants.PRODUCT_OPENEULER_NAME, deleteIds == null ? 0 : deleteIds.size());
-        for (RepoInfoVo repoInfo : repoInfoSet) {
-            repoMetaRepository.save(RepoMeta.fromRepoInfoVo(SbomConstants.PRODUCT_OPENEULER_NAME, repoInfo));
+        while (repoInfoIt.hasNext()) {
+            RepoInfoVo repoInfo = repoInfoIt.next();
+            if (counter++ % 20 == 0) {
+                logger.info("fetchOpenEulerRepoMeta run loops:{}, current repo name:{} ,branch:{}", counter, repoInfo.getRepoName(), repoInfo.getBranch());
+            }
+
+            RepoMeta repoMeta = repoMetaRepository.findByProductTypeAndRepoNameAndBranch(
+                    SbomConstants.PRODUCT_OPENEULER_NAME, repoInfo.getRepoName(), repoInfo.getBranch()).orElse(new RepoMeta());
+            String oldLastCommitId = (repoMeta.getExtendedAttr() == null || !repoMeta.getExtendedAttr().containsKey(SbomRepoConstants.LAST_COMMIT_ID_KEY)) ?
+                    null : String.valueOf(repoMeta.getExtendedAttr().get(SbomRepoConstants.LAST_COMMIT_ID_KEY));
+            Pair<Boolean, String> repoChangeInfo = repoMetaParser.isRepoChanged(repoInfo, oldLastCommitId);
+            if (BooleanUtils.isFalse(repoChangeInfo.getFirst())) {
+                repoInfoIt.remove();
+                continue;
+            }
+
+            logger.info("repo name:{}, repo branch:{} has changed, fetch repo info again",
+                    repoInfo.getRepoName(),
+                    repoInfo.getBranch());
+            repoInfo.setId(repoMeta.getId());
+            repoInfo.setLastCommitId(repoChangeInfo.getSecond());
+            repoMetaParser.fetchRepoBuildFileInfo(repoInfo);
+            repoMetaParser.fetchRepoPackageAndPatchInfo(repoInfo);
+            // TODO parse upstream info form yaml
+            // repoMetaParser.fetchRepoUpstreamInfo(repoInfoSet);
         }
+
+        logger.info("save new openEuler repo meta set size:{}", repoInfoSet.size());
+        repoMetaRepository.saveAll(repoInfoSet.stream()
+                .map(temp -> RepoMeta.fromRepoInfoVo(SbomConstants.PRODUCT_OPENEULER_NAME, temp)).toList());
         return repoInfoSet;
     }
 

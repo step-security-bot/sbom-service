@@ -1,6 +1,5 @@
 package org.opensourceway.sbom.clients.vcs;
 
-import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeFileInfo;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Path;
@@ -18,7 +17,7 @@ public interface VcsApi {
         throw new RuntimeException("not implemented");
     }
 
-    default List<GiteeFileInfo> findRepoFiles(String org, String repo, String branch, String fileDir, String fileNameRegex) {
+    default List<?> findRepoFiles(String org, String repo, String branch, String fileDir, String fileNameRegex) {
         throw new RuntimeException("not implemented");
     }
 
@@ -31,6 +30,10 @@ public interface VcsApi {
     }
 
     default List<String> getRepoTags(String org, String repo) {
+        throw new RuntimeException("not implemented");
+    }
+
+    default List<?> getRepoBranches(String org, String repo) {
         throw new RuntimeException("not implemented");
     }
 }
