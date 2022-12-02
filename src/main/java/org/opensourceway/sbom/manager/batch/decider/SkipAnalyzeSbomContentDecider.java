@@ -25,7 +25,7 @@ public class SkipAnalyzeSbomContentDecider implements JobExecutionDecider {
             SbomConstants.PRODUCT_OPENGAUSS_NAME.toLowerCase());
 
     private final static List<String> NEED_ANALYZE_DEFINITION_FILE_PRODUCT_LIST = List.of(
-            SbomConstants.PRODUCT_OPENHARMONY_NAME.toLowerCase());
+            SbomConstants.PRODUCT_OPENHARMONY_NAME.toLowerCase(), SbomConstants.PRODUCT_MAJUN_NAME.toLowerCase());
 
     @NotNull
     @Override
