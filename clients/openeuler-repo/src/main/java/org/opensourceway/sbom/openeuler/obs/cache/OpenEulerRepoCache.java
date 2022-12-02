@@ -28,11 +28,10 @@ public class OpenEulerRepoCache {
      */
     @Bean
     public CacheProperties openEulerRepoCacheProperties() {
-        // TODO 后续调小缓存最大值和过期时限
         return CacheProperties.builder()
                 .cacheName(CacheConstants.OPENEULER_REPO_BRANCHES_CACHE_NAME)
-                .maximumCacheSize(5500L)
-                .expireAfterAccess(3 * 60L * 60L)// 3h
+                .maximumCacheSize(6000L)
+                .expireAfterAccess(60L * 60L)// 1h
                 .cacheNullValue(true)
                 .build();
     }

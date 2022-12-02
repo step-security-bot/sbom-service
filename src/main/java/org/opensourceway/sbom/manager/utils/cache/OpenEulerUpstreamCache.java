@@ -45,7 +45,7 @@ public class OpenEulerUpstreamCache {
     public CacheProperties openEulerUpstreamCacheProperties() {
         return CacheProperties.builder()
                 .cacheName(CacheConstants.OPENEULER_UPSTREAM_URLS_CACHE_NAME)
-                .maximumCacheSize(1000L)
+                .maximumCacheSize(5000L)
                 .expireAfterAccess(60L * 60L)// 1h
                 .cacheNullValue(true)
                 .build();
