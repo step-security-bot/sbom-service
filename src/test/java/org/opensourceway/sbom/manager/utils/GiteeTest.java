@@ -10,7 +10,6 @@ import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.TestConstants;
 import org.opensourceway.sbom.openeuler.obs.SbomRepoConstants;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
@@ -31,7 +30,6 @@ public class GiteeTest {
     private static final String ARCHIVE_DOWNLOAD_BRANCH = "openEuler-22.03-LTS";
 
     @Autowired
-    @Qualifier("giteeApi")
     private GiteeApi giteeApi;
 
     @Test

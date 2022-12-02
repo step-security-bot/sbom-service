@@ -7,7 +7,6 @@ import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeBranchInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +19,6 @@ public class OpenEulerRepoCache {
     private static final Logger logger = LoggerFactory.getLogger(OpenEulerRepoCache.class);
 
     @Autowired
-    @Qualifier("giteeApi")
     private GiteeApi giteeApi;
 
     /**
