@@ -9,7 +9,7 @@ import org.opensourceway.sbom.clients.vcs.gitee.GiteeApi;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeBranchInfo;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeFileInfo;
 import org.opensourceway.sbom.constants.SbomConstants;
-import org.opensourceway.sbom.openeuler.obs.cache.OpenEulerRepoCache;
+import org.opensourceway.sbom.openeuler.obs.cache.OpenEulerRepoBranchCache;
 import org.opensourceway.sbom.openeuler.obs.RepoMetaParser;
 import org.opensourceway.sbom.openeuler.obs.SbomRepoConstants;
 import org.opensourceway.sbom.openeuler.obs.vo.MetaServiceDomain;
@@ -64,7 +64,7 @@ public class RepoMetaParserImpl implements RepoMetaParser {
     private GiteeApi giteeApi;
 
     @Autowired
-    private OpenEulerRepoCache openEulerRepoCache;
+    private OpenEulerRepoBranchCache openEulerRepoCache;
 
     @Override
     public Set<RepoInfoVo> fetchObsMetaSourceCode() throws IOException {

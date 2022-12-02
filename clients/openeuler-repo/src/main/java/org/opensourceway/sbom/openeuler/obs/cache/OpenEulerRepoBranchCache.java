@@ -14,9 +14,9 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 @Configuration
-public class OpenEulerRepoCache {
+public class OpenEulerRepoBranchCache {
 
-    private static final Logger logger = LoggerFactory.getLogger(OpenEulerRepoCache.class);
+    private static final Logger logger = LoggerFactory.getLogger(OpenEulerRepoBranchCache.class);
 
     @Autowired
     private GiteeApi giteeApi;
