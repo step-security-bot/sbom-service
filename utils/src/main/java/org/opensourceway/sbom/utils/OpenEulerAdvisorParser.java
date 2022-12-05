@@ -49,14 +49,13 @@ public class OpenEulerAdvisorParser {
                     location = parseDownloadAdvisor(advisor);
             case "github.gnome" -> location = parseGithubGnomeAdvisor(advisor, githubDomainUrl);
             case "pypi", "metacpan" -> location = upstreamDownloadUrl;
-            default -> {
-                logger.error("OpenEulerAdvisorParser not support vcs control:{}, advisorContent:{}, upstreamDownloadUrl:{}", advisor.getVersionControl(), advisorContent, upstreamDownloadUrl);
-                location = upstreamDownloadUrl;
-            }
+            default -> throw new RuntimeException("OpenEulerAdvisorParser not support vcs control:%s, advisorContent:%s, upstreamDownloadUrl:%s"
+                    .formatted(advisor.getVersionControl(), advisorContent, upstreamDownloadUrl));
         }
 
         if (location == null) {
-            logger.error("OpenEulerAdvisorParser not support, advisorContent:{}, upstreamDownloadUrl:{}", advisorContent, upstreamDownloadUrl);
+            throw new RuntimeException("OpenEulerAdvisorParser not support, advisorContent:%s, upstreamDownloadUrl:%s"
+                    .formatted(advisorContent, upstreamDownloadUrl));
         }
         return location;
     }
