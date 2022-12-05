@@ -1,5 +1,6 @@
 package org.opensourceway.sbom.manager.utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.opensourceway.sbom.utils.OpenEulerAdvisorParser;
@@ -54,9 +55,16 @@ public class OpenEulerAdvisorParserTest {
                 "src_repo: 389ds/389-ds-base\n" +
                 "tag_prefix: 389-ds-base-\n" +
                 "seperator: .";
-        String result = advisorParser.parseUpstreamLocation(advisorContent);
 
-        Assertions.assertThat(result).isNull();
+        RuntimeException exception = null;
+        try {
+            advisorParser.parseUpstreamLocation(advisorContent);
+        } catch (RuntimeException e) {
+            exception = e;
+        }
+
+        Assertions.assertThat(exception).isNotNull();
+        Assertions.assertThat(StringUtils.startsWith(exception.getMessage(), "OpenEulerAdvisorParser not support vcs control:xxx, advisorContent:version_control: xxx")).isTrue();
     }
 
 
@@ -112,9 +120,17 @@ public class OpenEulerAdvisorParserTest {
         String advisorContent = "version_control: github\n" +
                 "tag_prefix: \"^v\"\n" +
                 "separator: \".\"\n";
-        String result = advisorParser.parseUpstreamLocation(advisorContent);
 
-        Assertions.assertThat(result).isNull();
+        RuntimeException exception = null;
+        try {
+            advisorParser.parseUpstreamLocation(advisorContent);
+        } catch (RuntimeException e) {
+            exception = e;
+        }
+
+        Assertions.assertThat(exception).isNotNull();
+        Assertions.assertThat(StringUtils.startsWith(exception.getMessage(), "OpenEulerAdvisorParser not support, advisorContent:version_control: github")).isTrue();
+
     }
 
     @Test
