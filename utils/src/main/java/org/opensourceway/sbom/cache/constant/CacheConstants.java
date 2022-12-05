@@ -21,4 +21,8 @@ public class CacheConstants {
     public static final String OPENEULER_REPO_BRANCHES_CACHE_NAME = "openEulerRepoBranches";
 
     public static final String OPENEULER_REPO_BRANCHES_CACHE_KEY_PATTERN = "'repo_branches_' + #org + '_' + #repo";
+
+    public static final String OPENEULER_REPO_META_CACHE_NAME = "openEulerRepoMeta";
+
+    public static final String OPENEULER_REPO_META_CACHE_KEY_PATTERN = "'openeuler_repo_meta_' + #repo + '_' + #branch";
 }

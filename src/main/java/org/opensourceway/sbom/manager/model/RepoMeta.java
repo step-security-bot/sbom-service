@@ -14,7 +14,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -156,4 +158,13 @@ public class RepoMeta {
         repoMeta.setExtendedAttr(extendedAttr);
         return repoMeta;
     }
+
+    @SuppressWarnings("unchecked")
+    public List<String> getUpstreamUrls() {
+        if (this.extendedAttr == null || !extendedAttr.containsKey(SbomRepoConstants.UPSTREAM_ATTR_KEY)) {
+            return new ArrayList<>();
+        }
+        return (List<String>) extendedAttr.get(SbomRepoConstants.UPSTREAM_ATTR_KEY);
+    }
+    
 }

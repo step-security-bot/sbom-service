@@ -1,5 +1,6 @@
 package org.opensourceway.sbom.manager.batch.processor.sourceinfo;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -19,8 +20,8 @@ import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
 import org.opensourceway.sbom.manager.model.spdx.RelationshipType;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
+import org.opensourceway.sbom.manager.utils.cache.OpenEulerRepoMetaCache;
 import org.opensourceway.sbom.openeuler.obs.SbomRepoConstants;
-import org.opensourceway.sbom.utils.OpenEulerAdvisorParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
@@ -32,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
-import org.yaml.snakeyaml.scanner.ScannerException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +55,7 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
     private VcsApi giteeApi;
 
     @Autowired
-    private OpenEulerAdvisorParser advisorParser;
+    private OpenEulerRepoMetaCache openEulerUpstreamCache;
 
     private StepExecution stepExecution;
 
@@ -134,22 +134,17 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
     }
 
     private void supplyUpstreamForOpenEuler(SupplySourceInfo supplySourceInfo, Package pkg, RepoMeta repoMeta) {
-        if (ArrayUtils.isEmpty(repoMeta.getUpstreamDownloadUrls())) {
-            return;
-        }
         if (pkg.getExternalPurlRefs() == null) {
             pkg.setExternalPurlRefs(new ArrayList<>());
         }
 
-        for (String upstreamDownloadUrl : repoMeta.getUpstreamDownloadUrls()) {
-            try {
-                // TODO 后续将yaml解析移至fetchOpenEulerRepoMeta中
-                String advisorContent = giteeApi.getFileContext(upstreamDownloadUrl);
-                String upstreamLocation = advisorParser.parseUpstreamLocation(advisorContent, upstreamDownloadUrl);
-                if (StringUtils.isEmpty(upstreamLocation)) {
-                    continue;
-                }
+        RepoMeta openEulerRepoMeta = openEulerUpstreamCache.getRepoMeta(repoMeta.getRepoName(), repoMeta.getBranch());
+        if (openEulerRepoMeta == null || CollectionUtils.isEmpty(openEulerRepoMeta.getUpstreamUrls())) {
+            return;
+        }
 
+        for (String upstreamLocation : openEulerRepoMeta.getUpstreamUrls()) {
+            try {
                 ExternalPurlRef upstreamPurl = new ExternalPurlRef();
                 upstreamPurl.setCategory(ReferenceCategory.SOURCE_MANAGER.name());
                 upstreamPurl.setType(ReferenceType.URL.getType());
@@ -164,10 +159,8 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
                     continue;
                 }
                 pkg.getExternalPurlRefs().add(upstreamPurl);
-            } catch (ScannerException e) {
-                logger.error("supplyUpstream yaml parse failed, skip it, upstream:{}, error info:{}", upstreamDownloadUrl, e.getMessage());
             } catch (Exception e) {
-                logger.error("supplyUpstream failed, upstream:{}", upstreamDownloadUrl, e);
+                logger.error("supplyUpstream for openEuler failed, package:{}", pkg.getId(), e);
                 throw new RuntimeException(e);
             }
         }
