@@ -9,7 +9,7 @@ import org.opensourceway.sbom.clients.vcs.gitee.GiteeApi;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeBranchInfo;
 import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeFileInfo;
 import org.opensourceway.sbom.constants.SbomConstants;
-import org.opensourceway.sbom.openeuler.obs.cache.OpenEulerRepoCache;
+import org.opensourceway.sbom.openeuler.obs.cache.OpenEulerRepoBranchCache;
 import org.opensourceway.sbom.openeuler.obs.RepoMetaParser;
 import org.opensourceway.sbom.openeuler.obs.SbomRepoConstants;
 import org.opensourceway.sbom.openeuler.obs.vo.MetaServiceDomain;
@@ -18,7 +18,6 @@ import org.opensourceway.sbom.utils.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
@@ -62,11 +61,10 @@ public class RepoMetaParserImpl implements RepoMetaParser {
     private String[] openEulerNewestVersion;
 
     @Autowired
-    @Qualifier("giteeApi")
     private GiteeApi giteeApi;
 
     @Autowired
-    private OpenEulerRepoCache openEulerRepoCache;
+    private OpenEulerRepoBranchCache openEulerRepoCache;
 
     @Override
     public Set<RepoInfoVo> fetchObsMetaSourceCode() throws IOException {

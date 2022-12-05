@@ -20,7 +20,7 @@ import org.opensourceway.sbom.manager.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
 import org.opensourceway.sbom.manager.model.spdx.RelationshipType;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
-import org.opensourceway.sbom.manager.utils.cache.OpenEulerUpstreamCache;
+import org.opensourceway.sbom.manager.utils.cache.OpenEulerRepoMetaCache;
 import org.opensourceway.sbom.openeuler.obs.SbomRepoConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +55,7 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
     private VcsApi giteeApi;
 
     @Autowired
-    private OpenEulerUpstreamCache openEulerUpstreamCache;
+    private OpenEulerRepoMetaCache openEulerUpstreamCache;
 
     private StepExecution stepExecution;
 
@@ -138,12 +138,12 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
             pkg.setExternalPurlRefs(new ArrayList<>());
         }
 
-        List<String> upstreamUrls = openEulerUpstreamCache.getUpstreamUrls(repoMeta.getRepoName(), repoMeta.getBranch());
-        if (CollectionUtils.isEmpty(upstreamUrls)) {
+        RepoMeta openEulerRepoMeta = openEulerUpstreamCache.getRepoMeta(repoMeta.getRepoName(), repoMeta.getBranch());
+        if (openEulerRepoMeta == null || CollectionUtils.isEmpty(openEulerRepoMeta.getUpstreamUrls())) {
             return;
         }
 
-        for (String upstreamLocation : upstreamUrls) {
+        for (String upstreamLocation : openEulerRepoMeta.getUpstreamUrls()) {
             try {
                 ExternalPurlRef upstreamPurl = new ExternalPurlRef();
                 upstreamPurl.setCategory(ReferenceCategory.SOURCE_MANAGER.name());

@@ -24,6 +24,7 @@ public interface RepoMetaRepository extends JpaRepository<RepoMeta, UUID> {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     List<RepoMeta> deleteByProductTypeAndBranch(String productType, String branch);
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     Optional<RepoMeta> findByProductTypeAndRepoNameAndBranch(String productType, String repoName, String branch);
 
     @Query(value = "SELECT * FROM repo_meta WHERE product_type = :productType AND branch = :branch AND :packageName = ANY(package_names)",
