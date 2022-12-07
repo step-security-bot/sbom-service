@@ -1,5 +1,7 @@
 CHECKSUM_SKIP_GROUP:
   - "org.zenframework.z8.dependencies.commons"
+  - "net.sf.ingenias"
+  - "org.zenframework.z8.dependencies.servlet"
 
 CHECKSUM_SKIP_ARTIFACT:
-  - ""
+  - "org-apache-commons-lang"
