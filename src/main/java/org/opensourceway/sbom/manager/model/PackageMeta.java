@@ -1,7 +1,6 @@
 package org.opensourceway.sbom.manager.model;
 
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
-import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
@@ -9,12 +8,8 @@ import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.Index;
-import javax.persistence.Table;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Package metadata obtained from external sources.
@@ -23,21 +18,19 @@ import java.util.UUID;
 @TypeDefs({
         @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 })
-@Table(indexes = {
-        @Index(name = "check_sum_uk", columnList = "checksum", unique = true)
-})
 public class PackageMeta {
-
-    @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    private UUID id;
-
     /**
      * Checksum of a package.
      */
+    @Id
     @Column(columnDefinition = "TEXT", nullable = false)
     private String checksum;
+
+    /**
+     * Checksum type.
+     */
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String checksumType;
 
     /**
      * Purl of a package.
@@ -53,20 +46,20 @@ public class PackageMeta {
     @Type(type = "jsonb")
     private Map<String, Object> extendedAttr;
 
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
     public String getChecksum() {
         return checksum;
     }
 
     public void setChecksum(String checksum) {
         this.checksum = checksum;
+    }
+
+    public String getChecksumType() {
+        return checksumType;
+    }
+
+    public void setChecksumType(String checksumType) {
+        this.checksumType = checksumType;
     }
 
     public PackageUrlVo getPurl() {

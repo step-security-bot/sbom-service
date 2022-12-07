@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
 @Service
@@ -90,7 +89,7 @@ public class ChecksumServiceImpl implements ChecksumService {
     }
 
     private PackageUrlVo getPurlByChecksum(ExternalPurlRef ref) {
-        PackageMeta meta = packageMetaRepository.findByChecksum(ref.getPurl().getName()).orElse(null);
+        PackageMeta meta = packageMetaRepository.findById(ref.getPurl().getName()).orElse(null);
         if (!ObjectUtils.isEmpty(meta)) {
             return meta.getPurl();
         }
@@ -121,12 +120,13 @@ public class ChecksumServiceImpl implements ChecksumService {
 
         PackageMeta packageMeta = new PackageMeta();
         packageMeta.setChecksum(ref.getPurl().getName());
+        packageMeta.setChecksumType(ref.getPurl().getNamespace());
         packageMeta.setPurl(vo);
         packageMeta.setExtendedAttr(Map.of("doc_count", gavInfo.getResponse().getNumFound()));
 
         synchronized (this) {
             try {
-                meta = packageMetaRepository.findByChecksum(ref.getPurl().getName()).orElse(null);
+                meta = packageMetaRepository.findById(ref.getPurl().getName()).orElse(null);
                 if (!ObjectUtils.isEmpty(meta)) {
                     return meta.getPurl();
                 }
