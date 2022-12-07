@@ -19,7 +19,8 @@ import java.util.UUID;
  */
 @Entity
 @Table(indexes = {
-        @Index(name = "config_value_uk", columnList = "product_config_id, value", unique = true)
+        @Index(name = "config_value_uk", columnList = "product_config_id, value", unique = true),
+        @Index(name = "config_label_uk", columnList = "product_config_id, label", unique = true)
 })
 public class ProductConfigValue {
     @Id
@@ -32,6 +33,12 @@ public class ProductConfigValue {
      */
     @Column(columnDefinition = "TEXT", nullable = false)
     private String value;
+
+    /**
+     * Label of a product config value.
+     */
+    @Column(columnDefinition = "TEXT")
+    private String label;
 
     /**
      * Product config that the config value belongs to.
@@ -55,6 +62,14 @@ public class ProductConfigValue {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     public ProductConfig getProductConfig() {
