@@ -1,5 +1,6 @@
 CHECKSUM_SKIP_GROUP:
   - "org.zenframework.z8.dependencies.commons"
+  - "net.sf.ingenias"
 
 CHECKSUM_SKIP_ARTIFACT:
   - ""

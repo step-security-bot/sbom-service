@@ -6,8 +6,11 @@ import org.opensourceway.sbom.clients.sonatype.vo.Docs;
 import org.opensourceway.sbom.clients.sonatype.vo.GAVInfo;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.dao.ExternalPurlRefRepository;
+import org.opensourceway.sbom.manager.dao.PackageMetaRepository;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
+import org.opensourceway.sbom.manager.model.PackageMeta;
 import org.opensourceway.sbom.manager.model.spdx.ReferenceType;
+import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.service.checksum.ChecksumService;
 import org.opensourceway.sbom.manager.utils.cache.ChecksumSkipMapCache;
 import org.slf4j.Logger;
@@ -16,12 +19,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 
 @Service
 @Qualifier("checksumServiceImpl")
@@ -39,6 +46,9 @@ public class ChecksumServiceImpl implements ChecksumService {
 
     @Autowired
     private ChecksumSkipMapCache checksumSkipMapCache;
+
+    @Autowired
+    private PackageMetaRepository packageMetaRepository;
 
     private boolean checksumSkip(Docs docs) {
         List<String> groupToSkip = checksumSkipMapCache.getChecksumSkipMap(CacheConstants.CHECKSUM_SKIP_MAP_CACHE_KEY_PATTERN).get(SbomConstants.CHECKSUM_SKIP_GROUP);
@@ -58,41 +68,18 @@ public class ChecksumServiceImpl implements ChecksumService {
     public List<List<ExternalPurlRef>> extractGAVByChecksumRef(UUID pkgId, String category, String type) {
         List<ExternalPurlRef> externalPurlRefsTOChange = new ArrayList<>();
         List<ExternalPurlRef> externalPurlRefsTORemove = new ArrayList<>();
-        Set<String> gavId = new HashSet<>();
+        Set<PackageUrlVo> vos = new HashSet<>();
         List<ExternalPurlRef> ExternalPurlRefList = externalPurlRefRepository.queryPackageRef(pkgId, category, type);
-        ExternalPurlRefList.forEach(externalPurl -> {
-            GAVInfo gavInfo;
-            try {
-                gavInfo = sonatypeClient.getGAVByChecksum(externalPurl.getPurl().getName());
-            } catch (Exception e) {
-                logger.error("failed to GAV info for {} from API", externalPurl);
-                throw new RuntimeException(e);
-            }
-            if (gavInfo.getResponse().getNumFound() != 0) {
-                Docs checksumDocs;
-                if (checksumSkip(gavInfo.getResponse().getDocs().get(0)) && gavInfo.getResponse().getNumFound() > 1) {
-                    checksumDocs = gavInfo.getResponse().getDocs().get(1);
-                } else {
-                    checksumDocs = gavInfo.getResponse().getDocs().get(0);
-                }
-                if (gavId.contains(checksumDocs.getId())) {
-                    logger.debug("GAV of checksum {} has already existed", externalPurl.getPurl().getName());
-                    externalPurlRefsTORemove.add(externalPurl);
-                } else {
-                    String group = checksumDocs.getGroup();
-                    String artifact = checksumDocs.getArtifact();
-                    String version = checksumDocs.getVersion();
-                    externalPurl.getPurl().setNamespace(group);
-                    externalPurl.getPurl().setName(artifact);
-                    externalPurl.getPurl().setVersion(version);
-                    externalPurl.setType(ReferenceType.PURL.getType());
-                    externalPurlRefsTOChange.add(externalPurl);
-                    gavId.add(checksumDocs.getId());
-                    logger.debug("get GAV from checksum for {}", externalPurl.getPurl().getName());
-                }
+        ExternalPurlRefList.forEach(ref -> {
+            PackageUrlVo vo = getPurlByChecksum(ref);
+            if (ObjectUtils.isEmpty(vo) || vos.contains(vo)) {
+                logger.debug("GAV of checksum {} already exists", ref.getPurl().getName());
+                externalPurlRefsTORemove.add(ref);
             } else {
-                logger.debug("can not get GAV info for checksum {}", externalPurl.getPurl().getName());
-                externalPurlRefsTORemove.add(externalPurl);
+                ref.setPurl(vo);
+                ref.setType(ReferenceType.PURL.getType());
+                externalPurlRefsTOChange.add(ref);
+                vos.add(vo);
             }
         });
         List<List<ExternalPurlRef>> resultList = new ArrayList<>();
@@ -100,6 +87,56 @@ public class ChecksumServiceImpl implements ChecksumService {
         resultList.add(externalPurlRefsTORemove);
         return resultList;
 
+    }
+
+    private PackageUrlVo getPurlByChecksum(ExternalPurlRef ref) {
+        PackageMeta meta = packageMetaRepository.findByChecksum(ref.getPurl().getName()).orElse(null);
+        if (!ObjectUtils.isEmpty(meta)) {
+            return meta.getPurl();
+        }
+
+        GAVInfo gavInfo;
+        try {
+            gavInfo = sonatypeClient.getGAVByChecksum(ref.getPurl().getName());
+        } catch (Exception e) {
+            logger.error("failed to GAV info for {} from API", ref);
+            throw new RuntimeException(e);
+        }
+
+        PackageUrlVo vo;
+        Docs checksumDocs = gavInfo.getResponse().getDocs().stream().filter(doc -> !checksumSkip(doc)).findFirst().orElse(null);
+        if (ObjectUtils.isEmpty(checksumDocs)) {
+            logger.debug("can not get GAV info for checksum {}", ref.getPurl().getName());
+            vo = null;
+        } else {
+            vo = new PackageUrlVo();
+            vo.setSchema(ref.getPurl().getSchema());
+            vo.setType(ref.getPurl().getType());
+            vo.setNamespace(checksumDocs.getGroup());
+            vo.setName(checksumDocs.getArtifact());
+            vo.setVersion(checksumDocs.getVersion());
+            vo.setSubpath(ref.getPurl().getSubpath());
+            vo.setQualifiers(ref.getPurl().getQualifiers());
+        }
+
+        PackageMeta packageMeta = new PackageMeta();
+        packageMeta.setChecksum(ref.getPurl().getName());
+        packageMeta.setPurl(vo);
+        packageMeta.setExtendedAttr(Map.of("doc_count", gavInfo.getResponse().getNumFound()));
+
+        synchronized (this) {
+            try {
+                meta = packageMetaRepository.findByChecksum(ref.getPurl().getName()).orElse(null);
+                if (!ObjectUtils.isEmpty(meta)) {
+                    return meta.getPurl();
+                }
+                Executors.newFixedThreadPool(1).submit(() -> packageMetaRepository.saveAndFlush(packageMeta)).get();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return vo;
     }
 
     @Override
