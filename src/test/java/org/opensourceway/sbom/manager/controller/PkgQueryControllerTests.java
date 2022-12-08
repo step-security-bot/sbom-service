@@ -633,7 +633,7 @@ public class PkgQueryControllerTests {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
-                .andExpect(jsonPath("$.*", hasSize(3)))
+                .andExpect(jsonPath("$.*", hasSize(4)))
                 .andExpect(jsonPath("$.name").value("arg"))
                 .andExpect(jsonPath("$.label").value("测试参数"));
     }

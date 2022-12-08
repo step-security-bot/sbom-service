@@ -2,7 +2,9 @@
 
 * 一、SBOM Service介绍
 * 二、[特性清单](features/features.md)
-* 三、API文档
+* 三、[SBOM导入流程](import_sbom/importSbom.md)
+* 四、[运行](run/howToRun.md)
+* 五、API文档
   1. [查询制品SBOM看板统计数据](api/查询制品SBOM看板统计数据.md)
   2. [查询制品漏洞列表](api/查询制品漏洞列表.md)
   3. [查询制品license列表](api/查询制品license列表.md)
@@ -15,4 +17,4 @@
   10. [反向追溯链查询](api/反向追溯链查询.md)
   11. [漏洞影响范围查询](api/漏洞影响范围查询.md)
   12. [查询制品配置](api/查询制品配置.md)
-* 四、[依赖模块](module/module.md)
+* 六、[依赖模块](module/module.md)

@@ -10,7 +10,16 @@ public class ProductConfigVo implements Serializable {
 
     private String label;
 
+    private String valueLabel;
+
     private Map<String, ProductConfigVo> valueToNextConfig = new HashMap<>();
+
+    public ProductConfigVo() {
+    }
+
+    public ProductConfigVo(String valueLabel) {
+        this.valueLabel = valueLabel;
+    }
 
     public String getName() {
         return name;
@@ -28,6 +37,14 @@ public class ProductConfigVo implements Serializable {
         this.label = label;
     }
 
+    public String getValueLabel() {
+        return valueLabel;
+    }
+
+    public void setValueLabel(String valueLabel) {
+        this.valueLabel = valueLabel;
+    }
+
     public Map<String, ProductConfigVo> getValueToNextConfig() {
         return valueToNextConfig;
     }
@@ -38,11 +55,11 @@ public class ProductConfigVo implements Serializable {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("ProductConfigVo{");
-        sb.append("name='").append(name).append('\'');
-        sb.append(", label='").append(label).append('\'');
-        sb.append(", valueToNextConfig=").append(valueToNextConfig);
-        sb.append('}');
-        return sb.toString();
+        return "ProductConfigVo{" +
+                "name='" + name + '\'' +
+                ", label='" + label + '\'' +
+                ", valueLabel='" + valueLabel + '\'' +
+                ", valueToNextConfig=" + valueToNextConfig +
+                '}';
     }
 }

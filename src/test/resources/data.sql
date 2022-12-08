@@ -9,16 +9,16 @@ VALUES('13565ac5-7f88-437d-a70b-11998e98c088', 'arg', '测试参数', 1, 'testPr
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, label = EXCLUDED.label, ord = EXCLUDED.ord, product_type = EXCLUDED.product_type;
 
-INSERT INTO product_config_value(id, value, product_config_id)
+INSERT INTO product_config_value(id, value, label, product_config_id)
 VALUES
-('d039235d-4ad9-43f2-b06f-6973942212b1', '1', '13565ac5-7f88-437d-a70b-11998e98c088'),
-('d039235d-4ad9-43f2-b06f-6973942212b2', '2', '13565ac5-7f88-437d-a70b-11998e98c088'),
-('d039235d-4ad9-43f2-b06f-6973942212b3', '3', '13565ac5-7f88-437d-a70b-11998e98c088'),
-('d039235d-4ad9-43f2-b06f-6973942212b4', '4', '13565ac5-7f88-437d-a70b-11998e98c088'),
-('d039235d-4ad9-43f2-b06f-6973942212b5', '5', '13565ac5-7f88-437d-a70b-11998e98c088'),
-('d039235d-4ad9-43f2-b06f-6973942212b6', '6', '13565ac5-7f88-437d-a70b-11998e98c088'),
-('d039235d-4ad9-43f2-b06f-6973942212b7', '7', '13565ac5-7f88-437d-a70b-11998e98c088'),
-('d039235d-4ad9-43f2-b06f-6973942212b8', '8', '13565ac5-7f88-437d-a70b-11998e98c088')
+('d039235d-4ad9-43f2-b06f-6973942212b1', '1', '1', '13565ac5-7f88-437d-a70b-11998e98c088'),
+('d039235d-4ad9-43f2-b06f-6973942212b2', '2', '2', '13565ac5-7f88-437d-a70b-11998e98c088'),
+('d039235d-4ad9-43f2-b06f-6973942212b3', '3', '3', '13565ac5-7f88-437d-a70b-11998e98c088'),
+('d039235d-4ad9-43f2-b06f-6973942212b4', '4', '4', '13565ac5-7f88-437d-a70b-11998e98c088'),
+('d039235d-4ad9-43f2-b06f-6973942212b5', '5', '5', '13565ac5-7f88-437d-a70b-11998e98c088'),
+('d039235d-4ad9-43f2-b06f-6973942212b6', '6', '6', '13565ac5-7f88-437d-a70b-11998e98c088'),
+('d039235d-4ad9-43f2-b06f-6973942212b7', '7', '7', '13565ac5-7f88-437d-a70b-11998e98c088'),
+('d039235d-4ad9-43f2-b06f-6973942212b8', '8', '8', '13565ac5-7f88-437d-a70b-11998e98c088')
 ON CONFLICT (id) DO UPDATE
     SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
 

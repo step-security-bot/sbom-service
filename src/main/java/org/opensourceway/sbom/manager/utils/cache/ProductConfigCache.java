@@ -7,6 +7,7 @@ import org.opensourceway.sbom.manager.dao.ProductConfigRepository;
 import org.opensourceway.sbom.manager.dao.ProductRepository;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.ProductConfig;
+import org.opensourceway.sbom.manager.model.ProductConfigValue;
 import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +70,9 @@ public class ProductConfigCache {
                         if (Objects.nonNull(configValue)) {
                             parentVo.setName(productConfigs.get(productConfigIdx).getName());
                             parentVo.setLabel(productConfigs.get(productConfigIdx).getLabel());
-                            parentVo.getValueToNextConfig().put(configValue, null);
+                            vo.setValueLabel(getConfigValueLabel(productConfigs.get(productConfigIdx), configValue));
+                            parentVo.getValueToNextConfig().put(configValue, new ProductConfigVo(
+                                    getConfigValueLabel(productConfigs.get(productConfigIdx), configValue)));
                         }
                         return;
                     }
@@ -85,13 +88,23 @@ public class ProductConfigCache {
 
                     parentVo.setName(productConfigs.get(productConfigIdx).getName());
                     parentVo.setLabel(productConfigs.get(productConfigIdx).getLabel());
+                    vo.setValueLabel(getConfigValueLabel(productConfigs.get(productConfigIdx), configValue));
                     fillUpProductConfigRecursively(vo, satisfiedProducts, productConfigs, productConfigIdx + 1);
                     if (Objects.isNull(vo.getName())) {
-                        parentVo.getValueToNextConfig().put(configValue, null);
+                        parentVo.getValueToNextConfig().put(configValue, new ProductConfigVo(
+                                getConfigValueLabel(productConfigs.get(productConfigIdx), configValue)));
                     } else {
                         parentVo.getValueToNextConfig().put(configValue, vo);
                     }
                 });
+    }
+
+    private String getConfigValueLabel(ProductConfig productConfig, String configValue) {
+        return productConfig.getProductConfigValues().stream()
+                .filter(productConfigValue -> StringUtils.equals(productConfigValue.getValue(), configValue))
+                .findFirst()
+                .map(ProductConfigValue::getLabel)
+                .orElse(configValue);
     }
 
 }

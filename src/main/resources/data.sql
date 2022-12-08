@@ -3,6 +3,9 @@ BEGIN;
 -- Init table index(json field)
 CREATE INDEX IF NOT EXISTS external_purl_ref_purl_idx ON external_purl_ref USING btree (jsonb_extract_path_text ( purl,'type'), jsonb_extract_path_text ( purl,'name'));
 
+-- Alter
+ALTER TABLE product_config DROP COLUMN IF EXISTS value_type;
+
 -- Init table product_type
 INSERT INTO product_type VALUES
 ('openEuler'),
@@ -12,8 +15,6 @@ INSERT INTO product_type VALUES
 ON CONFLICT (type) DO NOTHING;
 
 -- Init table product_config
-ALTER TABLE product_config DROP COLUMN IF EXISTS value_type;
-
 --openEuler
 INSERT INTO product_config(id, name, label, ord, product_type)
 VALUES
@@ -55,117 +56,117 @@ ON CONFLICT (id) DO UPDATE
 
 -- Init table product_config_value
 --openEuler
-INSERT INTO product_config_value(id, value, product_config_id)
+INSERT INTO product_config_value(id, value, label, product_config_id)
 VALUES
-('2db9d338-6759-4b8b-95a4-cda6a8c11b1c', 'openEuler-22.03-LTS', '013d61a1-5938-46db-9092-88df47c10bf6'),
-('bcf54a11-c8b6-42ca-8978-bf08ffe80320', 'openEuler-20.03-LTS-SP1', '013d61a1-5938-46db-9092-88df47c10bf6'),
-('7ded4e5d-2b3e-44a4-bbbf-07d582e5d471', 'openEuler-20.03-LTS-SP2', '013d61a1-5938-46db-9092-88df47c10bf6'),
-('cd516d5f-158a-4bd5-85d3-231b0dd7790a', 'openEuler-20.03-LTS-SP3', '013d61a1-5938-46db-9092-88df47c10bf6')
+('2db9d338-6759-4b8b-95a4-cda6a8c11b1c', 'openEuler-22.03-LTS', 'openEuler-22.03-LTS', '013d61a1-5938-46db-9092-88df47c10bf6'),
+('bcf54a11-c8b6-42ca-8978-bf08ffe80320', 'openEuler-20.03-LTS-SP1', 'openEuler-20.03-LTS-SP1', '013d61a1-5938-46db-9092-88df47c10bf6'),
+('7ded4e5d-2b3e-44a4-bbbf-07d582e5d471', 'openEuler-20.03-LTS-SP2', 'openEuler-20.03-LTS-SP2', '013d61a1-5938-46db-9092-88df47c10bf6'),
+('cd516d5f-158a-4bd5-85d3-231b0dd7790a', 'openEuler-20.03-LTS-SP3', 'openEuler-20.03-LTS-SP3','013d61a1-5938-46db-9092-88df47c10bf6')
 ON CONFLICT (id) DO UPDATE
-    SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
+    SET value = EXCLUDED.value, label = EXCLUDED.label, product_config_id = EXCLUDED.product_config_id;
 
-INSERT INTO product_config_value(id, value, product_config_id)
+INSERT INTO product_config_value(id, value, label, product_config_id)
 VALUES
-('fdd5eca2-ff82-4466-b885-033af961efe9', 'ISO', 'f0266c11-1d7a-45c6-80e6-2ccf586f6755'),
-('120e0d76-4c26-4d67-a776-f105eb40aadd', 'EPOL', 'f0266c11-1d7a-45c6-80e6-2ccf586f6755')
+('fdd5eca2-ff82-4466-b885-033af961efe9', 'ISO', 'ISO', 'f0266c11-1d7a-45c6-80e6-2ccf586f6755'),
+('120e0d76-4c26-4d67-a776-f105eb40aadd', 'EPOL', 'EPOL', 'f0266c11-1d7a-45c6-80e6-2ccf586f6755')
 ON CONFLICT (id) DO UPDATE
-    SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
+    SET value = EXCLUDED.value, label = EXCLUDED.label, product_config_id = EXCLUDED.product_config_id;
 
-INSERT INTO product_config_value(id, value, product_config_id)
+INSERT INTO product_config_value(id, value, label, product_config_id)
 VALUES
-('764109ae-5b97-4779-9fa2-dec16e8a8549', 'Everything', '7f959c6b-6651-4c56-be30-5e2cebb901cf'),
-('a5261530-1176-4c96-a279-33dbf0e9fe3a', 'Normal', '7f959c6b-6651-4c56-be30-5e2cebb901cf'),
-('4dd4b407-d688-4559-91d6-d19ebd830f79', 'Update', '7f959c6b-6651-4c56-be30-5e2cebb901cf'),
-('afc77883-3f39-4b72-bb22-ca9cb14dc405', 'Update Train', '7f959c6b-6651-4c56-be30-5e2cebb901cf'),
-('fd65fc88-aa4f-4176-8008-2b605df223ce', 'Update Wallaby', '7f959c6b-6651-4c56-be30-5e2cebb901cf')
+('764109ae-5b97-4779-9fa2-dec16e8a8549', 'Everything', 'Everything', '7f959c6b-6651-4c56-be30-5e2cebb901cf'),
+('a5261530-1176-4c96-a279-33dbf0e9fe3a', 'Normal', 'Normal', '7f959c6b-6651-4c56-be30-5e2cebb901cf'),
+('4dd4b407-d688-4559-91d6-d19ebd830f79', 'Update', 'Update', '7f959c6b-6651-4c56-be30-5e2cebb901cf'),
+('afc77883-3f39-4b72-bb22-ca9cb14dc405', 'Update Train', 'Update Train', '7f959c6b-6651-4c56-be30-5e2cebb901cf'),
+('fd65fc88-aa4f-4176-8008-2b605df223ce', 'Update Wallaby', 'Update Wallaby', '7f959c6b-6651-4c56-be30-5e2cebb901cf')
 ON CONFLICT (id) DO UPDATE
-    SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
+    SET value = EXCLUDED.value, label = EXCLUDED.label, product_config_id = EXCLUDED.product_config_id;
 
-INSERT INTO product_config_value(id, value, product_config_id)
+INSERT INTO product_config_value(id, value, label, product_config_id)
 VALUES
-('e2537af8-3740-4066-88f2-22da2d23fe2e', 'aarch64', '5263c064-4d04-4232-a717-eb84499b5f5f'),
-('2e534ddd-ced4-440f-a80d-697c5ec8990f', 'x86_64', '5263c064-4d04-4232-a717-eb84499b5f5f')
+('e2537af8-3740-4066-88f2-22da2d23fe2e', 'aarch64', 'aarch64', '5263c064-4d04-4232-a717-eb84499b5f5f'),
+('2e534ddd-ced4-440f-a80d-697c5ec8990f', 'x86_64', 'x86_64', '5263c064-4d04-4232-a717-eb84499b5f5f')
 ON CONFLICT (id) DO UPDATE
-    SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
+    SET value = EXCLUDED.value, label = EXCLUDED.label, product_config_id = EXCLUDED.product_config_id;
 
 --MindSpore
-INSERT INTO product_config_value(id, value, product_config_id)
+INSERT INTO product_config_value(id, value, label, product_config_id)
 VALUES
-('8a1b0324-e1b9-4288-b98c-141651b9b9ad', 'MindSpore', '0eccda6b-72d4-4868-a257-baef0eac193f')
+('8a1b0324-e1b9-4288-b98c-141651b9b9ad', 'MindSpore', 'MindSpore', '0eccda6b-72d4-4868-a257-baef0eac193f')
 ON CONFLICT (id) DO UPDATE
-    SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
+    SET value = EXCLUDED.value, label = EXCLUDED.label, product_config_id = EXCLUDED.product_config_id;
 
-INSERT INTO product_config_value(id, value, product_config_id)
-VALUES('b96e35b0-a375-4f2c-bb04-b6bfa11610ce', '1.8.0', 'd96a0380-d9c0-4176-bbd6-9578952636f6')
+INSERT INTO product_config_value(id, value, label, product_config_id)
+VALUES('b96e35b0-a375-4f2c-bb04-b6bfa11610ce', '1.8.0', '1.8.0', 'd96a0380-d9c0-4176-bbd6-9578952636f6')
 ON CONFLICT (id) DO UPDATE
-    SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
+    SET value = EXCLUDED.value, label = EXCLUDED.label, product_config_id = EXCLUDED.product_config_id;
 
-INSERT INTO product_config_value(id, value, product_config_id)
-VALUES('2d449fe0-5b3a-44f7-8d90-71a41da21b2f', 'CPU', 'a4e710c7-6811-4626-b32b-ae067fade540')
+INSERT INTO product_config_value(id, value, label, product_config_id)
+VALUES('2d449fe0-5b3a-44f7-8d90-71a41da21b2f', 'CPU', 'CPU', 'a4e710c7-6811-4626-b32b-ae067fade540')
 ON CONFLICT (id) DO UPDATE
-    SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
+    SET value = EXCLUDED.value, label = EXCLUDED.label, product_config_id = EXCLUDED.product_config_id;
 
-INSERT INTO product_config_value(id, value, product_config_id)
-VALUES('56a561e8-3cc5-4700-af5b-782a6155708c', 'Linux', '327af62f-9689-4dd4-a1ff-b8ff7ad0bd61')
+INSERT INTO product_config_value(id, value, label, product_config_id)
+VALUES('56a561e8-3cc5-4700-af5b-782a6155708c', 'Linux', 'Linux', '327af62f-9689-4dd4-a1ff-b8ff7ad0bd61')
 ON CONFLICT (id) DO UPDATE
-    SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
+    SET value = EXCLUDED.value, label = EXCLUDED.label, product_config_id = EXCLUDED.product_config_id;
 
-INSERT INTO product_config_value(id, value, product_config_id)
+INSERT INTO product_config_value(id, value, label, product_config_id)
 VALUES
-('254b7b04-f76f-474f-834e-282ababab7f7', 'aarch64', '75e5459b-b969-49e7-9d68-f2f346eb2120'),
-('17b26f4e-4dfc-4c0d-b037-4fd8236e1c94', 'x86_64', '75e5459b-b969-49e7-9d68-f2f346eb2120')
+('254b7b04-f76f-474f-834e-282ababab7f7', 'aarch64', 'aarch64', '75e5459b-b969-49e7-9d68-f2f346eb2120'),
+('17b26f4e-4dfc-4c0d-b037-4fd8236e1c94', 'x86_64', 'x86_64', '75e5459b-b969-49e7-9d68-f2f346eb2120')
 ON CONFLICT (id) DO UPDATE
-    SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
+    SET value = EXCLUDED.value, label = EXCLUDED.label, product_config_id = EXCLUDED.product_config_id;
 
-INSERT INTO product_config_value(id, value, product_config_id)
+INSERT INTO product_config_value(id, value, label, product_config_id)
 VALUES
-('72b97f5a-5028-4c67-8111-017740b8cd8c', 'Python 3.7.0', 'e471690e-69a1-4646-8868-036e53d702c6'),
-('4e2755bd-8d6e-4322-9c32-2e5d803a08e3', 'Python 3.8.0', 'e471690e-69a1-4646-8868-036e53d702c6'),
-('f892af99-77ee-4fd9-89ee-97e06274022a', 'Python 3.9.0', 'e471690e-69a1-4646-8868-036e53d702c6')
+('72b97f5a-5028-4c67-8111-017740b8cd8c', 'Python 3.7', 'Python 3.7', 'e471690e-69a1-4646-8868-036e53d702c6'),
+('4e2755bd-8d6e-4322-9c32-2e5d803a08e3', 'Python 3.8', 'Python 3.8', 'e471690e-69a1-4646-8868-036e53d702c6'),
+('f892af99-77ee-4fd9-89ee-97e06274022a', 'Python 3.9', 'Python 3.9', 'e471690e-69a1-4646-8868-036e53d702c6')
 ON CONFLICT (id) DO UPDATE
-    SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
+    SET value = EXCLUDED.value, label = EXCLUDED.label, product_config_id = EXCLUDED.product_config_id;
 
 -- openGauss
-INSERT INTO product_config_value(id, value, product_config_id)
+INSERT INTO product_config_value(id, value, label, product_config_id)
 VALUES
-('372c2093-83ec-418c-97f2-fdf6373e36a9', 'openGauss Enterprise-Edition', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
-('33e5cbf3-c1ff-4eb2-8857-a497b495fce8', 'openGauss Simplified', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
-('8282f0a2-873b-4941-a077-a1c8e0d56a07', 'openGauss Lite', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
-('d4d8f4e1-2836-4337-a15e-12a40518aeed', 'openGauss JDBC', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
-('1afd7a75-3a93-43e9-a5a9-ead4a4b077b5', 'openGauss Python-psycopg2', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
-('8c813871-5272-4d9b-8a9a-7f4fd8b94de0', 'Data Studio', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
-('3ddfdcaf-8588-481b-bec7-0112e204c177', 'Chameleon', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
-('cacdf592-c8d0-4cc1-87b9-aa64ffb52598', 'Online Migration', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
-('e2178149-4da2-487d-9095-70a6e8181337', 'Reverse Migration', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
-('44140167-8719-4bc8-a173-97f342a0a22b', 'Data Checker', '8f27d9b1-696b-4700-9fc0-385a45fc0c56')
+('372c2093-83ec-418c-97f2-fdf6373e36a9', 'openGauss Enterprise-Edition', 'openGauss Enterprise-Edition', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
+('33e5cbf3-c1ff-4eb2-8857-a497b495fce8', 'openGauss Simplified', 'openGauss Simplified', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
+('8282f0a2-873b-4941-a077-a1c8e0d56a07', 'openGauss Lite', 'openGauss Lite', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
+('d4d8f4e1-2836-4337-a15e-12a40518aeed', 'openGauss JDBC', 'openGauss JDBC', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
+('1afd7a75-3a93-43e9-a5a9-ead4a4b077b5', 'openGauss Python-psycopg2', 'openGauss Python-psycopg2', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
+('8c813871-5272-4d9b-8a9a-7f4fd8b94de0', 'Data Studio', 'Data Studio', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
+('3ddfdcaf-8588-481b-bec7-0112e204c177', 'Chameleon', 'Chameleon', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
+('cacdf592-c8d0-4cc1-87b9-aa64ffb52598', 'Online Migration', 'Online Migration', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
+('e2178149-4da2-487d-9095-70a6e8181337', 'Reverse Migration', 'Reverse Migration', '8f27d9b1-696b-4700-9fc0-385a45fc0c56'),
+('44140167-8719-4bc8-a173-97f342a0a22b', 'Data Checker', 'Data Checker', '8f27d9b1-696b-4700-9fc0-385a45fc0c56')
 ON CONFLICT (id) DO UPDATE
-    SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
+    SET value = EXCLUDED.value, label = EXCLUDED.label, product_config_id = EXCLUDED.product_config_id;
 
-INSERT INTO product_config_value(id, value, product_config_id)
+INSERT INTO product_config_value(id, value, label, product_config_id)
 VALUES
-('600e3be9-725e-4d84-a1dc-0f147cd7d728', '3.1.0', '527a8727-2d7e-4db4-b138-acb33405e447')
+('600e3be9-725e-4d84-a1dc-0f147cd7d728', '3.1.0', '3.1.0', '527a8727-2d7e-4db4-b138-acb33405e447')
 ON CONFLICT (id) DO UPDATE
-    SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
+    SET value = EXCLUDED.value, label = EXCLUDED.label, product_config_id = EXCLUDED.product_config_id;
 
-INSERT INTO product_config_value(id, value, product_config_id)
+INSERT INTO product_config_value(id, value, label, product_config_id)
 VALUES
-('7aef27c1-a7e3-46ae-a357-c83dd7f52a02', 'CentOS', '243452d3-da07-4fab-ad74-8767629528fa'),
-('3f2f041a-db8c-4fca-9123-7adae62b5dd4', 'openEuler', '243452d3-da07-4fab-ad74-8767629528fa')
+('7aef27c1-a7e3-46ae-a357-c83dd7f52a02', 'CentOS', 'CentOS', '243452d3-da07-4fab-ad74-8767629528fa'),
+('3f2f041a-db8c-4fca-9123-7adae62b5dd4', 'openEuler', 'openEuler', '243452d3-da07-4fab-ad74-8767629528fa')
 ON CONFLICT (id) DO UPDATE
-    SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
+    SET value = EXCLUDED.value, label = EXCLUDED.label, product_config_id = EXCLUDED.product_config_id;
 
-INSERT INTO product_config_value(id, value, product_config_id)
+INSERT INTO product_config_value(id, value, label, product_config_id)
 VALUES
-('b66a2815-4821-433b-a8f7-a07c0e86e0b5', 'aarch64', 'c589facd-4ac6-441d-b8fa-a787ea60c18e'),
-('0ceb1360-0743-49bb-9d63-ebcd7c75f3f0', 'x86_64', 'c589facd-4ac6-441d-b8fa-a787ea60c18e')
+('b66a2815-4821-433b-a8f7-a07c0e86e0b5', 'aarch64', 'aarch64', 'c589facd-4ac6-441d-b8fa-a787ea60c18e'),
+('0ceb1360-0743-49bb-9d63-ebcd7c75f3f0', 'x86_64', 'x86_64', 'c589facd-4ac6-441d-b8fa-a787ea60c18e')
 ON CONFLICT (id) DO UPDATE
-    SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
+    SET value = EXCLUDED.value, label = EXCLUDED.label, product_config_id = EXCLUDED.product_config_id;
 
 -- OpenHarmony
-INSERT INTO product_config_value(id, value, product_config_id)
-VALUES('da6b13a9-edb6-43d8-8b63-f6859abcadef', 'OpenHarmony-v3.1-Release', 'f7856269-0339-4fe7-80fa-de15042d40d9')
+INSERT INTO product_config_value(id, value, label, product_config_id)
+VALUES('da6b13a9-edb6-43d8-8b63-f6859abcadef', 'OpenHarmony-v3.1-Release', 'OpenHarmony-v3.1-Release', 'f7856269-0339-4fe7-80fa-de15042d40d9')
 ON CONFLICT (id) DO UPDATE
-    SET value = EXCLUDED.value, product_config_id = EXCLUDED.product_config_id;
+    SET value = EXCLUDED.value, label = EXCLUDED.label, product_config_id = EXCLUDED.product_config_id;
 
 -- Insert openEuler products
 INSERT INTO product(id, name, attribute)
@@ -198,7 +199,7 @@ ON CONFLICT (id) DO UPDATE
 -- Insert MindSpore products
 INSERT INTO product(id, name, attribute)
 VALUES
-('e686d5ba-cd30-41e7-b97a-a3481bb6e0a2', 'mindspore-1.8.0-cp37-cp37m-linux_x86_64.whl', '{"productType": "MindSpore", "productName": "MindSpore", "version": "1.8.0","platform": "CPU", "os": "Linux", "arch": "x86_64", "language": "Python 3.7.0"}'::jsonb)
+('e686d5ba-cd30-41e7-b97a-a3481bb6e0a2', 'mindspore-1.8.0-cp37-cp37m-linux_x86_64.whl', '{"productType": "MindSpore", "productName": "MindSpore", "version": "1.8.0","platform": "CPU", "os": "Linux", "arch": "x86_64", "language": "Python 3.7"}'::jsonb)
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, attribute = EXCLUDED.attribute;
 
