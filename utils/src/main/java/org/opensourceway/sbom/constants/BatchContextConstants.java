@@ -22,6 +22,8 @@ public class BatchContextConstants {
 
     public final static String BATCH_READER_STEP_REMAINING_SIZE_KEY = "BATCH_READER_STEP_REMAINING_SIZE";
 
+    public final static String BATCH_STEP_LICENSE_MAP_KEY = "BATCH_STEP_LICENSE_MAP_KEY";
+
     public final static String BATCH_PRODUCT_TYPE_KEY = "productType";
 
     public final static String BATCH_PRODUCT_VERSION_KEY = "version";

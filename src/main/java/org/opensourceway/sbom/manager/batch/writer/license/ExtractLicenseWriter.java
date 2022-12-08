@@ -3,6 +3,8 @@ package org.opensourceway.sbom.manager.batch.writer.license;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.opensourceway.sbom.constants.BatchContextConstants;
+import org.opensourceway.sbom.manager.dao.LicenseRepository;
+import org.opensourceway.sbom.manager.dao.PackageRepository;
 import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.service.license.LicenseService;
@@ -19,7 +21,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,9 +32,20 @@ public class ExtractLicenseWriter implements ItemWriter<List<Pair<Package, Licen
     @Qualifier("licenseServiceImpl")
     private LicenseService licenseService;
 
+    @Autowired
+    private LicenseRepository licenseRepository;
+
+    @Autowired
+    private PackageRepository packageRepository;
+
     private StepExecution stepExecution;
 
     private ExecutionContext jobContext;
+
+    private void persistExternalLicenseRefChunk(Set<Package> packageSetToSave, Set<License> licenseSetToSave) {
+        licenseRepository.saveAll(licenseSetToSave);
+        packageRepository.saveAll(packageSetToSave);
+    }
 
     @Override
     public void write(List<? extends List<Pair<Package, License>>> chunks) {
@@ -41,20 +53,15 @@ public class ExtractLicenseWriter implements ItemWriter<List<Pair<Package, Licen
                 (UUID) this.jobContext.get(BatchContextConstants.BATCH_SBOM_ID_KEY) : null;
         logger.info("start ExtractLicenseWriter sbomId:{}, chunk size:{}", sbomId, chunks.size());
         Set<Package> packageSetToSave = new HashSet<>();
-        Map<String, License> spdxLicenseIdMap = new HashMap<>();
+        Set<License> licenseSetToSave = new HashSet<>();
         for (List<Pair<Package, License>> licenseAndPkgListToSave : chunks) {
             for (Pair<Package, License> pair : licenseAndPkgListToSave) {
                 packageSetToSave.add(pair.getLeft());
-                String spdxLicenseId = pair.getRight().getSpdxLicenseId();
-                if (spdxLicenseIdMap.containsKey(spdxLicenseId)) {
-                    spdxLicenseIdMap.get(spdxLicenseId).getPackages().addAll(pair.getRight().getPackages());
-                } else {
-                    spdxLicenseIdMap.put(spdxLicenseId, pair.getRight());
-                }
+                licenseSetToSave.add(pair.getRight());
             }
         }
-        Set<License> licenseSetToSave = new HashSet<>(spdxLicenseIdMap.values());
-        licenseService.persistExternalLicenseRefChunk(Pair.of(packageSetToSave, licenseSetToSave));
+        persistExternalLicenseRefChunk(packageSetToSave, licenseSetToSave);
+        stepExecution.getExecutionContext().put(BatchContextConstants.BATCH_STEP_LICENSE_MAP_KEY, new HashMap<>());
         logger.info("finish ExtractLicenseWriter sbomId:{}", sbomId);
     }
 

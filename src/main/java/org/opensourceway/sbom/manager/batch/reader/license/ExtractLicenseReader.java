@@ -5,11 +5,12 @@ import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.opensourceway.sbom.constants.BatchContextConstants;
+import org.opensourceway.sbom.manager.batch.processor.license.ExtractLicensesProcessor;
 import org.opensourceway.sbom.manager.dao.SbomRepository;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
+import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Sbom;
-import org.opensourceway.sbom.manager.service.license.LicenseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ChunkListener;
@@ -21,12 +22,13 @@ import org.springframework.batch.core.step.item.Chunk;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -37,8 +39,8 @@ public class ExtractLicenseReader implements ItemReader<List<ExternalPurlRef>>, 
     private static final Logger logger = LoggerFactory.getLogger(ExtractLicenseReader.class);
 
     @Autowired
-    @Qualifier("licenseServiceImpl")
-    private LicenseService licenseService;
+//    @Qualifier("licenseServiceImpl")
+    private ExtractLicensesProcessor extractLicensesProcessor;
 
     @Autowired
     SbomRepository sbomRepository;
@@ -52,7 +54,7 @@ public class ExtractLicenseReader implements ItemReader<List<ExternalPurlRef>>, 
     private ChunkContext chunkContext;
 
     private void initMapper(UUID sbomId) {
-        if (!licenseService.needRequest()) {
+        if (!extractLicensesProcessor.needRequest()) {
             logger.warn("license client does not request");
             return;
         }
@@ -73,7 +75,7 @@ public class ExtractLicenseReader implements ItemReader<List<ExternalPurlRef>>, 
                 .filter(externalPurlRef -> externalPurlRef.getCategory().equals("PACKAGE_MANAGER"))
                 .toList();
 
-        this.chunks = ListUtils.partition(externalPurlRefs, licenseService.getBulkRequestSize())
+        this.chunks = ListUtils.partition(externalPurlRefs, extractLicensesProcessor.getBulkRequestSize())
                 .stream()
                 .map(ArrayList::new)// can't use ArrayList.subList(can't restart)
                 .collect(Collectors.toCollection(CopyOnWriteArrayList::new));// can't use unmodifiableList(can't remove)
@@ -83,6 +85,9 @@ public class ExtractLicenseReader implements ItemReader<List<ExternalPurlRef>>, 
         if (remainingSize > 0 && remainingSize < this.chunks.size()) {
             this.chunks = this.chunks.subList(this.chunks.size() - remainingSize, this.chunks.size());
         }
+
+        Map<String, License> spdxLicenseIdMap = new HashMap<>();
+        stepExecution.getExecutionContext().put(BatchContextConstants.BATCH_STEP_LICENSE_MAP_KEY, spdxLicenseIdMap);
 
         logger.info("ExternalPurlRefListReader:{} use sbomId:{}, get externalPurlRefs size:{}, chunks size:{}",
                 this,
