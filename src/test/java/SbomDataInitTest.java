@@ -237,6 +237,7 @@ public class SbomDataInitTest {
         license.setName("License for test");
         license.setUrl("https://xxx/licenses/License-test");
         license.setIsLegal(isLegal);
+        packageRepository.save(pkg);
         licenseRepository.save(license);
     }
 

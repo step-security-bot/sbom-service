@@ -1,6 +1,7 @@
 package org.opensourceway.sbom.manager.service.license.impl;
 
 import com.github.packageurl.MalformedPackageURLException;
+import org.opensourceway.sbom.clients.license.LicenseClient;
 import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.dao.RepoMetaRepository;
@@ -27,8 +28,43 @@ import java.util.List;
 public class LicenseServiceImpl implements LicenseService {
     private static final Logger logger = LoggerFactory.getLogger(LicenseServiceImpl.class);
 
+    private static final Integer BULK_REQUEST_SIZE = 128;
+
+    @Autowired
+    private LicenseClient licenseClient;
+
     @Autowired
     private RepoMetaRepository repoMetaRepository;
+
+    @Override
+    public Integer getBulkRequestSize() {
+        return BULK_REQUEST_SIZE;
+    }
+
+    @Override
+    public boolean needRequest() {
+        return licenseClient.needRequest();
+    }
+
+    @Override
+    public String getPurlsForLicense(PackageUrlVo packageUrlVo, Product product) {
+        String purl = "";
+        String productType = String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_TYPE_KEY));
+        try {
+
+            if (SbomConstants.PRODUCT_MINDSPORE_NAME.equals(productType)) {
+                purl = dealMindsporePurl(packageUrlVo);
+            } else if (SbomConstants.PRODUCT_OPENEULER_NAME.equals(productType)) {
+                purl = dealOpenEulerPurl(packageUrlVo, product);
+            } else if (SbomConstants.PRODUCT_OPENHARMONY_NAME.equals(productType)) {
+                purl = dealOpenHarmonyPurl(packageUrlVo, product);
+            }
+        } catch (MalformedPackageURLException e) {
+            logger.error("failed to get purl for License ");
+            return null;
+        }
+        return purl;
+    }
 
     /***
      * change openEuler purl format to get license
@@ -93,25 +129,6 @@ public class LicenseServiceImpl implements LicenseService {
                     repoName, String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY)),
                     null, null)));
         }
-    }
-
-    public String getPurlsForLicense(PackageUrlVo packageUrlVo, Product product) {
-        String purl = "";
-        String productType = String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_TYPE_KEY));
-        try {
-
-            if (SbomConstants.PRODUCT_MINDSPORE_NAME.equals(productType)) {
-                purl = dealMindsporePurl(packageUrlVo);
-            } else if (SbomConstants.PRODUCT_OPENEULER_NAME.equals(productType)) {
-                purl = dealOpenEulerPurl(packageUrlVo, product);
-            } else if (SbomConstants.PRODUCT_OPENHARMONY_NAME.equals(productType)) {
-                purl = dealOpenHarmonyPurl(packageUrlVo, product);
-            }
-        } catch (MalformedPackageURLException e) {
-            logger.error("failed to get purl for License ");
-            return null;
-        }
-        return purl;
     }
 
 }

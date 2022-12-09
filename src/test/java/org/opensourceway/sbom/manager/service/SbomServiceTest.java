@@ -15,6 +15,7 @@ import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.TestConstants;
 import org.opensourceway.sbom.manager.dao.LicenseRepository;
+import org.opensourceway.sbom.manager.dao.PackageRepository;
 import org.opensourceway.sbom.manager.dao.ProductRepository;
 import org.opensourceway.sbom.manager.dao.ProductTypeRepository;
 import org.opensourceway.sbom.manager.dao.RawSbomRepository;
@@ -24,7 +25,6 @@ import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Product;
-import org.opensourceway.sbom.manager.model.ProductConfig;
 import org.opensourceway.sbom.manager.model.ProductType;
 import org.opensourceway.sbom.manager.model.RawSbom;
 import org.opensourceway.sbom.manager.model.Sbom;
@@ -37,9 +37,10 @@ import org.opensourceway.sbom.manager.model.vo.ProductConfigVo;
 import org.opensourceway.sbom.manager.model.vo.VulnerabilityVo;
 import org.opensourceway.sbom.manager.model.vo.request.PublishSbomRequest;
 import org.opensourceway.sbom.manager.model.vo.response.PublishResultResponse;
-import org.opensourceway.sbom.manager.service.license.impl.LicenseServiceImpl;
+import org.opensourceway.sbom.manager.service.license.LicenseService;
 import org.opensourceway.sbom.manager.utils.CvssSeverity;
 import org.opensourceway.sbom.manager.utils.TestCommon;
+import org.opensourceway.sbom.manager.utils.cache.LicenseInfoMapCache;
 import org.opensourceway.sbom.manager.utils.cache.LicenseStandardMapCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -82,13 +83,19 @@ class SbomServiceTest {
     private LicenseRepository licenseRepository;
 
     @Autowired
-    private LicenseServiceImpl licenseServiceImpl;
+    private LicenseService licenseService;
 
     @Autowired
     private LicenseClientImpl licenseClientImpl;
 
     @Autowired
     private LicenseStandardMapCache licenseStandardMapCache;
+
+    @Autowired
+    private LicenseInfoMapCache licenseInfoMapCache;
+
+    @Autowired
+    private PackageRepository packageRepository;
 
     private static String packageId = null;
 
@@ -679,7 +686,7 @@ class SbomServiceTest {
                 .findFirst().orElse(null);
         assertThat(pkg).isNotNull();
         ExternalPurlRef externalPurlRef = pkg.getExternalPurlRefs().get(0);
-        String purl = licenseServiceImpl.getPurlsForLicense(externalPurlRef.getPurl(), product);
+        String purl = licenseService.getPurlsForLicense(externalPurlRef.getPurl(), product);
         assertThat(purl).isEqualTo("pkg:gitee/src-openeuler/capstone@openEuler-22.03-LTS");
         ComplianceResponse[] responseArr = licenseClientImpl.getComplianceResponse(List.of(purl));
         assertThat(responseArr.length).isEqualTo(1);
@@ -691,7 +698,7 @@ class SbomServiceTest {
                 .findFirst().orElse(null);
         assertThat(pkg1).isNotNull();
         ExternalPurlRef externalPurlRef1 = pkg1.getExternalPurlRefs().get(0);
-        String purl1 = licenseServiceImpl.getPurlsForLicense(externalPurlRef1.getPurl(), product);
+        String purl1 = licenseService.getPurlsForLicense(externalPurlRef1.getPurl(), product);
         assertThat(purl1).isEqualTo("pkg:gitee/src-openeuler/hadoop-3.1@openEuler-22.03-LTS");
         ComplianceResponse[] responseArr1 = licenseClientImpl.getComplianceResponse(List.of(purl));
         assertThat(responseArr1.length).isEqualTo(1);

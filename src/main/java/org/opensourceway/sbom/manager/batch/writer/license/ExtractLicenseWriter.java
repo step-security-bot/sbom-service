@@ -42,11 +42,6 @@ public class ExtractLicenseWriter implements ItemWriter<List<Pair<Package, Licen
 
     private ExecutionContext jobContext;
 
-    private void persistExternalLicenseRefChunk(Set<Package> packageSetToSave, Set<License> licenseSetToSave) {
-        licenseRepository.saveAll(licenseSetToSave);
-        packageRepository.saveAll(packageSetToSave);
-    }
-
     @Override
     public void write(List<? extends List<Pair<Package, License>>> chunks) {
         UUID sbomId = this.jobContext.containsKey(BatchContextConstants.BATCH_SBOM_ID_KEY) ?
@@ -74,5 +69,10 @@ public class ExtractLicenseWriter implements ItemWriter<List<Pair<Package, Licen
     @Override
     public ExitStatus afterStep(@NotNull StepExecution stepExecution) {
         return null;
+    }
+
+    private void persistExternalLicenseRefChunk(Set<Package> packageSetToSave, Set<License> licenseSetToSave) {
+        licenseRepository.saveAll(licenseSetToSave);
+        packageRepository.saveAll(packageSetToSave);
     }
 }
