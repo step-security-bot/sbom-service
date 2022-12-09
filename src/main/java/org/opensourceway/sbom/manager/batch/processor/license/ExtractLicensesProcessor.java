@@ -86,7 +86,6 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
             licenseClient.scanLicenseFromPurl(element.getPurl());
         } catch (Exception e) {
             logger.error("failed to scan license for purl {}", element.getPurl());
-            throw e;
         }
     }
 

@@ -3,9 +3,7 @@ package org.opensourceway.sbom.clients.license.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.io.IOUtils;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
@@ -34,12 +32,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -123,14 +118,11 @@ public class LicenseClientImpl implements LicenseClient {
 
     // request api to scan the licenses in repo
     @Override
-    public void scanLicenseFromPurl(String purl) {
+    public void scanLicenseFromPurl(String purl) throws Exception {
         HttpPost httpPost;
         CloseableHttpClient httpClient = null;
         try {
             httpPost = new HttpPost(defaultBaseUrl + "/doSca");
-
-            RequestConfig config = RequestConfig.custom().setResponseTimeout(100, TimeUnit.MILLISECONDS).build();
-            httpPost.setConfig(config);
 
             MultipartEntityBuilder builder = MultipartEntityBuilder.create();
             builder.addTextBody("url", purl, ContentType.MULTIPART_FORM_DATA)
@@ -139,13 +131,9 @@ public class LicenseClientImpl implements LicenseClient {
 
             httpClient = HttpClients.createDefault();
 
-            try {
-                CloseableHttpResponse response = httpClient.execute(httpPost);
-                if (response.getCode() != HttpStatus.SC_OK) {
-                    throw new RuntimeException(IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8));
-                }
-            } catch (IOException timeoutException) {
-                // ignore timeoutException, do not wait for response
+            CloseableHttpResponse response = httpClient.execute(httpPost);
+            if (response.getCode() != HttpStatus.SC_OK) {
+                throw new RuntimeException();
             }
 
         } finally {
