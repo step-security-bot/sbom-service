@@ -117,11 +117,10 @@ public class Package {
     @Column(columnDefinition = "TEXT", name = "source_info")
     private String sourceInfo;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinTable(name = "pkg_license_relp",
             joinColumns = {@JoinColumn(name = "pkg_id", foreignKey = @ForeignKey(name = "pkg_id_fk"))},
             inverseJoinColumns = {@JoinColumn(name = "license_id", foreignKey = @ForeignKey(name = "license_id_fk"))})
-    @JsonIgnore
     private Set<License> licenses;
 
     /**

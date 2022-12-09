@@ -15,5 +15,5 @@ public interface LicenseClient {
 
     Map<String, LicenseInfo> getLicensesInfo();
 
-    void scanLicenseFromPurl(String purl);
+    void scanLicenseFromPurl(String purl) throws Exception;
 }

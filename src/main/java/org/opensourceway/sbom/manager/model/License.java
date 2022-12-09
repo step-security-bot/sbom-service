@@ -1,8 +1,8 @@
 package org.opensourceway.sbom.manager.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -45,10 +46,11 @@ public class License {
     @Column(columnDefinition = "TEXT")
     private String url;
 
-    @Column( name = "is_legal")
+    @Column(name = "is_legal")
     private Boolean isLegal;
 
-    @ManyToMany(mappedBy = "licenses",cascade = {CascadeType.MERGE})
+    @ManyToMany(mappedBy = "licenses")
+    @JsonIgnore
     private Set<Package> packages;
 
     public UUID getId() {
@@ -83,9 +85,13 @@ public class License {
         this.url = url;
     }
 
-    public Boolean getIsLegal(){ return isLegal; }
+    public Boolean getIsLegal() {
+        return isLegal;
+    }
 
-    public void setIsLegal(Boolean isLegal) { this.isLegal = isLegal; }
+    public void setIsLegal(Boolean isLegal) {
+        this.isLegal = isLegal;
+    }
 
     public Set<Package> getPackages() {
         return packages;
@@ -93,5 +99,18 @@ public class License {
 
     public void setPackages(Set<Package> packages) {
         this.packages = packages;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        License license = (License) o;
+        return spdxLicenseId.equals(license.spdxLicenseId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(spdxLicenseId);
     }
 }

@@ -13,7 +13,8 @@ import java.util.UUID;
 
 public interface LicenseRepository extends JpaRepository<License, UUID> {
 
-
+    @Query(value = "SELECT * from license where spdx_license_id = :name",
+            nativeQuery = true)
     Optional<License> findBySpdxLicenseId(String name);
 
     @Query(value = "SELECT A.* FROM license A, pkg_license_relp B, package C WHERE A.id = B.license_id and B.pkg_id =" +
