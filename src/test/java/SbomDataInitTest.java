@@ -54,6 +54,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -209,20 +211,25 @@ public class SbomDataInitTest {
                 .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-Package-PyPI-astunparse-1.6.3"))
                 .findFirst().orElse(null);
         assertThat(pkg1).isNotNull();
-        insertLicense("License-test", pkg, false);
-        insertLicense("License-test1", pkg, true);
-        insertLicense("License-test1", pkg1, true);
+        Map<String, License> existLicenses = licenseRepository.findAll().stream()
+                .collect(Collectors.toMap(License::getSpdxLicenseId, Function.identity()));
+        insertLicense("License-test", pkg, false, existLicenses);
+        insertLicense("License-test1", pkg, true, existLicenses);
+        insertLicense("License-test1", pkg1, true, existLicenses);
         insertCopyright(pkg);
+        licenseRepository.saveAll(existLicenses.values());
+        packageRepository.save(pkg);
+        packageRepository.save(pkg1);
     }
 
     private void insertCopyright(Package pkg) {
         pkg.setCopyright("Copyright (c) 1989, 1991 Free Software Foundation, Inc.");
-        packageRepository.save(pkg);
         assertThat(pkg.getCopyright()).isEqualTo("Copyright (c) 1989, 1991 Free Software Foundation, Inc.");
     }
 
-    private void insertLicense(String lic, Package pkg, Boolean isLegal) {
-        License license = licenseRepository.findBySpdxLicenseId(lic).orElse(new License());
+    private void insertLicense(String lic, Package pkg, Boolean isLegal, Map<String, License> existLicenses) {
+        License license = existLicenses.getOrDefault(lic, new License());
+        existLicenses.put(lic, license);
         license.setSpdxLicenseId(lic);
         if (!pkg.containLicense(license)) {
             PkgLicenseRelp relp = new PkgLicenseRelp();
@@ -234,8 +241,6 @@ public class SbomDataInitTest {
         license.setName("License for test");
         license.setUrl("https://xxx/licenses/License-test");
         license.setIsLegal(isLegal);
-        packageRepository.save(pkg);
-        licenseRepository.save(license);
     }
 
     @Test
