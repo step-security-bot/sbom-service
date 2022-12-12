@@ -25,6 +25,7 @@ import org.opensourceway.sbom.manager.model.ExternalVulRef;
 import org.opensourceway.sbom.manager.model.File;
 import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Package;
+import org.opensourceway.sbom.manager.model.PkgLicenseRelp;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.Sbom;
@@ -49,7 +50,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.sql.Timestamp;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -224,30 +224,18 @@ public class SbomDataInitTest {
     private void insertLicense(String lic, Package pkg, Boolean isLegal) {
         License license = licenseRepository.findBySpdxLicenseId(lic).orElse(new License());
         license.setSpdxLicenseId(lic);
-        if (license.getPackages() == null) {
-            license.setPackages(new HashSet<>());
-        }
-        if (pkg.getLicenses() == null) {
-            pkg.setLicenses(new HashSet<>());
-        }
-        if (!isContainLicense(pkg, license)) {
-            pkg.getLicenses().add(license);
-            license.getPackages().add(pkg);
+        if (!pkg.containLicense(license)) {
+            PkgLicenseRelp relp = new PkgLicenseRelp();
+            relp.setLicense(license);
+            relp.setPkg(pkg);
+            pkg.addPkgLicenseRelp(relp);
+            license.addPkgLicenseRelp(relp);
         }
         license.setName("License for test");
         license.setUrl("https://xxx/licenses/License-test");
         license.setIsLegal(isLegal);
         packageRepository.save(pkg);
         licenseRepository.save(license);
-    }
-
-    private Boolean isContainLicense(Package pkg, License license) {
-        for (Package tempPkg : license.getPackages()) {
-            if (tempPkg.getId().equals(pkg.getId())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Test

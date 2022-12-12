@@ -10,6 +10,7 @@ import org.opensourceway.sbom.manager.model.ExternalVulRef;
 import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.PackageStatistics;
+import org.opensourceway.sbom.manager.model.PkgLicenseRelp;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.Sbom;
@@ -148,27 +149,27 @@ public class CollectStatisticsStep implements Tasklet {
 
     private void collectLicenseStatistics(ProductStatistics statistics, Sbom sbom) {
         statistics.setLicenseCount(sbom.getPackages().stream()
-                .map(Package::getLicenses)
+                .map(pkg -> pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).collect(Collectors.toSet()))
                 .flatMap(Set::stream)
                 .distinct()
                 .count());
         statistics.setPackageWithMultiLicenseCount(sbom.getPackages().stream()
-                .filter(pkg -> pkg.getLicenses().size() > 1)
+                .filter(pkg -> pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).count() > 1)
                 .count());
         statistics.setPackageWithoutLicenseCount(sbom.getPackages().stream()
-                .filter(pkg -> pkg.getLicenses().size() == 0)
+                .filter(pkg -> pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).findAny().isEmpty())
                 .count());
         statistics.setPackageWithLegalLicenseCount(sbom.getPackages().stream()
-                .filter(pkg -> pkg.getLicenses().size() > 0)
-                .filter(pkg -> pkg.getLicenses().stream().allMatch(License::getIsLegal))
+                .filter(pkg -> pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).findAny().isPresent())
+                .filter(pkg -> pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).allMatch(License::getIsLegal))
                 .count());
         statistics.setPackageWithIllegalLicenseCount(sbom.getPackages().stream()
-                .filter(pkg -> pkg.getLicenses().stream().anyMatch(license -> !license.getIsLegal()))
+                .filter(pkg -> pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).anyMatch(license -> !license.getIsLegal()))
                 .count());
 
         TreeMap<String, Long> licenseDistribution = new TreeMap<>();
         sbom.getPackages().stream()
-                .map(Package::getLicenses)
+                .map(pkg -> pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).collect(Collectors.toSet()))
                 .forEach(licenses -> licenses.forEach(license -> licenseDistribution.merge(license.getSpdxLicenseId(), 1L, Long::sum)));
 
         statistics.setLicenseDistribution(licenseDistribution);
@@ -222,8 +223,9 @@ public class CollectStatisticsStep implements Tasklet {
     }
 
     private void collectPackageLicenseStatistics(PackageStatistics statistics, Package pkg) {
-        statistics.setLicenseCount((long) pkg.getLicenses().size());
-        statistics.setLicenses(pkg.getLicenses().stream().map(License::getSpdxLicenseId).toList());
-        statistics.setLegalLicense(pkg.getLicenses().size() > 0 ? pkg.getLicenses().stream().allMatch(License::getIsLegal) : null);
+        statistics.setLicenseCount((long) pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).collect(Collectors.toSet()).size());
+        statistics.setLicenses(pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).map(License::getSpdxLicenseId).toList());
+        statistics.setLegalLicense(pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).findAny().isPresent() ?
+                pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).allMatch(License::getIsLegal) : null);
     }
 }

@@ -8,6 +8,7 @@ import org.opensourceway.sbom.manager.batch.ExecutionContextUtils;
 import org.opensourceway.sbom.manager.dao.LicenseRepository;
 import org.opensourceway.sbom.manager.dao.SbomRepository;
 import org.opensourceway.sbom.manager.model.License;
+import org.opensourceway.sbom.manager.model.PkgLicenseRelp;
 import org.opensourceway.sbom.manager.model.Sbom;
 import org.opensourceway.sbom.manager.utils.cache.LicenseInfoMapCache;
 import org.opensourceway.sbom.manager.utils.cache.LicenseStandardMapCache;
@@ -60,14 +61,20 @@ public class FillUpLicenseStep implements Tasklet {
                 .collect(Collectors.toMap(License::getSpdxLicenseId, Function.identity()));
         Set<String> invalidLicenses = new HashSet<>();
         sbom.getPackages().stream()
-                .filter(pkg -> pkg.getLicenses().size() == 0)
+                .filter(pkg -> pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).findAny().isEmpty())
                 .forEach(pkg -> {
                     var licenses = parseSpdxLicense(pkg.getLicenseConcluded(), existLicenses, invalidLicenses);
                     if (ObjectUtils.isEmpty(licenses)) {
                         licenses = parseSpdxLicense(pkg.getLicenseDeclared(), existLicenses, invalidLicenses);
                     }
                     if (!ObjectUtils.isEmpty(licenses)) {
-                        pkg.setLicenses(licenses);
+                        licenses.forEach(license -> {
+                            PkgLicenseRelp relp = new PkgLicenseRelp();
+                            relp.setLicense(license);
+                            relp.setPkg(pkg);
+                            pkg.addPkgLicenseRelp(relp);
+                            license.addPkgLicenseRelp(relp);
+                        });
                     }
                 });
         licenseRepository.saveAll(existLicenses.values());
