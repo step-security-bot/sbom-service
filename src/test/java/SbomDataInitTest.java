@@ -50,12 +50,10 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.sql.Timestamp;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -226,33 +224,18 @@ public class SbomDataInitTest {
     private void insertLicense(String lic, Package pkg, Boolean isLegal) {
         License license = licenseRepository.findBySpdxLicenseId(lic).orElse(new License());
         license.setSpdxLicenseId(lic);
-        if (pkg.getPkgLicenseRelps() == null) {
-            pkg.setPkgLicenseRelps(new HashSet<>());
-        }
-        if (license.getPkgLicenseRelps() == null) {
-            license.setPkgLicenseRelps(new HashSet<>());
-        }
-        if (!isContainLicense(pkg, license)) {
+        if (!pkg.containLicense(license)) {
             PkgLicenseRelp relp = new PkgLicenseRelp();
             relp.setLicense(license);
             relp.setPkg(pkg);
-            pkg.getPkgLicenseRelps().add(relp);
-            license.getPkgLicenseRelps().add(relp);
+            pkg.addPkgLicenseRelp(relp);
+            license.addPkgLicenseRelp(relp);
         }
         license.setName("License for test");
         license.setUrl("https://xxx/licenses/License-test");
         license.setIsLegal(isLegal);
         packageRepository.save(pkg);
         licenseRepository.save(license);
-    }
-
-    private Boolean isContainLicense(Package pkg, License license) {
-        for (License lic : pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).collect(Collectors.toSet())) {
-            if (lic.getSpdxLicenseId().equals(license.getSpdxLicenseId())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Test

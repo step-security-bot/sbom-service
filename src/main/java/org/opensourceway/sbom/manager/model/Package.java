@@ -2,7 +2,6 @@ package org.opensourceway.sbom.manager.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
-import org.springframework.util.ObjectUtils;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -350,5 +349,11 @@ public class Package {
 
     public void setPackageStatistics(PackageStatistics packageStatistics) {
         this.packageStatistics = packageStatistics;
+    }
+
+    public Boolean containLicense(License license) {
+        return pkgLicenseRelps.stream()
+                .map(PkgLicenseRelp::getLicense)
+                .anyMatch(lic -> lic.getSpdxLicenseId().equals(license.getSpdxLicenseId()));
     }
 }

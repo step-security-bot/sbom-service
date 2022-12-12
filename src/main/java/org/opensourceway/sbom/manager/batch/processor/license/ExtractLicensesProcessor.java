@@ -41,7 +41,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurlRef>, List<Pair<Package, License>>>, StepExecutionListener {
 
@@ -172,7 +171,7 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
             License license;
             license = getLicenseTodeal(spdxLicenseIdMap, lic);
             setLegalOrNot(illegalLicenseInfo, purlRef, illegalLicenseList, lic, license);
-            if (!isContainLicense(pkg, license)) {
+            if (!pkg.containLicense(license)) {
                 PkgLicenseRelp pkgLicenseRelp = new PkgLicenseRelp();
                 pkgLicenseRelp.setPkg(pkg);
                 pkgLicenseRelp.setLicense(license);
@@ -220,15 +219,6 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
         } catch (Exception e) {
             logger.error("failed to scan license for purl {}", element.getPurl());
         }
-    }
-
-    private Boolean isContainLicense(Package pkg, License license) {
-        for (License lic : pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).collect(Collectors.toSet())) {
-            if (lic.getSpdxLicenseId().equals(license.getSpdxLicenseId())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private License generateNewLicense(String lic) {
