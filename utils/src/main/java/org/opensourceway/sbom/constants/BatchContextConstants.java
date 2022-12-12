@@ -32,4 +32,6 @@ public class BatchContextConstants {
 
     public final static String BUILD_IN_BATCH_CHUNK_FAILED_INPUT_KEY = "INPUTS";
 
+    public final static String[] JACKSON_SERIALIZER_TRUSTED_CLASS_NAME = new String[]{"[B"};
+
 }
