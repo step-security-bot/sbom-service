@@ -6,8 +6,10 @@ import org.opensourceway.sbom.clients.license.vo.LicenseInfo;
 import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.manager.batch.ExecutionContextUtils;
 import org.opensourceway.sbom.manager.dao.LicenseRepository;
+import org.opensourceway.sbom.manager.dao.PkgLicenseRelpRepository;
 import org.opensourceway.sbom.manager.dao.SbomRepository;
 import org.opensourceway.sbom.manager.model.License;
+import org.opensourceway.sbom.manager.model.PkgLicenseRelp;
 import org.opensourceway.sbom.manager.model.Sbom;
 import org.opensourceway.sbom.manager.utils.cache.LicenseInfoMapCache;
 import org.opensourceway.sbom.manager.utils.cache.LicenseStandardMapCache;
@@ -24,7 +26,9 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -48,6 +52,9 @@ public class FillUpLicenseStep implements Tasklet {
     @Autowired
     private LicenseStandardMapCache licenseStandardMapCache;
 
+    @Autowired
+    private PkgLicenseRelpRepository pkgLicenseRelpRepository;
+
     @Override
     public RepeatStatus execute(@NotNull StepContribution contribution, @NotNull ChunkContext chunkContext) {
         ExecutionContext jobContext = ExecutionContextUtils.getJobContext(contribution);
@@ -58,19 +65,26 @@ public class FillUpLicenseStep implements Tasklet {
                 .orElseThrow(() -> new RuntimeException("can't find sbom with id: %s".formatted(sbomId)));
         Map<String, License> existLicenses = licenseRepository.findAll().stream()
                 .collect(Collectors.toMap(License::getSpdxLicenseId, Function.identity()));
+        List<PkgLicenseRelp> relps = new ArrayList<>();
         Set<String> invalidLicenses = new HashSet<>();
         sbom.getPackages().stream()
-                .filter(pkg -> pkg.getLicenses().size() == 0)
+                .filter(pkg -> pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).findAny().isEmpty())
                 .forEach(pkg -> {
                     var licenses = parseSpdxLicense(pkg.getLicenseConcluded(), existLicenses, invalidLicenses);
                     if (ObjectUtils.isEmpty(licenses)) {
                         licenses = parseSpdxLicense(pkg.getLicenseDeclared(), existLicenses, invalidLicenses);
                     }
                     if (!ObjectUtils.isEmpty(licenses)) {
-                        pkg.setLicenses(licenses);
+                        licenses.forEach(license -> {
+                            PkgLicenseRelp relp = new PkgLicenseRelp();
+                            relp.setLicense(license);
+                            relp.setPkg(pkg);
+                            relps.add(relp);
+                        });
                     }
                 });
         licenseRepository.saveAll(existLicenses.values());
+        pkgLicenseRelpRepository.saveAll(relps);
         sbomRepository.save(sbom);
         if (!ObjectUtils.isEmpty(invalidLicenses)) {
             logger.warn("Invalid licenses: {}", invalidLicenses);

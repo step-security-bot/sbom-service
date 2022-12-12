@@ -16,6 +16,7 @@ import org.opensourceway.sbom.manager.dao.ProductRepository;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Package;
+import org.opensourceway.sbom.manager.model.PkgLicenseRelp;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.service.license.LicenseService;
 import org.opensourceway.sbom.manager.utils.cache.LicenseInfoMapCache;
@@ -40,6 +41,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurlRef>, List<Pair<Package, License>>>, StepExecutionListener {
 
@@ -169,16 +171,13 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
             lic = licenseStandardMapCache.getLicenseStandardMap(CacheConstants.LICENSE_STANDARD_MAP_CACHE_KEY_PATTERN).getOrDefault(lic.toLowerCase(), lic);
             License license;
             license = getLicenseTodeal(spdxLicenseIdMap, lic);
-            if (pkg.getLicenses() == null) {
-                pkg.setLicenses(new HashSet<>());
-            }
-            if (license.getPackages() == null) {
-                license.setPackages(new HashSet<>());
-            }
             setLegalOrNot(illegalLicenseInfo, purlRef, illegalLicenseList, lic, license);
-            if (!isContainPackage(pkg, license)) {
-                pkg.getLicenses().add(license);
-                license.getPackages().add(pkg);
+            if (!isContainLicense(pkg, license)) {
+                PkgLicenseRelp pkgLicenseRelp = new PkgLicenseRelp();
+                pkgLicenseRelp.setPkg(pkg);
+                pkgLicenseRelp.setLicense(license);
+                pkg.addPkgLicenseRelp(pkgLicenseRelp);
+                license.addPkgLicenseRelp(pkgLicenseRelp);
             }
             dataToSave.add(Pair.of(pkg, license));
         });
@@ -223,9 +222,9 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
         }
     }
 
-    private Boolean isContainPackage(Package pkg, License license) {
-        for (Package pkgs : license.getPackages()) {
-            if (pkgs.getId().equals(pkg.getId())) {
+    private Boolean isContainLicense(Package pkg, License license) {
+        for (License lic : pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).collect(Collectors.toSet())) {
+            if (lic.getSpdxLicenseId().equals(license.getSpdxLicenseId())) {
                 return true;
             }
         }

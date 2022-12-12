@@ -8,8 +8,9 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Index;
-import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -49,9 +50,9 @@ public class License {
     @Column(name = "is_legal")
     private Boolean isLegal;
 
-    @ManyToMany(mappedBy = "licenses")
+    @OneToMany(mappedBy = "license")
     @JsonIgnore
-    private Set<Package> packages;
+    private Set<PkgLicenseRelp> pkgLicenseRelps;
 
     public UUID getId() {
         return id;
@@ -93,12 +94,19 @@ public class License {
         this.isLegal = isLegal;
     }
 
-    public Set<Package> getPackages() {
-        return packages;
+    public Set<PkgLicenseRelp> getPkgLicenseRelps() {
+        return pkgLicenseRelps;
     }
 
-    public void setPackages(Set<Package> packages) {
-        this.packages = packages;
+    public void setPkgLicenseRelps(Set<PkgLicenseRelp> pkgLicenseRelps) {
+        this.pkgLicenseRelps = pkgLicenseRelps;
+    }
+
+    public void addPkgLicenseRelp(PkgLicenseRelp pkgLicenseRelp) {
+        if (Objects.isNull(pkgLicenseRelps)) {
+            pkgLicenseRelps = new HashSet<>();
+        }
+        pkgLicenseRelps.add(pkgLicenseRelp);
     }
 
     @Override

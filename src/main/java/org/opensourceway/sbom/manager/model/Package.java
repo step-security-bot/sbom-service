@@ -2,6 +2,7 @@ package org.opensourceway.sbom.manager.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
+import org.springframework.util.ObjectUtils;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -12,12 +13,11 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -117,11 +117,9 @@ public class Package {
     @Column(columnDefinition = "TEXT", name = "source_info")
     private String sourceInfo;
 
-    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    @JoinTable(name = "pkg_license_relp",
-            joinColumns = {@JoinColumn(name = "pkg_id", foreignKey = @ForeignKey(name = "pkg_id_fk"))},
-            inverseJoinColumns = {@JoinColumn(name = "license_id", foreignKey = @ForeignKey(name = "license_id_fk"))})
-    private Set<License> licenses;
+    @OneToMany(mappedBy = "pkg", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private Set<PkgLicenseRelp> pkgLicenseRelps;
 
     /**
      * Checksums of a package.
@@ -276,12 +274,19 @@ public class Package {
         this.sourceInfo = sourceInfo;
     }
 
-    public Set<License> getLicenses() {
-        return licenses;
+    public Set<PkgLicenseRelp> getPkgLicenseRelps() {
+        return pkgLicenseRelps;
     }
 
-    public void setLicenses(Set<License> licenses) {
-        this.licenses = licenses;
+    public void setPkgLicenseRelps(Set<PkgLicenseRelp> pkgLicenseRelps) {
+        this.pkgLicenseRelps = pkgLicenseRelps;
+    }
+
+    public void addPkgLicenseRelp(PkgLicenseRelp pkgLicenseRelp) {
+        if (Objects.isNull(pkgLicenseRelps)) {
+            pkgLicenseRelps = new HashSet<>();
+        }
+        pkgLicenseRelps.add(pkgLicenseRelp);
     }
 
     public List<Checksum> getChecksums() {

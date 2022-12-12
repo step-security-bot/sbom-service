@@ -25,6 +25,7 @@ import org.opensourceway.sbom.manager.model.ExternalVulRef;
 import org.opensourceway.sbom.manager.model.File;
 import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Package;
+import org.opensourceway.sbom.manager.model.PkgLicenseRelp;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.ProductStatistics;
 import org.opensourceway.sbom.manager.model.Sbom;
@@ -54,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -224,15 +226,18 @@ public class SbomDataInitTest {
     private void insertLicense(String lic, Package pkg, Boolean isLegal) {
         License license = licenseRepository.findBySpdxLicenseId(lic).orElse(new License());
         license.setSpdxLicenseId(lic);
-        if (license.getPackages() == null) {
-            license.setPackages(new HashSet<>());
+        if (pkg.getPkgLicenseRelps() == null) {
+            pkg.setPkgLicenseRelps(new HashSet<>());
         }
-        if (pkg.getLicenses() == null) {
-            pkg.setLicenses(new HashSet<>());
+        if (license.getPkgLicenseRelps() == null) {
+            license.setPkgLicenseRelps(new HashSet<>());
         }
         if (!isContainLicense(pkg, license)) {
-            pkg.getLicenses().add(license);
-            license.getPackages().add(pkg);
+            PkgLicenseRelp relp = new PkgLicenseRelp();
+            relp.setLicense(license);
+            relp.setPkg(pkg);
+            pkg.getPkgLicenseRelps().add(relp);
+            license.getPkgLicenseRelps().add(relp);
         }
         license.setName("License for test");
         license.setUrl("https://xxx/licenses/License-test");
@@ -242,8 +247,8 @@ public class SbomDataInitTest {
     }
 
     private Boolean isContainLicense(Package pkg, License license) {
-        for (Package tempPkg : license.getPackages()) {
-            if (tempPkg.getId().equals(pkg.getId())) {
+        for (License lic : pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).collect(Collectors.toSet())) {
+            if (lic.getSpdxLicenseId().equals(license.getSpdxLicenseId())) {
                 return true;
             }
         }
