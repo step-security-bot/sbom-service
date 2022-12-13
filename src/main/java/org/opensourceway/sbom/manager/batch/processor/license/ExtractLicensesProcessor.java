@@ -10,6 +10,7 @@ import org.opensourceway.sbom.clients.license.LicenseClient;
 import org.opensourceway.sbom.clients.license.vo.ComplianceResponse;
 import org.opensourceway.sbom.clients.license.vo.LicenseInfo;
 import org.opensourceway.sbom.constants.BatchContextConstants;
+import org.opensourceway.sbom.manager.batch.pojo.ExtractLicenseVo;
 import org.opensourceway.sbom.manager.dao.LicenseRepository;
 import org.opensourceway.sbom.manager.dao.PackageRepository;
 import org.opensourceway.sbom.manager.dao.ProductRepository;
@@ -42,7 +43,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurlRef>, List<Pair<Package, License>>>, StepExecutionListener {
+public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurlRef>, ExtractLicenseVo>, StepExecutionListener {
 
     private static final Logger logger = LoggerFactory.getLogger(ExtractLicensesProcessor.class);
     @Autowired
@@ -72,7 +73,7 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
 
     @Nullable
     @Override
-    public List<Pair<Package, License>> process(List<ExternalPurlRef> chunk) {
+    public ExtractLicenseVo process(List<ExternalPurlRef> chunk) {
         UUID sbomId = this.jobContext.containsKey(BatchContextConstants.BATCH_SBOM_ID_KEY) ?
                 (UUID) this.jobContext.get(BatchContextConstants.BATCH_SBOM_ID_KEY) : null;
         logger.info("start ExtractLicenseProcessor sbomId:{}, chunk size:{}, first item id:{}",
@@ -80,11 +81,11 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
                 chunk.size(),
                 CollectionUtils.isEmpty(chunk) ? "" : chunk.get(0).getId().toString());
 
-        List<Pair<Package, License>> resultSet = extractLicenseForPurlRefChunk(
-                sbomId, chunk, (Map<String, License>) stepExecution.getExecutionContext().get(BatchContextConstants.BATCH_STEP_LICENSE_MAP_KEY));
+        ExtractLicenseVo vo = extractLicenseForPurlRefChunk(sbomId, chunk);
 
-        logger.info("finish ExtractLicenseProcessor sbomId:{}, resultSet size:{}", sbomId, resultSet.size());
-        return resultSet;
+        logger.info("finish ExtractLicenseProcessor sbomId: {}, pkg size: {}, license size: {}, relp size: {}",
+                sbomId, vo.getPackages().size(), vo.getLicenses().size(), vo.getLicenseOfRelp().size());
+        return vo;
     }
 
 
@@ -99,7 +100,7 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
         return null;
     }
 
-    private List<Pair<Package, License>> extractLicenseForPurlRefChunk(UUID sbomId, List<ExternalPurlRef> externalPurlChunk, Map<String, License> spdxLicenseIdMap) {
+    private ExtractLicenseVo extractLicenseForPurlRefChunk(UUID sbomId, List<ExternalPurlRef> externalPurlChunk) {
         logger.info("Start to extract License for sbom {}, chunk size:{}", sbomId, externalPurlChunk.size());
         Set<Pair<ExternalPurlRef, Object>> resultSet = new HashSet<>();
         Product product = productRepository.findBySbomId(sbomId);
@@ -116,7 +117,7 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
             });
             ComplianceResponse[] responseArr = licenseClient.getComplianceResponse(repoPurlSet.stream().toList());
             if (Objects.isNull(responseArr) || responseArr.length == 0) {
-                return List.of();
+                return new ExtractLicenseVo();
             }
             externalPurlChunk.forEach(ref ->
                     Arrays.stream(responseArr)
@@ -128,18 +129,18 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
             throw new RuntimeException(e);
         }
         logger.info("End to extract license for sbom {}", sbomId);
-        return getLicenseAndPkgToDeal(resultSet, spdxLicenseIdMap);
+        return getLicenseAndPkgToDeal(resultSet);
     }
 
-    private List<Pair<Package, License>> getLicenseAndPkgToDeal(Set<Pair<ExternalPurlRef, Object>> externalLicenseRefSet, Map<String, License> spdxLicenseIdMap) {
+    private ExtractLicenseVo getLicenseAndPkgToDeal(Set<Pair<ExternalPurlRef, Object>> externalLicenseRefSet) {
         Map<String, List<String>> illegalLicenseInfo = new HashMap<>();
-        List<Pair<Package, License>> dataToSave = new ArrayList<>();
+        ExtractLicenseVo vo = new ExtractLicenseVo();
         int numOfNotScan = 0;
         for (Pair<ExternalPurlRef, Object> externalLicenseRefPair : externalLicenseRefSet) {
             ExternalPurlRef purlRef = externalLicenseRefPair.getLeft();
             ComplianceResponse response = (ComplianceResponse) externalLicenseRefPair.getRight();
             if (response.getResult().getIsSca().equals("true")) {
-                setLicenseAndPkgInfo(illegalLicenseInfo, dataToSave, purlRef, response, spdxLicenseIdMap);
+                setLicenseAndPkgInfo(illegalLicenseInfo, vo, purlRef, response);
             } else {
                 if (Boolean.TRUE.equals(isScan) && response.getPurl().startsWith("pkg:git")) {
                     scanLicense(response);
@@ -157,32 +158,37 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
         if (MapUtils.isNotEmpty(chunkIllegalLicenseInfo)) {
             logger.warn("illegal licenses info in chunks:{}", illegalLicenseInfo);
         }
-        return dataToSave;
+        return vo;
     }
 
-    private void setLicenseAndPkgInfo(Map<String, List<String>> illegalLicenseInfo, List<Pair<Package, License>> dataToSave, ExternalPurlRef purlRef, ComplianceResponse response, Map<String, License> spdxLicenseIdMap) {
+    private void setLicenseAndPkgInfo(Map<String, List<String>> illegalLicenseInfo, ExtractLicenseVo vo,
+                                      ExternalPurlRef purlRef, ComplianceResponse response) {
         List<String> illegalLicenseList = response.getResult().getRepoLicenseIllegal();
         List<String> licenseList = new ArrayList<>(illegalLicenseList);
         licenseList.addAll(response.getResult().getRepoLicenseLegal());
         Package pkg = packageRepository.findById(purlRef.getPkg().getId()).orElseThrow();
         setLicenseAndCopyrightForPackage(response, pkg);
-        licenseList.forEach(lic -> {
-            lic = licenseStandardMapCache.getLicenseStandardMap(CacheConstants.LICENSE_STANDARD_MAP_CACHE_KEY_PATTERN).getOrDefault(lic.toLowerCase(), lic);
-            License license;
-            license = getLicenseTodeal(spdxLicenseIdMap, lic);
+        licenseList.stream()
+                .map(lic -> licenseStandardMapCache.getLicenseStandardMap(CacheConstants.LICENSE_STANDARD_MAP_CACHE_KEY_PATTERN).getOrDefault(lic.toLowerCase(), lic))
+                .forEach(lic -> {
+            License license = getLicenseToDeal(lic);
             setLegalOrNot(illegalLicenseInfo, purlRef, illegalLicenseList, lic, license);
-            if (!pkg.containLicense(license)) {
+            if (pkg.getPkgLicenseRelps().stream().noneMatch(relp -> lic.equals(vo.getLicenseOfRelp().get(relp)))) {
                 PkgLicenseRelp pkgLicenseRelp = new PkgLicenseRelp();
                 pkgLicenseRelp.setPkg(pkg);
-                pkgLicenseRelp.setLicense(license);
                 pkg.addPkgLicenseRelp(pkgLicenseRelp);
-                license.addPkgLicenseRelp(pkgLicenseRelp);
+                vo.putPkgLicenseRelp(pkgLicenseRelp, lic);
             }
-            dataToSave.add(Pair.of(pkg, license));
+            vo.addPackage(pkg);
+            vo.addLicense(license);
         });
     }
 
-    private License getLicenseTodeal(Map<String, License> spdxLicenseIdMap, String lic) {
+    @SuppressWarnings("unchecked")
+    private License getLicenseToDeal(String lic) {
+        Map<String, License> spdxLicenseIdMap = (Map<String, License>) stepExecution.getExecutionContext()
+                .get(BatchContextConstants.BATCH_STEP_LICENSE_MAP_KEY);
+
         License license;
         if (spdxLicenseIdMap.containsKey(lic)) {
             license = spdxLicenseIdMap.get(lic);

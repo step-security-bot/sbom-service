@@ -116,7 +116,7 @@ public class Package {
     @Column(columnDefinition = "TEXT", name = "source_info")
     private String sourceInfo;
 
-    @OneToMany(mappedBy = "pkg", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "pkg", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Set<PkgLicenseRelp> pkgLicenseRelps;
 
