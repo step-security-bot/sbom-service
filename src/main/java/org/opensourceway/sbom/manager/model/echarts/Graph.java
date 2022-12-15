@@ -67,7 +67,7 @@ public class Graph implements Serializable {
         return nodes.contains(node);
     }
 
-    private Node createNode(String nodeType, String label, Double y, Double size) {
+    private Node createNode(String nodeType, String label, Double y, Double size, String elementId) {
         if (nodeMap.containsKey(Pair.of(nodeType, label))) {
             return nodeMap.get(Pair.of(nodeType, label));
         }
@@ -78,6 +78,7 @@ public class Graph implements Serializable {
         node.setY(y);
         node.setId(String.valueOf(nodes.size()));
         node.setSize(size);
+        node.setElementId(elementId);
         return node;
     }
 
@@ -87,18 +88,18 @@ public class Graph implements Serializable {
     }
 
     public Node createVulNode(String label) {
-        return createNode(NodeType.VUL.getType(), label, VUL_Y_AXIS, VUL_NODE_SIZE);
+        return createNode(NodeType.VUL.getType(), label, VUL_Y_AXIS, VUL_NODE_SIZE, null);
     }
 
-    public Node createDepNode(String label) {
-        return createNode(NodeType.DEP.getType(), label, DEP_Y_AXIS, DEP_NODE_SIZE);
+    public Node createDepNode(String label, String pkgId) {
+        return createNode(NodeType.DEP.getType(), label, DEP_Y_AXIS, DEP_NODE_SIZE, pkgId);
     }
 
-    public Node createPackageNode(String label) {
-        return createNode(NodeType.PKG.getType(), label, PKG_Y_AXIS, PKG_NODE_SIZE);
+    public Node createPackageNode(String label, String pkgId) {
+        return createNode(NodeType.PKG.getType(), label, PKG_Y_AXIS, PKG_NODE_SIZE, pkgId);
     }
 
-    public Node createTransitiveDepNode(String label, Double y) {
-        return createNode(NodeType.TRANSITIVE_DEP.getType(), label, y + Y_AXIS_INTERVAL, TRANSITIVE_PKG_NODE_SIZE);
+    public Node createTransitiveDepNode(String label, Double y, String pkgId) {
+        return createNode(NodeType.TRANSITIVE_DEP.getType(), label, y + Y_AXIS_INTERVAL, TRANSITIVE_PKG_NODE_SIZE, pkgId);
     }
 }
