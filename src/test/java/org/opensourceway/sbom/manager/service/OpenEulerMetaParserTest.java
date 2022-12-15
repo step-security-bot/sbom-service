@@ -30,8 +30,8 @@ public class OpenEulerMetaParserTest {
     public void fetchObsMetaSourceCodeTest() throws IOException {
         List<RepoInfoVo> repoInfoList = repoMetaParser.fetchObsMetaSourceCode().stream().toList();
         assertThat(repoInfoList.size()).isGreaterThan(4900);
-        assertThat(repoInfoList.get(0).getRepoName()).isEqualTo("A-Tune-BPF-Collection");
-        assertThat(repoInfoList.get(0).getBranch()).isEqualTo("openEuler-22.03-LTS");
+        assertThat(repoInfoList.get(0).getRepoName()).isEqualTo("A-Tune");
+        assertThat(repoInfoList.get(0).getBranch()).isEqualTo("openEuler-20.03-LTS-SP2");
     }
 
     @Test
