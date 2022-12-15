@@ -13,6 +13,14 @@ public class SbomRepoConstants {
 
     public static final String UPSTREAM_ATTR_KEY = "upstreamUrls";
 
+    public static final String REPO_LICENSE_LEGAL = "repoLicenseLegal";
+
+    public static final String REPO_LICENSE_ILLEGAL = "repoLicenseIllegal";
+
+    public static final String REPO_LICENSE = "repoLicense";
+
+    public static final String REPO_COPYRIGHT = "repoCopyright";
+
     public static final String SPEC_FILE_NAME_REGEX = ".*(\\.spec)";
 
     public static final String YAML_FILE_NAME_REGEX = ".*(\\.yaml)";

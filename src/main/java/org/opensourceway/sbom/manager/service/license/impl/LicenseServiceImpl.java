@@ -2,8 +2,9 @@ package org.opensourceway.sbom.manager.service.license.impl;
 
 import com.github.packageurl.MalformedPackageURLException;
 import org.opensourceway.sbom.clients.license.LicenseClient;
-import org.opensourceway.sbom.constants.BatchContextConstants;
+import org.opensourceway.sbom.clients.license.vo.ComplianceResponse;
 import org.opensourceway.sbom.constants.SbomConstants;
+import org.opensourceway.sbom.manager.batch.pojo.LicenseInfoVo;
 import org.opensourceway.sbom.manager.dao.RepoMetaRepository;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.RepoMeta;
@@ -20,7 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Qualifier("LicenseServiceImpl")
@@ -47,9 +50,30 @@ public class LicenseServiceImpl implements LicenseService {
     }
 
     @Override
+    public Map<String, LicenseInfoVo> getLicenseInfoVoFromPurl(List<String> purls) throws Exception {
+        Map<String, LicenseInfoVo> licenseInfoVoMap = new HashMap<>();
+        ComplianceResponse[] responseArr = licenseClient.getComplianceResponse(purls);
+        for (ComplianceResponse response : responseArr) {
+            if ("false".equals(response.getResult().getIsSca())) {
+                licenseClient.scanLicenseFromPurl(response.getPurl());
+                return null;
+            }
+            LicenseInfoVo licenseInfoVo = new LicenseInfoVo();
+            licenseInfoVo.setRepoLicense(response.getResult().getRepoLicense());
+            licenseInfoVo.setRepoLicenseIllegal(response.getResult().getRepoLicenseIllegal());
+            licenseInfoVo.setRepoLicenseLegal(response.getResult().getRepoLicenseLegal());
+            licenseInfoVo.setRepoCopyrightLegal(response.getResult().getRepoCopyrightLegal());
+//            licenseInfoVoList.add(licenseInfoVo);
+            licenseInfoVoMap.put(response.getPurl(), licenseInfoVo);
+        }
+
+        return licenseInfoVoMap;
+    }
+
+    @Override
     public String getPurlsForLicense(PackageUrlVo packageUrlVo, Product product) {
         String purl = "";
-        String productType = String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_TYPE_KEY));
+        String productType = product.getProductType();
         try {
 
             if (SbomConstants.PRODUCT_MINDSPORE_NAME.equals(productType)) {
@@ -77,7 +101,7 @@ public class LicenseServiceImpl implements LicenseService {
                     packageUrlVo.getName(), packageUrlVo.getVersion(), null, null)));
         } else {
             List<RepoMeta> repoMetaList = repoMetaRepository.queryRepoMetaByPackageName(SbomConstants.PRODUCT_OPENEULER_NAME,
-                    String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY)), packageUrlVo.getName());
+                    product.getProductVersion(), packageUrlVo.getName());
             String repoName = packageUrlVo.getName();
             if (!CollectionUtils.isEmpty(repoMetaList) && !repoMetaList.get(0).getDownloadLocation().isEmpty()) {
                 String downloadLocation = repoMetaList.get(0).getDownloadLocation();
@@ -85,7 +109,7 @@ public class LicenseServiceImpl implements LicenseService {
                 repoName = repoInfo.get(repoInfo.size() - 1);
             }
             return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL("gitee", SbomRepoConstants.OPENEULER_REPO_ORG,
-                    repoName, String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY)),
+                    repoName, product.getProductVersion(),
                     null, null)));
 
         }
@@ -120,13 +144,13 @@ public class LicenseServiceImpl implements LicenseService {
                     packageUrlVo.getName(), packageUrlVo.getVersion(), null, null)));
         } else {
             List<RepoMeta> repoMetaList = repoMetaRepository.queryRepoMetaByPackageName(SbomConstants.PRODUCT_OPENHARMONY_NAME,
-                    String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY)), packageUrlVo.getName());
+                    product.getProductVersion(), packageUrlVo.getName());
             String repoName = packageUrlVo.getName();
             if (!CollectionUtils.isEmpty(repoMetaList) && !repoMetaList.get(0).getRepoName().isEmpty()) {
                 repoName = repoMetaList.get(0).getRepoName();
             }
             return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(),
-                    repoName, String.valueOf(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY)),
+                    repoName, product.getProductVersion(),
                     null, null)));
         }
     }
