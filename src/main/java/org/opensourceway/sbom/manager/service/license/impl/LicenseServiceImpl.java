@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -53,17 +54,19 @@ public class LicenseServiceImpl implements LicenseService {
     public Map<String, LicenseInfoVo> getLicenseInfoVoFromPurl(List<String> purls) throws Exception {
         Map<String, LicenseInfoVo> licenseInfoVoMap = new HashMap<>();
         ComplianceResponse[] responseArr = licenseClient.getComplianceResponse(purls);
+        if (ObjectUtils.isEmpty(responseArr)) {
+            return licenseInfoVoMap;
+        }
         for (ComplianceResponse response : responseArr) {
             if ("false".equals(response.getResult().getIsSca())) {
-                licenseClient.scanLicenseFromPurl(response.getPurl());
-                return null;
+                scanLicense(response.getPurl());
+                return licenseInfoVoMap;
             }
             LicenseInfoVo licenseInfoVo = new LicenseInfoVo();
             licenseInfoVo.setRepoLicense(response.getResult().getRepoLicense());
             licenseInfoVo.setRepoLicenseIllegal(response.getResult().getRepoLicenseIllegal());
             licenseInfoVo.setRepoLicenseLegal(response.getResult().getRepoLicenseLegal());
             licenseInfoVo.setRepoCopyrightLegal(response.getResult().getRepoCopyrightLegal());
-//            licenseInfoVoList.add(licenseInfoVo);
             licenseInfoVoMap.put(response.getPurl(), licenseInfoVo);
         }
 
@@ -88,6 +91,14 @@ public class LicenseServiceImpl implements LicenseService {
             return null;
         }
         return purl;
+    }
+
+    private void scanLicense(String purl) {
+        try {
+            licenseClient.scanLicenseFromPurl(purl);
+        } catch (Exception e) {
+            logger.error("failed to scan license for purl {}", purl);
+        }
     }
 
     /***

@@ -1,6 +1,7 @@
 package org.opensourceway.sbom.manager.utils.cache;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.opensourceway.sbom.cache.config.CacheProperties;
 import org.opensourceway.sbom.cache.constant.CacheConstants;
@@ -131,11 +132,11 @@ public class OpenEulerRepoMetaCache {
                         repoMeta.getRepoName(), repoMeta.getBranch(), null, null));
                 licenseInfoVo = licenseService.getLicenseInfoVoFromPurl(List.of(purl)).get(purl);
 
-                if (licenseInfoVo == null) {
+                if (ObjectUtils.isEmpty(licenseInfoVo)) {
                     return null;
                 }
             } catch (Exception e) {
-                logger.error("Scan license for repo {} branch {} from compliance failed, skip it", repoMeta.getRepoName(), repoMeta.getBranch(), e);
+                logger.error("get license for repo {} branch {} from compliance failed, skip it", repoMeta.getRepoName(), repoMeta.getBranch(), e);
                 isUpdateRepoMeta = Boolean.FALSE;
             }
 
