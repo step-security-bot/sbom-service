@@ -546,7 +546,7 @@ public class SbomServiceImpl implements SbomService {
 
             Node packageNode;
             if (StringUtils.equals(directPurlRef.getCategory(), ReferenceCategory.PACKAGE_MANAGER.name())) {
-                packageNode = graph.createPackageNode(directPurlRef.getPurl().toString());
+                packageNode = graph.createPackageNode(directPurlRef.getPurl().toString(), directPurlRef.getPkg().getId().toString());
                 if (graph.nodeVisited(packageNode)) {
                     return;
                 }
@@ -554,14 +554,14 @@ public class SbomServiceImpl implements SbomService {
                 graph.addEdge(new Edge(vulNode.getId(), packageNode.getId()));
                 extractTransitiveDepRecursively(graph, packagePurlRef, packageNode);
             } else {
-                var directNode = graph.createDepNode(directPurlRef.getPurl().toString());
+                var directNode = graph.createDepNode(directPurlRef.getPurl().toString(), directPurlRef.getPkg().getId().toString());
                 if (graph.nodeVisited(directNode)) {
                     return;
                 }
                 graph.addNode(directNode);
                 graph.addEdge(new Edge(vulNode.getId(), directNode.getId()));
 
-                packageNode = graph.createPackageNode(packagePurlRef.getPurl().toString());
+                packageNode = graph.createPackageNode(packagePurlRef.getPurl().toString(), packagePurlRef.getPkg().getId().toString());
                 graph.addEdge(new Edge(directNode.getId(), packageNode.getId()));
                 if (graph.nodeVisited(packageNode)) {
                     return;
@@ -587,7 +587,7 @@ public class SbomServiceImpl implements SbomService {
                 .flatMap(List::stream)
                 .filter(ref -> StringUtils.equals(ref.getCategory(), ReferenceCategory.PACKAGE_MANAGER.name()))
                 .forEach(ref -> {
-                    var node = graph.createTransitiveDepNode(ref.getPurl().toString(), startNode.getY());
+                    var node = graph.createTransitiveDepNode(ref.getPurl().toString(), startNode.getY(), ref.getPkg().getId().toString());
                     if (graph.nodeVisited(node)) {
                         return;
                     }

@@ -23,9 +23,12 @@ public class ProcessParser {
 
     private static final String EXECSNOOP_LOG = "execsnoop.log";
 
-    public List<ProcessIdentifier> getAllProcess(Path workspace, String taskId) {
+    private static final String SBOM_TRACER_SHELL_SUFFIX = "_sbom_tracer.sh";
+
+    public List<ProcessIdentifier> getAllProcess(Path workspace) throws IOException {
         logger.info("start to get all processes");
         List<ProcessIdentifier> allProcess = new ArrayList<>();
+        String sbomTracerShell = getSbomTracerShell(workspace);
         var wrapper = new Object() {int mainPid = -1;};
         try(Stream<String> stream = Files.lines(Paths.get(workspace.toString(), EXECSNOOP_LOG))) {
             stream.forEach(line -> {
@@ -35,10 +38,10 @@ public class ProcessParser {
                 } catch (JsonProcessingException e) {
                     throw new RuntimeException(e);
                 }
-                if (StringUtils.contains(data.fullCmd(), taskId + "_")) {
+                if (StringUtils.contains(data.fullCmd(), sbomTracerShell)) {
                     wrapper.mainPid = data.pid();
                 }
-                if (StringUtils.contains(data.fullCmd(), taskId + "_") ||
+                if (StringUtils.contains(data.fullCmd(), sbomTracerShell) ||
                         data.ancestorPids().contains(wrapper.mainPid)) {
                     allProcess.add(new ProcessIdentifier(data.pid(), data.ppid(), data.cmd()));
                 }
@@ -49,5 +52,17 @@ public class ProcessParser {
         }
         logger.info("successfully got all processes");
         return allProcess;
+    }
+
+    private String getSbomTracerShell(Path workspace) throws IOException {
+        try (Stream<Path> filePathStream = Files.walk(workspace)) {
+            return filePathStream
+                    .filter(Files::isRegularFile)
+                    .map(Path::getFileName)
+                    .map(Path::toString)
+                    .filter(fileName -> fileName.endsWith(SBOM_TRACER_SHELL_SUFFIX))
+                    .findAny()
+                    .orElseThrow(() -> new RuntimeException("Can't find *_sbom_tracer.sh"));
+        }
     }
 }

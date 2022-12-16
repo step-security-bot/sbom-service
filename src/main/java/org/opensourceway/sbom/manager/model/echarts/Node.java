@@ -16,6 +16,8 @@ public class Node implements Serializable {
 
     private Double size;
 
+    private String elementId;
+
     public Node(String id) {
         this.id = id;
     }
@@ -69,6 +71,14 @@ public class Node implements Serializable {
 
     public void setSize(Double size) {
         this.size = size;
+    }
+
+    public String getElementId() {
+        return elementId;
+    }
+
+    public void setElementId(String elementId) {
+        this.elementId = elementId;
     }
 
     @Override
