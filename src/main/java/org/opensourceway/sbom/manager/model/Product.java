@@ -6,6 +6,7 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
+import org.opensourceway.sbom.constants.BatchContextConstants;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -124,6 +125,14 @@ public class Product {
         if (!this.productStatistics.contains(productStatistics)) {
             this.productStatistics.add(productStatistics);
         }
+    }
+
+    public String getProductVersion() {
+        return String.valueOf(this.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY));
+    }
+
+    public String getProductType() {
+        return String.valueOf(this.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_TYPE_KEY));
     }
 }
 

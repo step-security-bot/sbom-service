@@ -133,6 +133,7 @@ public class LicenseClientImpl implements LicenseClient {
 
             CloseableHttpResponse response = httpClient.execute(httpPost);
             if (response.getCode() != HttpStatus.SC_OK) {
+                logger.error("The response for scan license request is not 200 with purl {}.", purl);
                 throw new RuntimeException();
             }
 

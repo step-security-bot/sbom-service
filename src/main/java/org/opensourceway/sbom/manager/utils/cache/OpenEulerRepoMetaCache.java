@@ -1,13 +1,18 @@
 package org.opensourceway.sbom.manager.utils.cache;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.opensourceway.sbom.cache.config.CacheProperties;
 import org.opensourceway.sbom.cache.constant.CacheConstants;
+import org.opensourceway.sbom.clients.license.LicenseClient;
 import org.opensourceway.sbom.clients.vcs.gitee.GiteeApi;
 import org.opensourceway.sbom.constants.SbomConstants;
+import org.opensourceway.sbom.manager.batch.pojo.LicenseInfoVo;
 import org.opensourceway.sbom.manager.dao.RepoMetaRepository;
 import org.opensourceway.sbom.manager.model.RepoMeta;
+import org.opensourceway.sbom.manager.service.license.LicenseService;
+import org.opensourceway.sbom.manager.utils.PurlUtil;
 import org.opensourceway.sbom.openeuler.obs.SbomRepoConstants;
 import org.opensourceway.sbom.utils.OpenEulerAdvisorParser;
 import org.slf4j.Logger;
@@ -20,12 +25,12 @@ import org.yaml.snakeyaml.scanner.ScannerException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -36,6 +41,12 @@ public class OpenEulerRepoMetaCache {
 
     @Autowired
     private GiteeApi giteeApi;
+
+    @Autowired
+    private LicenseClient licenseClient;
+
+    @Autowired
+    private LicenseService licenseService;
 
     @Autowired
     private RepoMetaRepository repoMetaRepository;
@@ -66,8 +77,8 @@ public class OpenEulerRepoMetaCache {
 
         ExecutorService executorService = Executors.newWorkStealingPool();
         List<Callable<Boolean>> fetchTasks = Arrays.asList(
-                new FetchUpstreamCallable(repoMeta)
-                // TODO 新增fetch license功能
+                new FetchUpstreamCallable(repoMeta),
+                new FetchLicenseCallable(repoMeta)
         );
         try {
             List<Boolean> tasksResult = executorService.invokeAll(fetchTasks).stream()
@@ -100,6 +111,44 @@ public class OpenEulerRepoMetaCache {
         return repoMeta;
     }
 
+    class FetchLicenseCallable implements Callable<Boolean> {
+
+        private final RepoMeta repoMeta;
+
+        FetchLicenseCallable(RepoMeta repoMeta) {
+            this.repoMeta = repoMeta;
+        }
+
+        @Override
+        public Boolean call() {
+            Map<String, Object> extendedAttrs = repoMeta.getExtendedAttr() == null ? new ConcurrentHashMap<>() : repoMeta.getExtendedAttr();
+            if (extendedAttrs.containsKey(SbomRepoConstants.REPO_LICENSE)) {
+                return null;
+            }
+            LicenseInfoVo licenseInfoVo = new LicenseInfoVo();
+            boolean isUpdateRepoMeta = Boolean.TRUE;
+            try {
+                String purl = PurlUtil.canonicalizePurl(PurlUtil.newPackageURL("gitee", SbomRepoConstants.OPENEULER_REPO_ORG,
+                        repoMeta.getRepoName(), repoMeta.getBranch(), null, null));
+                licenseInfoVo = licenseService.getLicenseInfoVoFromPurl(List.of(purl)).get(purl);
+
+                if (ObjectUtils.isEmpty(licenseInfoVo)) {
+                    return null;
+                }
+            } catch (Exception e) {
+                logger.error("get license for repo {} branch {} from compliance failed, skip it", repoMeta.getRepoName(), repoMeta.getBranch(), e);
+                isUpdateRepoMeta = Boolean.FALSE;
+            }
+
+            extendedAttrs.put(SbomRepoConstants.REPO_LICENSE, licenseInfoVo.getRepoLicense());
+            extendedAttrs.put(SbomRepoConstants.REPO_LICENSE_ILLEGAL, licenseInfoVo.getRepoLicenseIllegal());
+            extendedAttrs.put(SbomRepoConstants.REPO_LICENSE_LEGAL, licenseInfoVo.getRepoLicenseLegal());
+            extendedAttrs.put(SbomRepoConstants.REPO_COPYRIGHT, licenseInfoVo.getRepoCopyrightLegal());
+            repoMeta.setExtendedAttr(extendedAttrs);
+            return isUpdateRepoMeta;
+        }
+    }
+
     class FetchUpstreamCallable implements Callable<Boolean> {
 
         private final RepoMeta repoMeta;
@@ -113,7 +162,7 @@ public class OpenEulerRepoMetaCache {
          */
         @Override
         public Boolean call() {
-            Map<String, Object> extendedAttrs = repoMeta.getExtendedAttr() == null ? new HashMap<>() : repoMeta.getExtendedAttr();
+            Map<String, Object> extendedAttrs = repoMeta.getExtendedAttr() == null ? new ConcurrentHashMap<>() : repoMeta.getExtendedAttr();
             if (extendedAttrs.containsKey(SbomRepoConstants.UPSTREAM_ATTR_KEY)) {
                 return null;
             }

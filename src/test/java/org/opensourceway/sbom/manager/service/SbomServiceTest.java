@@ -681,12 +681,14 @@ class SbomServiceTest {
         assertThat(sbom).isNotNull();
         Product product = productRepository.findBySbomId(sbom.getId());
         assertThat(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY)).isEqualTo("openEuler-22.03-LTS");
+        String productVersion = product.getProductVersion();
+        String productType = product.getProductType();
         Package pkg = sbom.getPackages().stream()
                 .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-eb661a27c2fb073c"))
                 .findFirst().orElse(null);
         assertThat(pkg).isNotNull();
         ExternalPurlRef externalPurlRef = pkg.getExternalPurlRefs().get(0);
-        String purl = licenseService.getPurlsForLicense(externalPurlRef.getPurl(), product);
+        String purl = licenseService.getPurlsForLicense(externalPurlRef.getPurl(), productType, productVersion);
         assertThat(purl).isEqualTo("pkg:gitee/src-openeuler/capstone@openEuler-22.03-LTS");
         ComplianceResponse[] responseArr = licenseClientImpl.getComplianceResponse(List.of(purl));
         assertThat(responseArr.length).isEqualTo(1);
@@ -698,7 +700,7 @@ class SbomServiceTest {
                 .findFirst().orElse(null);
         assertThat(pkg1).isNotNull();
         ExternalPurlRef externalPurlRef1 = pkg1.getExternalPurlRefs().get(0);
-        String purl1 = licenseService.getPurlsForLicense(externalPurlRef1.getPurl(), product);
+        String purl1 = licenseService.getPurlsForLicense(externalPurlRef1.getPurl(), productType, productVersion);
         assertThat(purl1).isEqualTo("pkg:gitee/src-openeuler/hadoop-3.1@openEuler-22.03-LTS");
         ComplianceResponse[] responseArr1 = licenseClientImpl.getComplianceResponse(List.of(purl));
         assertThat(responseArr1.length).isEqualTo(1);

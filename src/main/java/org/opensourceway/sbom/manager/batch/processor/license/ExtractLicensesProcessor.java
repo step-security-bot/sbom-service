@@ -2,26 +2,31 @@ package org.opensourceway.sbom.manager.batch.processor.license;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.opensourceway.sbom.cache.constant.CacheConstants;
 import org.opensourceway.sbom.clients.license.LicenseClient;
-import org.opensourceway.sbom.clients.license.vo.ComplianceResponse;
 import org.opensourceway.sbom.clients.license.vo.LicenseInfo;
 import org.opensourceway.sbom.constants.BatchContextConstants;
+import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.batch.pojo.ExtractLicenseVo;
+import org.opensourceway.sbom.manager.batch.pojo.LicenseInfoVo;
 import org.opensourceway.sbom.manager.dao.LicenseRepository;
 import org.opensourceway.sbom.manager.dao.PackageRepository;
 import org.opensourceway.sbom.manager.dao.ProductRepository;
+import org.opensourceway.sbom.manager.dao.RepoMetaRepository;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
 import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.PkgLicenseRelp;
 import org.opensourceway.sbom.manager.model.Product;
+import org.opensourceway.sbom.manager.model.RepoMeta;
 import org.opensourceway.sbom.manager.service.license.LicenseService;
 import org.opensourceway.sbom.manager.utils.cache.LicenseInfoMapCache;
 import org.opensourceway.sbom.manager.utils.cache.LicenseStandardMapCache;
+import org.opensourceway.sbom.manager.utils.cache.OpenEulerRepoMetaCache;
+import org.opensourceway.sbom.openeuler.obs.SbomRepoConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
@@ -34,7 +39,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -67,6 +71,12 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
 
     @Autowired
     private LicenseRepository licenseRepository;
+
+    @Autowired
+    private RepoMetaRepository repoMetaRepository;
+
+    @Autowired
+    private OpenEulerRepoMetaCache openEulerRepoMetaCache;
 
     @Value("${isScan}")
     private Boolean isScan;
@@ -102,53 +112,87 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
 
     private ExtractLicenseVo extractLicenseForPurlRefChunk(UUID sbomId, List<ExternalPurlRef> externalPurlChunk) {
         logger.info("Start to extract License for sbom {}, chunk size:{}", sbomId, externalPurlChunk.size());
-        Set<Pair<ExternalPurlRef, Object>> resultSet = new HashSet<>();
+        Set<Pair<ExternalPurlRef, LicenseInfoVo>> resultSet;
         Product product = productRepository.findBySbomId(sbomId);
-
-        try {
-            Set<String> repoPurlSet = new HashSet<>();
-            Map<String, String> pkgRepoPurlTrans = new HashMap<>();
-            externalPurlChunk.forEach(purlRef -> {
-                String purlForLicense = licenseService.getPurlsForLicense(purlRef.getPurl(), product);
-                if (!Objects.isNull(purlForLicense)) {
-                    repoPurlSet.add(purlForLicense);
-                    pkgRepoPurlTrans.put(purlRef.getPurl().toString(), purlForLicense);
-                }
-            });
-            ComplianceResponse[] responseArr = licenseClient.getComplianceResponse(repoPurlSet.stream().toList());
-            if (Objects.isNull(responseArr) || responseArr.length == 0) {
-                return new ExtractLicenseVo();
-            }
-            externalPurlChunk.forEach(ref ->
-                    Arrays.stream(responseArr)
-                            .filter(response -> StringUtils.equals(pkgRepoPurlTrans.get(ref.getPurl().toString()), response.getPurl()))
-                            .forEach(licenseObj -> resultSet.add(Pair.of(ref, licenseObj))));
-
-        } catch (Exception e) {
-            logger.error("failed to extract License for sbom {}", sbomId);
-            throw new RuntimeException(e);
+        String productVersion = product.getProductVersion();
+        String productType = product.getProductType();
+        if (SbomConstants.PRODUCT_OPENEULER_NAME.equals(productType)) {
+            resultSet = extractOpenEulerLicense(sbomId, externalPurlChunk, productType, productVersion);
+        } else {
+            resultSet = extractOtherLicense(sbomId, externalPurlChunk, productType, productVersion);
         }
         logger.info("End to extract license for sbom {}", sbomId);
         return getLicenseAndPkgToDeal(resultSet);
     }
 
-    private ExtractLicenseVo getLicenseAndPkgToDeal(Set<Pair<ExternalPurlRef, Object>> externalLicenseRefSet) {
-        Map<String, List<String>> illegalLicenseInfo = new HashMap<>();
-        ExtractLicenseVo vo = new ExtractLicenseVo();
-        int numOfNotScan = 0;
-        for (Pair<ExternalPurlRef, Object> externalLicenseRefPair : externalLicenseRefSet) {
-            ExternalPurlRef purlRef = externalLicenseRefPair.getLeft();
-            ComplianceResponse response = (ComplianceResponse) externalLicenseRefPair.getRight();
-            if (response.getResult().getIsSca().equals("true")) {
-                setLicenseAndPkgInfo(illegalLicenseInfo, vo, purlRef, response);
+    private Set<Pair<ExternalPurlRef, LicenseInfoVo>> extractOpenEulerLicense(UUID sbomId, List<ExternalPurlRef> externalPurlChunk, String productType, String productVersion) {
+        Set<Pair<ExternalPurlRef, LicenseInfoVo>> resultSet = new HashSet<>();
+        List<String> noRepoMetaPkgList = new ArrayList<>();
+        for (ExternalPurlRef purlRef : externalPurlChunk) {
+            List<RepoMeta> repoMetaList = repoMetaRepository.queryRepoMetaByPackageName(productType, productVersion, purlRef.getPurl().getName());
+            if (ObjectUtils.isEmpty(repoMetaList)) {
+                noRepoMetaPkgList.add(purlRef.getPurl().getName());
             } else {
-                if (Boolean.TRUE.equals(isScan) && response.getPurl().startsWith("pkg:git")) {
-                    scanLicense(response);
-                    numOfNotScan++;
+                RepoMeta repoMeta = repoMetaList.get(0);
+                RepoMeta openEulerRepoMeta = openEulerRepoMetaCache.getRepoMeta(repoMeta.getRepoName(), repoMeta.getBranch());
+                if (openEulerRepoMeta.getExtendedAttr().get(SbomRepoConstants.REPO_LICENSE) == null) {
+                    continue;
                 }
+                LicenseInfoVo licenseInfoVo = new LicenseInfoVo((List<String>) openEulerRepoMeta.getExtendedAttr().get(SbomRepoConstants.REPO_LICENSE),
+                        (List<String>) openEulerRepoMeta.getExtendedAttr().get(SbomRepoConstants.REPO_LICENSE_LEGAL),
+                        (List<String>) openEulerRepoMeta.getExtendedAttr().get(SbomRepoConstants.REPO_LICENSE_ILLEGAL),
+                        (List<String>) openEulerRepoMeta.getExtendedAttr().get(SbomRepoConstants.REPO_COPYRIGHT));
+                resultSet.add(Pair.of(purlRef, licenseInfoVo));
             }
         }
-        logger.info("The num of package not scanned license: {}", numOfNotScan);
+        if (!ObjectUtils.isEmpty(noRepoMetaPkgList)) {
+            logger.warn("ExtractLicenseProcessor can't find package's repoMeta, sbomId:{}, branch:{}, pkgName list:{}",
+                    sbomId,
+                    productVersion,
+                    noRepoMetaPkgList);
+        }
+
+        return resultSet;
+    }
+
+    private Set<Pair<ExternalPurlRef, LicenseInfoVo>> extractOtherLicense(UUID sbomId, List<ExternalPurlRef> externalPurlChunk, String productType, String productVersion) {
+        Set<Pair<ExternalPurlRef, LicenseInfoVo>> resultSet = new HashSet<>();
+        Set<String> repoPurlSet = new HashSet<>();
+        Map<ExternalPurlRef, String> pkgRepoPurlTrans = new HashMap<>();
+        externalPurlChunk.forEach(purlRef -> {
+            String purlForLicense = licenseService.getPurlsForLicense(purlRef.getPurl(), productType, productVersion);
+            if (!Objects.isNull(purlForLicense)) {
+                repoPurlSet.add(purlForLicense);
+                pkgRepoPurlTrans.put(purlRef, purlForLicense);
+            }
+        });
+
+        try {
+            Map<String, LicenseInfoVo> licenseInfoVoMap = licenseService.getLicenseInfoVoFromPurl(new ArrayList<>(repoPurlSet));
+            for (ExternalPurlRef purlRef : externalPurlChunk) {
+                resultSet.add(Pair.of(purlRef, licenseInfoVoMap.get(pkgRepoPurlTrans.get(purlRef))));
+            }
+
+        } catch (Exception e) {
+            logger.error("failed to extract License for sbom {}", sbomId);
+            throw new RuntimeException(e);
+        }
+        return resultSet;
+    }
+
+    private ExtractLicenseVo getLicenseAndPkgToDeal(Set<Pair<ExternalPurlRef, LicenseInfoVo>> externalLicenseRefSet) {
+        Map<String, List<String>> illegalLicenseInfo = new HashMap<>();
+        ExtractLicenseVo vo = new ExtractLicenseVo();
+        for (Pair<ExternalPurlRef, LicenseInfoVo> externalLicenseRefPair : externalLicenseRefSet) {
+            ExternalPurlRef purlRef = externalLicenseRefPair.getLeft();
+            LicenseInfoVo licenseInfoVo = externalLicenseRefPair.getRight();
+            if (ObjectUtils.isEmpty(licenseInfoVo)) {
+                continue;
+            }
+            Package pkg = packageRepository.findById(purlRef.getPkg().getId()).orElseThrow();
+            setLicenseAndCopyrightForPackage(licenseInfoVo, pkg);
+            setLicenseAndPkgInfo(illegalLicenseInfo, vo, purlRef, licenseInfoVo, pkg);
+        }
         Map<String, List<String>> chunkIllegalLicenseInfo = new HashMap<>();
         illegalLicenseInfo.forEach((pkgName, licList) -> {
             List<String> templist = chunkIllegalLicenseInfo.getOrDefault(pkgName, new ArrayList<>());
@@ -162,26 +206,25 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
     }
 
     private void setLicenseAndPkgInfo(Map<String, List<String>> illegalLicenseInfo, ExtractLicenseVo vo,
-                                      ExternalPurlRef purlRef, ComplianceResponse response) {
-        List<String> illegalLicenseList = response.getResult().getRepoLicenseIllegal();
+                                      ExternalPurlRef purlRef, LicenseInfoVo licenseInfoVo, Package pkg) {
+        List<String> illegalLicenseList = licenseInfoVo.getRepoLicenseIllegal();
         List<String> licenseList = new ArrayList<>(illegalLicenseList);
-        licenseList.addAll(response.getResult().getRepoLicenseLegal());
-        Package pkg = packageRepository.findById(purlRef.getPkg().getId()).orElseThrow();
-        setLicenseAndCopyrightForPackage(response, pkg);
+        licenseList.addAll(licenseInfoVo.getRepoLicenseLegal());
+        setLicenseAndCopyrightForPackage(licenseInfoVo, pkg);
         licenseList.stream()
                 .map(lic -> licenseStandardMapCache.getLicenseStandardMap(CacheConstants.LICENSE_STANDARD_MAP_CACHE_KEY_PATTERN).getOrDefault(lic.toLowerCase(), lic))
                 .forEach(lic -> {
-            License license = getLicenseToDeal(lic);
-            setLegalOrNot(illegalLicenseInfo, purlRef, illegalLicenseList, lic, license);
-            if (pkg.getPkgLicenseRelps().stream().noneMatch(relp -> lic.equals(vo.getLicenseOfRelp().get(relp)))) {
-                PkgLicenseRelp pkgLicenseRelp = new PkgLicenseRelp();
-                pkgLicenseRelp.setPkg(pkg);
-                pkg.addPkgLicenseRelp(pkgLicenseRelp);
-                vo.putPkgLicenseRelp(pkgLicenseRelp, lic);
-            }
-            vo.addPackage(pkg);
-            vo.addLicense(license);
-        });
+                    License license = getLicenseToDeal(lic);
+                    setLegalOrNot(illegalLicenseInfo, purlRef, illegalLicenseList, lic, license);
+                    if (pkg.getPkgLicenseRelps().stream().noneMatch(relp -> lic.equals(vo.getLicenseOfRelp().get(relp)))) {
+                        PkgLicenseRelp pkgLicenseRelp = new PkgLicenseRelp();
+                        pkgLicenseRelp.setPkg(pkg);
+                        pkg.addPkgLicenseRelp(pkgLicenseRelp);
+                        vo.putPkgLicenseRelp(pkgLicenseRelp, lic);
+                    }
+                    vo.addPackage(pkg);
+                    vo.addLicense(license);
+                });
     }
 
     @SuppressWarnings("unchecked")
@@ -210,22 +253,15 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
         }
     }
 
-    private void setLicenseAndCopyrightForPackage(ComplianceResponse response, Package pkg) {
-        if (response.getResult().getRepoCopyrightLegal().size() != 0) {
-            pkg.setCopyright(response.getResult().getRepoCopyrightLegal().get(0));
+    private void setLicenseAndCopyrightForPackage(LicenseInfoVo licenseInfoVo, Package pkg) {
+        if (licenseInfoVo.getRepoCopyrightLegal().size() != 0) {
+            pkg.setCopyright(licenseInfoVo.getRepoCopyrightLegal().get(0));
         }
-        if (response.getResult().getRepoLicense().size() != 0) {
-            pkg.setLicenseConcluded(response.getResult().getRepoLicense().get(0));
+        if (licenseInfoVo.getRepoLicense().size() != 0) {
+            pkg.setLicenseConcluded(licenseInfoVo.getRepoLicense().get(0));
         }
     }
 
-    private void scanLicense(ComplianceResponse element) {
-        try {
-            licenseClient.scanLicenseFromPurl(element.getPurl());
-        } catch (Exception e) {
-            logger.error("failed to scan license for purl {}", element.getPurl());
-        }
-    }
 
     private License generateNewLicense(String lic) {
         License license = new License();
