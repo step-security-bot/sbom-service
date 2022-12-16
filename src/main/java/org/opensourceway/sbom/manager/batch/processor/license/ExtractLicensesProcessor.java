@@ -253,12 +253,12 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
         }
     }
 
-    private void setLicenseAndCopyrightForPackage(LicenseInfoVo licenseVo, Package pkg) {
-        if (licenseVo.getRepoCopyrightLegal().size() != 0) {
-            pkg.setCopyright(licenseVo.getRepoCopyrightLegal().get(0));
+    private void setLicenseAndCopyrightForPackage(LicenseInfoVo licenseInfoVo, Package pkg) {
+        if (licenseInfoVo.getRepoCopyrightLegal().size() != 0) {
+            pkg.setCopyright(licenseInfoVo.getRepoCopyrightLegal().get(0));
         }
-        if (licenseVo.getRepoLicense().size() != 0) {
-            pkg.setLicenseConcluded(licenseVo.getRepoLicense().get(0));
+        if (licenseInfoVo.getRepoLicense().size() != 0) {
+            pkg.setLicenseConcluded(licenseInfoVo.getRepoLicense().get(0));
         }
     }
 
