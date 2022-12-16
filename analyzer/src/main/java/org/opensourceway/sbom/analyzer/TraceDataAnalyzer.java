@@ -13,14 +13,12 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Stream;
 
 @Component("traceDataAnalyzer")
 public class TraceDataAnalyzer extends AbstractBaseAnalyzer {
@@ -46,7 +44,7 @@ public class TraceDataAnalyzer extends AbstractBaseAnalyzer {
     @Override
     protected TreeSet<CuratedPackage> parsePackages(String productName, Path workspace) throws IOException {
         Path traceDataPath = Paths.get(workspace.toString(), PublishSbomConstants.TRACE_DATA_DIR_NAME);
-        List<ProcessIdentifier> allProcess = processParser.getAllProcess(traceDataPath, getTaskId(traceDataPath));
+        List<ProcessIdentifier> allProcess = processParser.getAllProcess(traceDataPath);
         Set<CuratedPackage> httpPackages = httpParser.parse(traceDataPath, allProcess);
         Set<CuratedPackage> http2Packages = http2Parser.parse(traceDataPath, allProcess);
         Set<CuratedPackage> otherPackages = collectedInfoParser.parse(traceDataPath, allProcess);
@@ -55,18 +53,5 @@ public class TraceDataAnalyzer extends AbstractBaseAnalyzer {
             packages.addAll(curatedPackages);
         }
         return packages;
-    }
-
-    private String getTaskId(Path workspace) throws IOException {
-        try (Stream<Path> filePathStream = Files.walk(workspace)) {
-            return filePathStream
-                    .filter(Files::isRegularFile)
-                    .map(Path::getFileName)
-                    .map(Path::toString)
-                    .filter(fileName -> fileName.endsWith("_sbom_tracer.sh"))
-                    .findAny()
-                    .map(fileName -> fileName.split("_")[0])
-                    .orElseThrow(() -> new RuntimeException("Can't find *_sbom_tracer.sh"));
-        }
     }
 }
