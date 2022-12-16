@@ -1,7 +1,6 @@
 package org.opensourceway.sbom.manager.service.license;
 
 import org.opensourceway.sbom.manager.batch.pojo.LicenseInfoVo;
-import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 
 import java.util.List;
@@ -13,7 +12,7 @@ public interface LicenseService {
 
     boolean needRequest();
 
-    String getPurlsForLicense(PackageUrlVo packageUrlVo, Product product);
+    String getPurlsForLicense(PackageUrlVo packageUrlVo, String productType, String productVersion);
 
     Map<String, LicenseInfoVo> getLicenseInfoVoFromPurl(List<String> purls) throws Exception;
 }

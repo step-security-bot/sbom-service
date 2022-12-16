@@ -6,7 +6,6 @@ import org.opensourceway.sbom.clients.license.vo.ComplianceResponse;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.batch.pojo.LicenseInfoVo;
 import org.opensourceway.sbom.manager.dao.RepoMetaRepository;
-import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.RepoMeta;
 import org.opensourceway.sbom.manager.model.vo.PackageUrlVo;
 import org.opensourceway.sbom.manager.service.license.LicenseService;
@@ -74,17 +73,16 @@ public class LicenseServiceImpl implements LicenseService {
     }
 
     @Override
-    public String getPurlsForLicense(PackageUrlVo packageUrlVo, Product product) {
+    public String getPurlsForLicense(PackageUrlVo packageUrlVo, String productType, String productVersion) {
         String purl = "";
-        String productType = product.getProductType();
         try {
 
             if (SbomConstants.PRODUCT_MINDSPORE_NAME.equals(productType)) {
                 purl = dealMindsporePurl(packageUrlVo);
             } else if (SbomConstants.PRODUCT_OPENEULER_NAME.equals(productType)) {
-                purl = dealOpenEulerPurl(packageUrlVo, product);
+                purl = dealOpenEulerPurl(packageUrlVo, productVersion);
             } else if (SbomConstants.PRODUCT_OPENHARMONY_NAME.equals(productType)) {
-                purl = dealOpenHarmonyPurl(packageUrlVo, product);
+                purl = dealOpenHarmonyPurl(packageUrlVo, productVersion);
             }
         } catch (MalformedPackageURLException e) {
             logger.error("failed to get purl for License ");
@@ -106,13 +104,13 @@ public class LicenseServiceImpl implements LicenseService {
      * for example:
      * pkg:rpm/nodejs-lodash-some@3.10.1-1.oe2203 -> pkg:gitee/src-openeuler/nodejs-lodash-some@openEuler-22.03-LTS
      ***/
-    private String dealOpenEulerPurl(PackageUrlVo packageUrlVo, Product product) throws MalformedPackageURLException {
+    private String dealOpenEulerPurl(PackageUrlVo packageUrlVo, String productVersion) throws MalformedPackageURLException {
         if (!"rpm".equals(packageUrlVo.getType())) {
             return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(),
                     packageUrlVo.getName(), packageUrlVo.getVersion(), null, null)));
         } else {
             List<RepoMeta> repoMetaList = repoMetaRepository.queryRepoMetaByPackageName(SbomConstants.PRODUCT_OPENEULER_NAME,
-                    product.getProductVersion(), packageUrlVo.getName());
+                    productVersion, packageUrlVo.getName());
             String repoName = packageUrlVo.getName();
             if (!CollectionUtils.isEmpty(repoMetaList) && !repoMetaList.get(0).getDownloadLocation().isEmpty()) {
                 String downloadLocation = repoMetaList.get(0).getDownloadLocation();
@@ -120,8 +118,7 @@ public class LicenseServiceImpl implements LicenseService {
                 repoName = repoInfo.get(repoInfo.size() - 1);
             }
             return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL("gitee", SbomRepoConstants.OPENEULER_REPO_ORG,
-                    repoName, product.getProductVersion(),
-                    null, null)));
+                    repoName, productVersion, null, null)));
 
         }
     }
@@ -149,20 +146,19 @@ public class LicenseServiceImpl implements LicenseService {
      * pkg:gitee/openharmony/libxml2@2.9.10 -> pkg:gitee/openharmony/third_party_libxml2@OpenHarmony-v3.1-Release
      * pkg:gitee/openharmony/customization_enterprise_device_management@3.1-Release -> pkg:gitee/openharmony/customization_enterprise_device_management@OpenHarmony-v3.1-Release
      ***/
-    private String dealOpenHarmonyPurl(PackageUrlVo packageUrlVo, Product product) throws MalformedPackageURLException {
+    private String dealOpenHarmonyPurl(PackageUrlVo packageUrlVo, String productVersion) throws MalformedPackageURLException {
         if (!"gitee".equals(packageUrlVo.getType())) {
             return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(),
                     packageUrlVo.getName(), packageUrlVo.getVersion(), null, null)));
         } else {
             List<RepoMeta> repoMetaList = repoMetaRepository.queryRepoMetaByPackageName(SbomConstants.PRODUCT_OPENHARMONY_NAME,
-                    product.getProductVersion(), packageUrlVo.getName());
+                    productVersion, packageUrlVo.getName());
             String repoName = packageUrlVo.getName();
             if (!CollectionUtils.isEmpty(repoMetaList) && !repoMetaList.get(0).getRepoName().isEmpty()) {
                 repoName = repoMetaList.get(0).getRepoName();
             }
             return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(),
-                    repoName, product.getProductVersion(),
-                    null, null)));
+                    repoName, productVersion, null, null)));
         }
     }
 
