@@ -189,7 +189,7 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
                 chunkIllegalLicenseInfo.put(pkg.getName(), licenseInfoVo.getRepoLicenseIllegal());
             }
             setLicenseAndCopyrightForPackage(licenseInfoVo, pkg);
-            setLicenseAndPkgInfo(vo, purlRef, licenseInfoVo, pkg);
+            setLicenseAndPkgInfo(vo, licenseInfoVo, pkg);
         }
 
         if (MapUtils.isNotEmpty(chunkIllegalLicenseInfo)) {
@@ -198,7 +198,7 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
         return vo;
     }
 
-    private void setLicenseAndPkgInfo(ExtractLicenseVo vo, ExternalPurlRef purlRef, LicenseInfoVo licenseInfoVo, Package pkg) {
+    private void setLicenseAndPkgInfo(ExtractLicenseVo vo, LicenseInfoVo licenseInfoVo, Package pkg) {
         List<String> illegalLicenseList = licenseInfoVo.getRepoLicenseIllegal();
         List<String> licenseList = new ArrayList<>(illegalLicenseList);
         licenseList.addAll(licenseInfoVo.getRepoLicenseLegal());

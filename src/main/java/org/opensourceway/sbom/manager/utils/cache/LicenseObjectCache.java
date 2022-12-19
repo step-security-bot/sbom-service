@@ -56,7 +56,6 @@ public class LicenseObjectCache {
     }
 
     private License generateNewLicense(String lic) {
-        logger.info("generateNewLicense for {}.", lic);
         License license = new License();
         license.setSpdxLicenseId(lic);
 
