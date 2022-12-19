@@ -7,7 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.manager.dao.SbomRepository;
 import org.opensourceway.sbom.manager.model.ExternalPurlRef;
-import org.opensourceway.sbom.manager.model.License;
 import org.opensourceway.sbom.manager.model.Package;
 import org.opensourceway.sbom.manager.model.Sbom;
 import org.opensourceway.sbom.manager.service.license.LicenseService;
@@ -26,9 +25,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -84,9 +81,6 @@ public class ExtractLicenseReader implements ItemReader<List<ExternalPurlRef>>, 
         if (remainingSize > 0 && remainingSize < this.chunks.size()) {
             this.chunks = this.chunks.subList(this.chunks.size() - remainingSize, this.chunks.size());
         }
-
-        Map<String, License> spdxLicenseIdMap = new HashMap<>();
-        stepExecution.getExecutionContext().put(BatchContextConstants.BATCH_STEP_LICENSE_MAP_KEY, spdxLicenseIdMap);
 
         logger.info("ExternalPurlRefListReader:{} use sbomId:{}, get externalPurlRefs size:{}, chunks size:{}",
                 this,
