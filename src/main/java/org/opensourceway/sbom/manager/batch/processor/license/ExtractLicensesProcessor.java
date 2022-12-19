@@ -7,12 +7,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.opensourceway.sbom.cache.constant.CacheConstants;
 import org.opensourceway.sbom.clients.license.LicenseClient;
-import org.opensourceway.sbom.clients.license.vo.LicenseInfo;
 import org.opensourceway.sbom.constants.BatchContextConstants;
 import org.opensourceway.sbom.constants.SbomConstants;
 import org.opensourceway.sbom.manager.batch.pojo.ExtractLicenseVo;
 import org.opensourceway.sbom.manager.batch.pojo.LicenseInfoVo;
-import org.opensourceway.sbom.manager.dao.LicenseRepository;
 import org.opensourceway.sbom.manager.dao.PackageRepository;
 import org.opensourceway.sbom.manager.dao.ProductRepository;
 import org.opensourceway.sbom.manager.dao.RepoMetaRepository;
@@ -23,7 +21,7 @@ import org.opensourceway.sbom.manager.model.PkgLicenseRelp;
 import org.opensourceway.sbom.manager.model.Product;
 import org.opensourceway.sbom.manager.model.RepoMeta;
 import org.opensourceway.sbom.manager.service.license.LicenseService;
-import org.opensourceway.sbom.manager.utils.cache.LicenseInfoMapCache;
+import org.opensourceway.sbom.manager.utils.cache.LicenseObjectCache;
 import org.opensourceway.sbom.manager.utils.cache.LicenseStandardMapCache;
 import org.opensourceway.sbom.manager.utils.cache.OpenEulerRepoMetaCache;
 import org.opensourceway.sbom.openeuler.obs.SbomRepoConstants;
@@ -58,9 +56,6 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
     private ExecutionContext jobContext;
 
     @Autowired
-    private LicenseInfoMapCache licenseInfoMapCache;
-
-    @Autowired
     private ProductRepository productRepository;
 
     @Autowired
@@ -70,13 +65,13 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
     private LicenseStandardMapCache licenseStandardMapCache;
 
     @Autowired
-    private LicenseRepository licenseRepository;
-
-    @Autowired
     private RepoMetaRepository repoMetaRepository;
 
     @Autowired
     private OpenEulerRepoMetaCache openEulerRepoMetaCache;
+
+    @Autowired
+    private LicenseObjectCache licenseObjectCache;
 
     @Value("${isScan}")
     private Boolean isScan;
@@ -181,7 +176,7 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
     }
 
     private ExtractLicenseVo getLicenseAndPkgToDeal(Set<Pair<ExternalPurlRef, LicenseInfoVo>> externalLicenseRefSet) {
-        Map<String, List<String>> illegalLicenseInfo = new HashMap<>();
+        Map<String, List<String>> chunkIllegalLicenseInfo = new HashMap<>();
         ExtractLicenseVo vo = new ExtractLicenseVo();
         for (Pair<ExternalPurlRef, LicenseInfoVo> externalLicenseRefPair : externalLicenseRefSet) {
             ExternalPurlRef purlRef = externalLicenseRefPair.getLeft();
@@ -190,23 +185,20 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
                 continue;
             }
             Package pkg = packageRepository.findById(purlRef.getPkg().getId()).orElseThrow();
+            if (!ObjectUtils.isEmpty(licenseInfoVo.getRepoLicenseIllegal())) {
+                chunkIllegalLicenseInfo.put(pkg.getName(), licenseInfoVo.getRepoLicenseIllegal());
+            }
             setLicenseAndCopyrightForPackage(licenseInfoVo, pkg);
-            setLicenseAndPkgInfo(illegalLicenseInfo, vo, purlRef, licenseInfoVo, pkg);
+            setLicenseAndPkgInfo(vo, purlRef, licenseInfoVo, pkg);
         }
-        Map<String, List<String>> chunkIllegalLicenseInfo = new HashMap<>();
-        illegalLicenseInfo.forEach((pkgName, licList) -> {
-            List<String> templist = chunkIllegalLicenseInfo.getOrDefault(pkgName, new ArrayList<>());
-            templist.addAll(licList);
-            chunkIllegalLicenseInfo.put(pkgName, templist);
-        });
+
         if (MapUtils.isNotEmpty(chunkIllegalLicenseInfo)) {
-            logger.warn("illegal licenses info in chunks:{}", illegalLicenseInfo);
+            logger.warn("illegal licenses info in chunks:{}", chunkIllegalLicenseInfo);
         }
         return vo;
     }
 
-    private void setLicenseAndPkgInfo(Map<String, List<String>> illegalLicenseInfo, ExtractLicenseVo vo,
-                                      ExternalPurlRef purlRef, LicenseInfoVo licenseInfoVo, Package pkg) {
+    private void setLicenseAndPkgInfo(ExtractLicenseVo vo, ExternalPurlRef purlRef, LicenseInfoVo licenseInfoVo, Package pkg) {
         List<String> illegalLicenseList = licenseInfoVo.getRepoLicenseIllegal();
         List<String> licenseList = new ArrayList<>(illegalLicenseList);
         licenseList.addAll(licenseInfoVo.getRepoLicenseLegal());
@@ -214,8 +206,7 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
         licenseList.stream()
                 .map(lic -> licenseStandardMapCache.getLicenseStandardMap(CacheConstants.LICENSE_STANDARD_MAP_CACHE_KEY_PATTERN).getOrDefault(lic.toLowerCase(), lic))
                 .forEach(lic -> {
-                    License license = getLicenseToDeal(lic);
-                    setLegalOrNot(illegalLicenseInfo, purlRef, illegalLicenseList, lic, license);
+                    License license = licenseObjectCache.getLicenseCache(lic, getLicenseLegality(illegalLicenseList, lic));
                     if (pkg.getPkgLicenseRelps().stream().noneMatch(relp -> lic.equals(vo.getLicenseOfRelp().get(relp)))) {
                         PkgLicenseRelp pkgLicenseRelp = new PkgLicenseRelp();
                         pkgLicenseRelp.setPkg(pkg);
@@ -227,30 +218,10 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
                 });
     }
 
-    @SuppressWarnings("unchecked")
-    private License getLicenseToDeal(String lic) {
-        Map<String, License> spdxLicenseIdMap = (Map<String, License>) stepExecution.getExecutionContext()
-                .get(BatchContextConstants.BATCH_STEP_LICENSE_MAP_KEY);
 
-        License license;
-        if (spdxLicenseIdMap.containsKey(lic)) {
-            license = spdxLicenseIdMap.get(lic);
-        } else {
-            license = licenseRepository.findBySpdxLicenseId(lic).orElse(generateNewLicense(lic));
-            spdxLicenseIdMap.put(lic, license);
-        }
-        return license;
-    }
+    private Boolean getLicenseLegality(List<String> illegalLicenseList, String lic) {
 
-    private void setLegalOrNot(Map<String, List<String>> illegalLicenseInfo, ExternalPurlRef purlRef, List<String> illegalLicenseList, String lic, License license) {
-        if (illegalLicenseList.contains(lic)) {
-            license.setIsLegal(false);
-            List<String> licList = illegalLicenseInfo.getOrDefault(purlRef.getPkg().getName(), new ArrayList<>());
-            licList.add(lic);
-            illegalLicenseInfo.put(purlRef.getPkg().getName(), licList);
-        } else {
-            license.setIsLegal(true);
-        }
+        return !illegalLicenseList.contains(lic);
     }
 
     private void setLicenseAndCopyrightForPackage(LicenseInfoVo licenseInfoVo, Package pkg) {
@@ -260,21 +231,6 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
         if (licenseInfoVo.getRepoLicense().size() != 0) {
             pkg.setLicenseConcluded(licenseInfoVo.getRepoLicense().get(0));
         }
-    }
-
-
-    private License generateNewLicense(String lic) {
-        License license = new License();
-        license.setSpdxLicenseId(lic);
-
-        // use cache
-        Map<String, LicenseInfo> licenseInfoMap = licenseInfoMapCache.getLicenseInfoMap(CacheConstants.LICENSE_INFO_MAP_CACHE_KEY_DEFAULT_VALUE);
-        if (MapUtils.isNotEmpty(licenseInfoMap) && licenseInfoMap.containsKey(lic)) {
-            LicenseInfo licenseInfo = licenseInfoMap.get(lic);
-            license.setName(licenseInfo.getName());
-            license.setUrl(licenseInfo.getReference());
-        }
-        return license;
     }
 
 }

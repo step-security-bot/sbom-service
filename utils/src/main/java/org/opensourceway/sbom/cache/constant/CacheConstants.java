@@ -14,6 +14,10 @@ public class CacheConstants {
 
     public static final String CHECKSUM_SKIP_MAP_CACHE_NAME = "checksumSkipMap";
 
+    public static final String LICENSE_OBJECT = "licenseObject";
+
+    public static final String LICENSE_OBJECT_CACHE_KEY = "#licenseSpdxId + '_' + #licenseLegality";
+
     public static final String CHECKSUM_SKIP_MAP_CACHE_KEY_PATTERN = "#checksumSkip";
 
     public static final String PRODUCT_CONFIG_CACHE_NAME = "productConfig";
