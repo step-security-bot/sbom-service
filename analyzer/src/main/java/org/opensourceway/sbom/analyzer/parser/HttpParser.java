@@ -1,10 +1,10 @@
 package org.opensourceway.sbom.analyzer.parser;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.opensourceway.sbom.analyzer.model.HttpSniffData;
-import org.opensourceway.sbom.analyzer.model.ProcessIdentifier;
 import org.opensourceway.sbom.analyzer.pkggen.PackageGenerator;
-import org.opensourceway.sbom.clients.vcs.VcsEnum;
+import org.opensourceway.sbom.model.enums.VcsEnum;
+import org.opensourceway.sbom.model.pojo.vo.analyzer.HttpSniffData;
+import org.opensourceway.sbom.model.pojo.vo.analyzer.ProcessIdentifier;
 import org.opensourceway.sbom.utils.Mapper;
 import org.ossreviewtoolkit.model.CuratedPackage;
 import org.slf4j.Logger;

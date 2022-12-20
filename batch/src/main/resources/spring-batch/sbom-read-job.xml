@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:beans="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch https://www.springframework.org/schema/batch/spring-batch.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean class="org.springframework.batch.core.scope.StepScope">
+        <property name="proxyTargetClass" value="true"/>
+    </bean>
+
+    <job id="readSbomJob" xmlns="http://www.springframework.org/schema/batch">
+        <step id="selectWaitRawSbomTask">
+            <tasklet ref="selectWaitRawSbomStep"/>
+            <next on="*" to="skipAnalyzeSbomContentDecision"/>
+            <end on="STOPPED"/>
+            <!-- <fail on="FAILED" exit-code="FAILED" /> -->
+        </step>
+
+        <decision id="skipAnalyzeSbomContentDecision" decider="skipAnalyzeSbomContentDecider">
+            <next on="INORDER_TRACE_DATA" to="AnalyzeTraceDataTask"/>
+            <next on="INORDER_DEFINITION_FILE" to="AnalyzeDefinitionFileTask"/>
+            <next on="*" to="parseSbomMetadataTask"/>
+        </decision>
+
+        <step id="AnalyzeTraceDataTask" next="parseSbomMetadataTask">
+            <tasklet ref="analyzeTraceDataStep"/>
+        </step>
+
+        <step id="AnalyzeDefinitionFileTask" next="parseSbomMetadataTask">
+            <tasklet ref="analyzeDefinitionFileStep"/>
+        </step>
+
+        <step id="parseSbomMetadataTask" next="persistSbomMetadataTask">
+            <tasklet ref="parseSbomMetadataStep"/>
+        </step>
+
+        <step id="persistSbomMetadataTask" next="sbomConsumers">
+            <tasklet ref="persistSbomMetadataStep"/>
+        </step>
+
+        <split id="sbomConsumers" task-executor="taskExecutor" next="collectStatisticsTask">
+            <flow>
+                <step id="extractLicense" next="repoMetaConsumers">
+                    <tasklet>
+                        <chunk commit-interval="2" retry-limit="2">
+                            <reader>
+                                <beans:bean id="extractLicenseReader"
+                                            class="org.opensourceway.sbom.batch.reader.license.ExtractLicenseReader"
+                                            scope="step"/>
+                            </reader>
+                            <processor>
+                                <beans:bean id="extractLicenseProcessor"
+                                            class="org.opensourceway.sbom.batch.processor.license.ExtractLicensesProcessor"
+                                            scope="step">
+                                </beans:bean>
+                            </processor>
+                            <writer>
+                                <beans:bean id="extractLicenseWriter"
+                                            class="org.opensourceway.sbom.batch.writer.license.ExtractLicenseWriter"
+                                            scope="step">
+                                </beans:bean>
+                            </writer>
+                            <retryable-exception-classes>
+                                <include class="java.lang.Exception"/>
+                            </retryable-exception-classes>
+                        </chunk>
+                    </tasklet>
+                </step>
+                <split id="repoMetaConsumers" task-executor="taskExecutor">
+                    <flow>
+                        <step id="fillUpLicense">
+                            <tasklet ref="fillUpLicenseStep"/>
+                        </step>
+                    </flow>
+                    <flow>
+                        <step id="supplySourceInfo" parent="stepDelayRetry">
+                            <tasklet>
+                                <chunk commit-interval="2" retry-limit="5">
+                                    <reader>
+                                        <beans:bean id="supplySourceInfoReader"
+                                                    class="org.opensourceway.sbom.batch.reader.sourceinfo.SupplySourceInfoReader"
+                                                    scope="step"/>
+                                    </reader>
+                                    <processor>
+                                        <beans:bean id="supplySourceInfoProcessor"
+                                                    class="org.opensourceway.sbom.batch.processor.sourceinfo.SupplySourceInfoProcessor"
+                                                    scope="step">
+                                        </beans:bean>
+                                    </processor>
+                                    <writer>
+                                        <beans:bean id="supplySourceInfoWriter"
+                                                    class="org.opensourceway.sbom.batch.writer.sourceinfo.SupplySourceInfoWriter"
+                                                    scope="step">
+                                        </beans:bean>
+                                    </writer>
+                                    <retryable-exception-classes>
+                                        <include class="java.lang.Exception"/>
+                                    </retryable-exception-classes>
+                                </chunk>
+                            </tasklet>
+                        </step>
+                    </flow>
+                </split>
+            </flow>
+            <flow>
+                <!-- In org.opensourceway.sbom.manager.batch.job.JobConfiguration.restartSbomReadJob, use this step id decide rawSbom record's new taskStatus -->
+                <step id="resolveMavenDepTask" next="purlConsumers" parent="stepDelayRetry">
+                    <tasklet>
+                        <chunk commit-interval="3" retry-limit="3">
+                            <reader>
+                                <beans:bean id="packageWithChecksumListReader"
+                                            class="org.opensourceway.sbom.batch.reader.checksum.PackageWithChecksumListReader"
+                                            scope="step">
+                                    <beans:constructor-arg ref="checksumServiceImpl"/>
+                                </beans:bean>
+                            </reader>
+                            <processor>
+                                <beans:bean id="packageWithChecksumListProcessor"
+                                            class="org.opensourceway.sbom.batch.processor.checksum.PackageWithChecksumProcessor"
+                                            scope="step">
+                                </beans:bean>
+                            </processor>
+                            <writer>
+                                <beans:bean id="packageWithChecksumListWriter"
+                                            class="org.opensourceway.sbom.batch.writer.checksum.PackageWithChecksumListWriter"
+                                            scope="step">
+                                    <beans:constructor-arg ref="checksumServiceImpl"/>
+                                </beans:bean>
+                            </writer>
+                            <retryable-exception-classes>
+                                <include class="java.lang.RuntimeException"/>
+                            </retryable-exception-classes>
+                        </chunk>
+                    </tasklet>
+                </step>
+                <split id="purlConsumers" task-executor="taskExecutor">
+                    <flow>
+                        <step id="extractOssIndex">
+                            <tasklet>
+                                <chunk commit-interval="2" retry-limit="3">
+                                    <reader>
+                                        <beans:bean id="extractOssIndexReader"
+                                                    class="org.opensourceway.sbom.batch.reader.vul.ExternalPurlRefListReader"
+                                                    scope="step">
+                                            <beans:constructor-arg ref="ossIndexServiceImpl"/>
+                                        </beans:bean>
+                                    </reader>
+                                    <processor>
+                                        <beans:bean id="extractOssIndexProcessor"
+                                                    class="org.opensourceway.sbom.batch.processor.vul.ExtractOssIndexProcessor"
+                                                    scope="step">
+                                        </beans:bean>
+                                    </processor>
+                                    <writer>
+                                        <beans:bean id="extractOssIndexWriter"
+                                                    class="org.opensourceway.sbom.batch.writer.vul.ExternalPurlRefListWriter"
+                                                    scope="step">
+                                            <beans:constructor-arg ref="ossIndexServiceImpl"/>
+                                        </beans:bean>
+                                    </writer>
+                                    <retryable-exception-classes>
+                                        <include class="java.lang.Exception"/>
+                                    </retryable-exception-classes>
+                                </chunk>
+                            </tasklet>
+                        </step>
+                    </flow>
+                    <flow>
+                        <step id="extractCveManger">
+                            <tasklet>
+                                <chunk commit-interval="2" retry-limit="3">
+                                    <!-- retry-limit: 1(first execution) + 2(twice retry) = 3-->
+                                    <reader>
+                                        <beans:bean id="extractCveManagerReader"
+                                                    class="org.opensourceway.sbom.batch.reader.vul.ExternalPurlRefListReader"
+                                                    scope="step">
+                                            <beans:constructor-arg ref="cveManagerServiceImpl"/>
+                                        </beans:bean>
+                                    </reader>
+                                    <processor>
+                                        <beans:bean id="extractCveManagerProcessor"
+                                                    class="org.opensourceway.sbom.batch.processor.vul.ExtractCveManagerProcessor"
+                                                    scope="step">
+                                        </beans:bean>
+                                    </processor>
+                                    <writer>
+                                        <beans:bean id="extractCveManagerWriter"
+                                                    class="org.opensourceway.sbom.batch.writer.vul.ExternalPurlRefListWriter"
+                                                    scope="step">
+                                            <beans:constructor-arg ref="cveManagerServiceImpl"/>
+                                        </beans:bean>
+                                    </writer>
+                                    <retryable-exception-classes>
+                                        <include class="java.lang.Exception"/>
+                                    </retryable-exception-classes>
+                                </chunk>
+                            </tasklet>
+                        </step>
+                    </flow>
+                </split>
+            </flow>
+        </split>
+
+        <step id="collectStatisticsTask" next="readSbomEndTask">
+            <tasklet ref="collectStatisticsStep"/>
+        </step>
+
+        <step id="readSbomEndTask">
+            <tasklet ref="readSbomEndStep"/>
+            <end on="*"/>
+        </step>
+
+        <listeners>
+            <listener ref="allStepsListener"/>
+        </listeners>
+    </job>
+
+    <bean id="selectWaitRawSbomStep"
+          class="org.opensourceway.sbom.batch.step.SelectWaitRawSbomStep"/>
+
+    <bean id="skipAnalyzeSbomContentDecider"
+          class="org.opensourceway.sbom.batch.decider.SkipAnalyzeSbomContentDecider"/>
+
+    <bean id="analyzeTraceDataStep"
+          class="org.opensourceway.sbom.batch.step.AnalyzeTraceDataStep"/>
+
+    <bean id="analyzeDefinitionFileStep"
+          class="org.opensourceway.sbom.batch.step.AnalyzeDefinitionFileStep"/>
+
+    <bean id="parseSbomMetadataStep"
+          class="org.opensourceway.sbom.batch.step.ParseSbomMetadataStep"/>
+
+    <bean id="persistSbomMetadataStep"
+          class="org.opensourceway.sbom.batch.step.PersistSbomMetadataStep"/>
+
+    <bean id="collectStatisticsStep"
+          class="org.opensourceway.sbom.batch.step.CollectStatisticsStep"/>
+
+    <bean id="fillUpLicenseStep"
+          class="org.opensourceway.sbom.batch.step.FillUpLicenseStep"/>
+
+    <bean id="readSbomEndStep"
+          class="org.opensourceway.sbom.batch.step.ReadSbomEndStep"/>
+
+    <bean id="taskExecutor" class="org.springframework.core.task.SimpleAsyncTaskExecutor"/>
+
+    <bean id="stepDelayRetry" class="org.springframework.batch.core.step.factory.FaultTolerantStepFactoryBean"
+          abstract="true">
+        <property name="backOffPolicy">
+            <bean class="org.springframework.retry.backoff.ExponentialBackOffPolicy">
+                <property name="initialInterval" value="5000"/>
+                <property name="maxInterval" value="500000"/>
+                <property name="multiplier" value="3"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="allStepsListener"
+          class="org.opensourceway.sbom.batch.listener.AllStepsListener">
+        <constructor-arg value="3"/>
+    </bean>
+
+</beans>

@@ -1,6 +1,7 @@
 package org.opensourceway.sbom.utils;
 
-import org.opensourceway.sbom.pojo.OpenEulerAdvisorVo;
+
+import org.opensourceway.sbom.model.pojo.vo.repo.OpenEulerAdvisorVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;

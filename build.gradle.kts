@@ -13,7 +13,6 @@ val commonsIoVersion: String by project
 val commonsLang3Version: String by project
 val commonsCollections4Version: String by project
 val packageUrlJavaVersion: String by project
-val hibernateTypesVersion: String by project
 
 repositories {
     exclusiveContent {
@@ -40,40 +39,40 @@ repositories {
 dependencies {
     implementation(project(":analyzer"))
     implementation(project(":utils"))
-    implementation(project(":clients:cve-manager"))
-    implementation(project(":clients:license"))
-    implementation(project(":clients:sonatype"))
-    implementation(project(":clients:oss-index"))
-    implementation(project(":clients:openeuler-repo"))
-    implementation(project(":clients:vcs"))
-    implementation(project(":clients:openharmony-repo"))
-
-    implementation("oss-review-toolkit:model")
-    implementation("oss-review-toolkit:utils:spdx-utils")
+    implementation(project(":model"))
+    implementation(project(":dao"))
+    implementation(project(":interface"))
+    implementation(project(":clients"))
+    implementation(project(":cache"))
+    implementation(project(":batch"))
+    implementation(project(":quartz"))
 
     implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("com.github.package-url:packageurl-java:$packageUrlJavaVersion")
-    implementation("com.vladmihalcea:hibernate-types-55:$hibernateTypesVersion")
-    implementation("commons-io:commons-io:$commonsIoVersion")
     implementation("org.apache.commons:commons-collections4:$commonsCollections4Version")
     implementation("org.apache.commons:commons-lang3:$commonsLang3Version")
-    implementation("org.postgresql:postgresql")
-    implementation("org.springframework.boot:spring-boot-starter-batch")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.boot:spring-boot-starter-quartz")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
 
     providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
 
-    testImplementation(project(":clients:vcs"))
+    testImplementation(project(":clients"))
 
     testImplementation("org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-batch")
+    testImplementation("commons-io:commons-io:$commonsIoVersion")
+    testImplementation("org.postgresql:postgresql")
+    testImplementation("org.springframework:spring-context-support:5.3.23")
+    testImplementation("com.fasterxml.jackson.core:jackson-databind")
+    testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+    testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml")
+    testApi("com.github.ben-manes.caffeine:caffeine")
 }
 
 springBoot {
-    mainClass.set("org.opensourceway.sbom.manager.SbomManagerApplication")
+    mainClass.set("org.opensourceway.sbom.SbomManagerApplication")
 }
 
 allprojects {

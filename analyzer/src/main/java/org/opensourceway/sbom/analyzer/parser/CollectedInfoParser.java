@@ -1,7 +1,7 @@
 package org.opensourceway.sbom.analyzer.parser;
 
-import org.opensourceway.sbom.analyzer.model.ProcessIdentifier;
 import org.opensourceway.sbom.analyzer.parser.handler.Handler;
+import org.opensourceway.sbom.model.pojo.vo.analyzer.ProcessIdentifier;
 import org.ossreviewtoolkit.model.CuratedPackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

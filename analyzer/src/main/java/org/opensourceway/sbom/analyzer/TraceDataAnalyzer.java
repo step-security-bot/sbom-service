@@ -1,11 +1,11 @@
 package org.opensourceway.sbom.analyzer;
 
-import org.opensourceway.sbom.analyzer.model.ProcessIdentifier;
 import org.opensourceway.sbom.analyzer.parser.CollectedInfoParser;
 import org.opensourceway.sbom.analyzer.parser.Http2Parser;
 import org.opensourceway.sbom.analyzer.parser.HttpParser;
 import org.opensourceway.sbom.analyzer.parser.ProcessParser;
-import org.opensourceway.sbom.constants.PublishSbomConstants;
+import org.opensourceway.sbom.model.constants.PublishSbomConstants;
+import org.opensourceway.sbom.model.pojo.vo.analyzer.ProcessIdentifier;
 import org.opensourceway.sbom.utils.FileUtil;
 import org.ossreviewtoolkit.model.CuratedPackage;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,9 +1,9 @@
 package org.opensourceway.sbom.analyzer.pkggen;
 
 import org.apache.commons.lang3.StringUtils;
-import org.opensourceway.sbom.analyzer.model.RepoInfo;
 import org.opensourceway.sbom.analyzer.vcs.VcsService;
-import org.opensourceway.sbom.clients.vcs.VcsEnum;
+import org.opensourceway.sbom.model.enums.VcsEnum;
+import org.opensourceway.sbom.model.pojo.vo.vcs.RepoInfo;
 import org.ossreviewtoolkit.model.CuratedPackage;
 import org.ossreviewtoolkit.model.Hash;
 import org.ossreviewtoolkit.model.Identifier;

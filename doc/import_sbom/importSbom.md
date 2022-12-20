@@ -4,7 +4,7 @@
 
 通过调用SBOM-Service的数据导入API将SBOM初始化数据上传至服务端，SBOM-Service将会通过导入流程执行：**监控数据解析**、**软件成分分析**、**依赖组件分析**、**SBOM元数据存储**、**上游社区数据卷积**、**漏洞安全数据卷积**、**License合规数据卷积**、**统计数据预计算**等。
 
-[流程步骤配置文件](https://github.com/opensourceways/sbom-service/blob/main/src/main/resources/spring-batch/sbom-read-job.xml)。
+[流程步骤配置文件](https://github.com/opensourceways/sbom-service/blob/main/batch/src/main/resources/spring-batch/sbom-read-job.xml)。
 
 # 导入流程1.0（已弃用）
 

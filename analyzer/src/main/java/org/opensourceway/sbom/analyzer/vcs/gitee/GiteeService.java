@@ -1,16 +1,18 @@
 package org.opensourceway.sbom.analyzer.vcs.gitee;
 
-import org.opensourceway.sbom.analyzer.model.RepoInfo;
 import org.opensourceway.sbom.analyzer.vcs.VcsService;
-import org.opensourceway.sbom.clients.vcs.VcsEnum;
-import org.opensourceway.sbom.clients.vcs.gitee.GiteeApi;
-import org.opensourceway.sbom.clients.vcs.gitee.model.GiteeRepoInfo;
+import org.opensourceway.sbom.api.vcs.VcsApi;
+import org.opensourceway.sbom.model.enums.VcsEnum;
+import org.opensourceway.sbom.model.pojo.response.vcs.gitee.GiteeRepoInfo;
+import org.opensourceway.sbom.model.pojo.vo.vcs.RepoInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.text.MessageFormat;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
@@ -22,14 +24,17 @@ public class GiteeService implements VcsService {
     private static final Logger logger = LoggerFactory.getLogger(GiteeService.class);
 
     @Autowired
-    private GiteeApi giteeApi;
+    @Qualifier("giteeApi")
+    private VcsApi giteeApi;
 
     @Override
     public RepoInfo getRepoInfo(String org, String repo) {
         GiteeRepoInfo.RepoInfo repoInfo = new GiteeRepoInfo.RepoInfo();
         try {
-            repoInfo = Optional.ofNullable(giteeApi.getRepoInfo(org, repo).block())
-                    .orElse(new GiteeRepoInfo.RepoInfo());
+            Object result = giteeApi.getRepoInfo(org, repo).block();
+            if (Objects.nonNull(result)) {
+                repoInfo = (GiteeRepoInfo.RepoInfo) result;
+            }
         } catch (Exception e) {
             logger.warn("failed to get repo info from {} for [org: '{}', repo: '{}']", VcsEnum.GITEE, org, repo, e);
         }
