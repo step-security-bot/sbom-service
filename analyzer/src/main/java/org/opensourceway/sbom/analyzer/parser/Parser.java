@@ -1,6 +1,6 @@
 package org.opensourceway.sbom.analyzer.parser;
 
-import org.opensourceway.sbom.analyzer.model.ProcessIdentifier;
+import org.opensourceway.sbom.model.pojo.vo.analyzer.ProcessIdentifier;
 import org.ossreviewtoolkit.model.CuratedPackage;
 
 import java.nio.file.Path;

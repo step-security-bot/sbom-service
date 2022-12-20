@@ -2,8 +2,8 @@ package org.opensourceway.sbom.analyzer.parser;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang3.StringUtils;
-import org.opensourceway.sbom.analyzer.model.ProcessData;
-import org.opensourceway.sbom.analyzer.model.ProcessIdentifier;
+import org.opensourceway.sbom.model.pojo.vo.analyzer.ProcessData;
+import org.opensourceway.sbom.model.pojo.vo.analyzer.ProcessIdentifier;
 import org.opensourceway.sbom.utils.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

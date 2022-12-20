@@ -26,7 +26,10 @@ repositories {
 
 dependencies {
     implementation(project(":utils"))
-    implementation(project(":clients:vcs"))
+    implementation(project(":clients"))
+    implementation(project(":interface"))
+    implementation(project(":model"))
+    implementation(project(":dao"))
 
     implementation("oss-review-toolkit:model")
     implementation("oss-review-toolkit:analyzer")
@@ -35,11 +38,9 @@ dependencies {
     implementation("org.apache.commons:commons-lang3:$commonsLang3Version")
     implementation("commons-io:commons-io:$commonsIoVersion")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.gradle:gradle-tooling-api:${gradle.gradleVersion}")
     implementation("com.github.package-url:packageurl-java:$packageUrlJavaVersion")
-
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 }
 
 tasks.getByName<Test>("test") {

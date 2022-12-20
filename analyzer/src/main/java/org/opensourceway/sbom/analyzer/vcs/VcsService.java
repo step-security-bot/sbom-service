@@ -1,6 +1,6 @@
 package org.opensourceway.sbom.analyzer.vcs;
 
-import org.opensourceway.sbom.analyzer.model.RepoInfo;
+import org.opensourceway.sbom.model.pojo.vo.vcs.RepoInfo;
 
 public interface VcsService {
     RepoInfo getRepoInfo(String org, String repo);

@@ -1,6 +1,6 @@
 package org.opensourceway.sbom.utils;
 
-import org.opensourceway.sbom.pojo.OpenEulerAdvisorVo;
+import org.opensourceway.sbom.model.pojo.vo.repo.OpenEulerAdvisorVo;
 import org.springframework.util.StringUtils;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;

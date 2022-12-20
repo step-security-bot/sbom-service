@@ -2,9 +2,9 @@ package org.opensourceway.sbom.analyzer.parser.handler.handlers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang3.StringUtils;
-import org.opensourceway.sbom.analyzer.model.GitData;
 import org.opensourceway.sbom.analyzer.parser.handler.HandlerEnum;
 import org.opensourceway.sbom.analyzer.pkggen.VcsPackageGenerator;
+import org.opensourceway.sbom.model.pojo.vo.analyzer.GitData;
 import org.opensourceway.sbom.utils.Mapper;
 import org.ossreviewtoolkit.model.CuratedPackage;
 import org.slf4j.Logger;

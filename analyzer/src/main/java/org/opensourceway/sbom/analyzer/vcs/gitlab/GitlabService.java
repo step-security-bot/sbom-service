@@ -1,16 +1,18 @@
 package org.opensourceway.sbom.analyzer.vcs.gitlab;
 
-import org.opensourceway.sbom.analyzer.model.RepoInfo;
 import org.opensourceway.sbom.analyzer.vcs.VcsService;
-import org.opensourceway.sbom.clients.vcs.VcsEnum;
-import org.opensourceway.sbom.clients.vcs.gitlab.GitlabApi;
-import org.opensourceway.sbom.clients.vcs.gitlab.model.GitlabRepoInfo;
+import org.opensourceway.sbom.api.vcs.VcsApi;
+import org.opensourceway.sbom.model.enums.VcsEnum;
+import org.opensourceway.sbom.model.pojo.response.vcs.gitlab.GitlabRepoInfo;
+import org.opensourceway.sbom.model.pojo.vo.vcs.RepoInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.text.MessageFormat;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
@@ -22,14 +24,17 @@ public class GitlabService implements VcsService {
     private static final Logger logger = LoggerFactory.getLogger(GitlabService.class);
 
     @Autowired
-    private GitlabApi gitlabApi;
+    @Qualifier("gitlabApi")
+    private VcsApi gitlabApi;
 
     @Override
     public RepoInfo getRepoInfo(String org, String repo) {
         GitlabRepoInfo.RepoInfo repoInfo = new GitlabRepoInfo.RepoInfo();
         try {
-            repoInfo = Optional.ofNullable(gitlabApi.getRepoInfo(org, repo).block())
-                    .orElse(new GitlabRepoInfo.RepoInfo());
+            Object result = gitlabApi.getRepoInfo(org, repo).block();
+            if (Objects.nonNull(result)) {
+                repoInfo = (GitlabRepoInfo.RepoInfo) result;
+            }
         } catch (Exception e) {
             logger.warn("failed to get repo info from {} for [org: '{}', repo: '{}']", VcsEnum.GITLAB, org, repo, e);
         }

@@ -1,6 +1,7 @@
 package org.opensourceway.sbom.analyzer;
 
 import org.apache.commons.io.FileUtils;
+import org.opensourceway.sbom.api.analyzer.SbomContentAnalyzer;
 import org.opensourceway.sbom.utils.Mapper;
 import org.ossreviewtoolkit.analyzer.Analyzer;
 import org.ossreviewtoolkit.analyzer.PackageCurationProvider;
