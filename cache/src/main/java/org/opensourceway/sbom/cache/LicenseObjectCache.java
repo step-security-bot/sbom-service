@@ -46,11 +46,9 @@ public class LicenseObjectCache {
      */
     @Cacheable(value = {CacheConstants.LICENSE_OBJECT}, key = CacheConstants.LICENSE_OBJECT_CACHE_KEY)
     public License getLicenseCache(String licenseSpdxId, Boolean licenseLegality) {
-        logger.info("get license cache for spdxId {} which is {}.", licenseLegality, licenseLegality);
+        logger.info("get license cache for spdxId {} which is {}.", licenseSpdxId, licenseLegality);
         License license = licenseRepository.findBySpdxLicenseId(licenseSpdxId).orElse(generateNewLicense(licenseSpdxId));
-        if (!license.getIsLegal().equals(licenseLegality)) {
-            license.setIsLegal(licenseLegality);
-        }
+        license.setIsLegal(licenseLegality);
         licenseRepository.save(license);
         return license;
     }
