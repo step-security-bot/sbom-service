@@ -48,6 +48,14 @@ public class LicenseObjectCache {
     public License getLicenseCache(String licenseSpdxId, Boolean licenseLegality) {
         logger.info("get license cache for spdxId {} which is {}.", licenseSpdxId, licenseLegality);
         License license = licenseRepository.findBySpdxLicenseId(licenseSpdxId).orElse(generateNewLicense(licenseSpdxId));
+
+        Map<String, LicenseInfo> licenseInfoMap = licenseInfoMapCache.getLicenseInfoMap(CacheConstants.LICENSE_INFO_MAP_CACHE_KEY_DEFAULT_VALUE);
+        if (MapUtils.isNotEmpty(licenseInfoMap) && licenseInfoMap.containsKey(licenseSpdxId)) {
+            LicenseInfo licenseInfo = licenseInfoMap.get(licenseSpdxId);
+            license.setName(licenseInfo.getName());
+            license.setUrl(licenseInfo.getReference());
+        }
+
         license.setIsLegal(licenseLegality);
         licenseRepository.save(license);
         return license;
@@ -57,13 +65,6 @@ public class LicenseObjectCache {
         License license = new License();
         license.setSpdxLicenseId(lic);
 
-        // use cache
-        Map<String, LicenseInfo> licenseInfoMap = licenseInfoMapCache.getLicenseInfoMap(CacheConstants.LICENSE_INFO_MAP_CACHE_KEY_DEFAULT_VALUE);
-        if (MapUtils.isNotEmpty(licenseInfoMap) && licenseInfoMap.containsKey(lic)) {
-            LicenseInfo licenseInfo = licenseInfoMap.get(lic);
-            license.setName(licenseInfo.getName());
-            license.setUrl(licenseInfo.getReference());
-        }
         return license;
     }
 }
