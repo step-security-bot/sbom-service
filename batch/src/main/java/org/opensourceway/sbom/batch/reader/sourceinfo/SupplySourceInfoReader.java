@@ -131,7 +131,9 @@ public class SupplySourceInfoReader implements ItemReader<List<UUID>>, StepExecu
             Chunk<List<UUID>> retryInputs = (Chunk<List<UUID>>) this.chunkContext.getAttribute(BatchContextConstants.BUILD_IN_BATCH_CHUNK_FAILED_INPUT_KEY);
             assert retryInputs != null;
             remainingSize += CollectionUtils.size(retryInputs.getItems());
-            logger.info("restore failed chunks, failed chunks size:{}, first element pkg id:{}",
+            logger.info("restore failed chunks, job id:{}, remain chunk size:{}, failed chunks size:{}, first element pkg id:{}",
+                    stepExecution.getJobExecution().getId(),
+                    this.chunks.size(),
                     retryInputs.getItems().size(),
                     retryInputs.getItems().stream().findFirst().map(list -> list.get(0)).map(UUID::toString).orElse(""));
         }
