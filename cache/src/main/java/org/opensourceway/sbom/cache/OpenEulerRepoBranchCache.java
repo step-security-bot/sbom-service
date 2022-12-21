@@ -31,7 +31,7 @@ public class OpenEulerRepoBranchCache {
         return CacheProperties.builder()
                 .cacheName(CacheConstants.OPENEULER_REPO_BRANCHES_CACHE_NAME)
                 .maximumCacheSize(6000L)
-                .expireAfterAccess(60L * 60L)// 1h
+                .expireAfterAccess(2 * 60L * 60L)// 2h
                 .cacheNullValue(true)
                 .build();
     }
