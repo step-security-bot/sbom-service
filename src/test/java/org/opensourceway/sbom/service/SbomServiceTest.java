@@ -31,6 +31,7 @@ import org.opensourceway.sbom.model.entity.ProductType;
 import org.opensourceway.sbom.model.entity.RawSbom;
 import org.opensourceway.sbom.model.entity.Sbom;
 import org.opensourceway.sbom.model.enums.CvssSeverity;
+import org.opensourceway.sbom.model.enums.SbomContentType;
 import org.opensourceway.sbom.model.pojo.request.sbom.PublishSbomRequest;
 import org.opensourceway.sbom.model.pojo.response.license.ComplianceResponse;
 import org.opensourceway.sbom.model.pojo.response.sbom.PublishResultResponse;
@@ -743,6 +744,7 @@ class SbomServiceTest {
 
         PublishSbomRequest request = new PublishSbomRequest();
         request.setProductName(TestConstants.PUBLISH_SAMPLE_FOR_SERVICE_PRODUCT_NAME);
+        request.setSbomContentType(SbomContentType.SPDX_2_2_JSON_SBOM.getType());
         request.setSbomContent(IOUtils.toString(new ClassPathResource(TestConstants.SAMPLE_UPLOAD_FILE_NAME).getInputStream(), Charset.defaultCharset()));
 
         UUID taskId = sbomService.publishSbom(request);
@@ -773,6 +775,7 @@ class SbomServiceTest {
 
         PublishSbomRequest request = new PublishSbomRequest();
         request.setProductName(TestConstants.PUBLISH_SAMPLE_FOR_SERVICE_PRODUCT_NAME);
+        request.setSbomContentType(SbomContentType.SPDX_2_2_JSON_SBOM.getType());
         request.setSbomContent(IOUtils.toString(new ClassPathResource(TestConstants.SAMPLE_UPLOAD_FILE_NAME).getInputStream(), Charset.defaultCharset()));
 
         UUID taskId = sbomService.publishSbom(request);

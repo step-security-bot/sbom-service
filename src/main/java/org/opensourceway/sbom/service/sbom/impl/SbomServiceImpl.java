@@ -34,6 +34,7 @@ import org.opensourceway.sbom.model.entity.RawSbom;
 import org.opensourceway.sbom.model.entity.Sbom;
 import org.opensourceway.sbom.model.entity.SbomElementRelationship;
 import org.opensourceway.sbom.model.entity.Vulnerability;
+import org.opensourceway.sbom.model.enums.SbomContentType;
 import org.opensourceway.sbom.model.enums.SbomFormat;
 import org.opensourceway.sbom.model.enums.SbomSpecification;
 import org.opensourceway.sbom.model.pojo.request.sbom.PublishSbomRequest;
@@ -55,6 +56,7 @@ import org.opensourceway.sbom.model.spec.ExternalPurlRefCondition;
 import org.opensourceway.sbom.model.spec.ExternalPurlRefSpecs;
 import org.opensourceway.sbom.utils.EntityUtil;
 import org.opensourceway.sbom.utils.Mapper;
+import org.opensourceway.sbom.utils.PublishSbomRequestValidator;
 import org.opensourceway.sbom.utils.PurlUtil;
 import org.opensourceway.sbom.utils.SbomApplicationContextHolder;
 import org.opensourceway.sbom.utils.SbomMapperUtil;
@@ -137,23 +139,15 @@ public class SbomServiceImpl implements SbomService {
 
     @Override
     public UUID publishSbom(PublishSbomRequest publishSbomRequest) {
-        if (!org.springframework.util.StringUtils.hasText(publishSbomRequest.getProductName())) {
-            throw new RuntimeException("product name is empty");
-        }
-        if (!org.springframework.util.StringUtils.hasText(publishSbomRequest.getSbomContent())) {
-            throw new RuntimeException("sbom content is empty");
-        }
+        PublishSbomRequestValidator.validate(publishSbomRequest);
+
         Product product = productRepository.findByName(publishSbomRequest.getProductName())
                 .orElseThrow(() -> new RuntimeException("can't find %s's product metadata".formatted(publishSbomRequest.getProductName())));
-        SbomFormat format = SbomFormat.findSbomFormat(publishSbomRequest.getFormat());
-        SbomSpecification specification = SbomSpecification.findSpecification(publishSbomRequest.getSpec(), publishSbomRequest.getSpecVersion());
 
         RawSbom rawSbom = new RawSbom();
-        rawSbom.setSpec(specification != null ? specification.getSpecification().toLowerCase() : null);
-        rawSbom.setSpecVersion(specification != null ? specification.getVersion() : null);
-        rawSbom.setFormat(format.getFileExtName());
         rawSbom.setProduct(product);
         rawSbom.setValue(publishSbomRequest.getSbomContent().getBytes(StandardCharsets.UTF_8));
+        rawSbom.setValueType(publishSbomRequest.getSbomContentType());
 
         rawSbom.setTaskStatus(SbomConstants.TASK_STATUS_WAIT);
         rawSbom.setTaskId(UUID.randomUUID());
@@ -220,11 +214,9 @@ public class SbomServiceImpl implements SbomService {
                 .orElseThrow(() -> new RuntimeException("can't find %s's product metadata".formatted(productName)));
 
         RawSbom rawSbom = new RawSbom();
-        rawSbom.setSpec(specification.getSpecification().toLowerCase());
-        rawSbom.setSpecVersion(specification.getVersion());
-        rawSbom.setFormat(format.getFileExtName());
         rawSbom.setProduct(product);
         rawSbom.setValue(fileContent);
+        rawSbom.setValueType(SbomContentType.findBySpecAndFormat(specification, format).getType());
 
         RawSbom oldRawSbom = sbomFileRepository.queryRawSbom(rawSbom);
         if (oldRawSbom != null) {
@@ -254,9 +246,8 @@ public class SbomServiceImpl implements SbomService {
 
         RawSbom queryCondition = new RawSbom();
         queryCondition.setProduct(product);
-        queryCondition.setSpec(spec);
-        queryCondition.setSpecVersion(specVersion);
-        queryCondition.setFormat(format);
+        queryCondition.setValueType(SbomContentType.findBySpecAndFormat(
+                SbomSpecification.findSpecification(spec, specVersion), SbomFormat.findSbomFormat(format)).getType());
 
         return sbomFileRepository.queryRawSbom(queryCondition);
     }

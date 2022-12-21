@@ -1,7 +1,6 @@
 package org.opensourceway.sbom.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
@@ -22,7 +21,7 @@ import java.util.UUID;
 
 @Entity
 @Table(indexes = {
-        @Index(name = "raw_sbom_uk", columnList = "spec, spec_version, format, product_id", unique = true)
+        @Index(name = "raw_sbom_uk", columnList = "value_type, product_id", unique = true)
 })
 public class RawSbom {
     @Id
@@ -30,14 +29,8 @@ public class RawSbom {
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     private UUID id;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String spec;
-
-    @Column(columnDefinition = "TEXT", name = "spec_version", nullable = false)
-    private String specVersion;
-
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String format;
+    @Column(columnDefinition = "TEXT", name = "value_type", nullable = false)
+    private String valueType;
 
     @Column(columnDefinition = "BYTEA", nullable = false)
     @Lob
@@ -74,28 +67,12 @@ public class RawSbom {
         this.id = id;
     }
 
-    public String getSpec() {
-        return spec;
+    public String getValueType() {
+        return valueType;
     }
 
-    public void setSpec(String spec) {
-        this.spec = StringUtils.lowerCase(spec);
-    }
-
-    public String getSpecVersion() {
-        return specVersion;
-    }
-
-    public void setSpecVersion(String specVersion) {
-        this.specVersion = StringUtils.lowerCase(specVersion);
-    }
-
-    public String getFormat() {
-        return format;
-    }
-
-    public void setFormat(String format) {
-        this.format = StringUtils.lowerCase(format);
+    public void setValueType(String valueType) {
+        this.valueType = valueType;
     }
 
     public byte[] getValue() {

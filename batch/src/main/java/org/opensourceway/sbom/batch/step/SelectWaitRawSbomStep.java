@@ -6,6 +6,7 @@ import org.opensourceway.sbom.dao.RawSbomRepository;
 import org.opensourceway.sbom.model.constants.BatchContextConstants;
 import org.opensourceway.sbom.model.constants.SbomConstants;
 import org.opensourceway.sbom.model.entity.RawSbom;
+import org.opensourceway.sbom.model.enums.SbomContentType;
 import org.opensourceway.sbom.model.enums.SbomFormat;
 import org.opensourceway.sbom.model.enums.SbomSpecification;
 import org.slf4j.Logger;
@@ -47,11 +48,12 @@ public class SelectWaitRawSbomStep implements Tasklet {
             jobContext.putString(BatchContextConstants.BATCH_SBOM_PRODUCT_TYPE_KEY,
                     String.valueOf(rawSbom.getProduct().getAttribute().get(BatchContextConstants.BATCH_PRODUCT_TYPE_KEY)));
             jobContext.put(BatchContextConstants.BATCH_RAW_SBOM_BYTES_KEY, rawSbom.getValue());
+            jobContext.put(BatchContextConstants.BATCH_SBOM_CONTENT_TYPE_KEY, SbomContentType.findByType(rawSbom.getValueType()));
 
-            SbomSpecification specification = SbomSpecification.findSpecification(rawSbom.getSpec(), rawSbom.getSpecVersion());
+            SbomSpecification specification = SbomContentType.getSpecByType(rawSbom.getValueType());
             jobContext.put(BatchContextConstants.BATCH_SBOM_SPEC_KEY, specification);
 
-            SbomFormat format = SbomFormat.findSbomFormat(rawSbom.getFormat());
+            SbomFormat format = SbomContentType.getFormatByType(rawSbom.getValueType());
             jobContext.put(BatchContextConstants.BATCH_SBOM_FORMAT_KEY, format);
 
             contribution.setExitStatus(ExitStatus.COMPLETED);

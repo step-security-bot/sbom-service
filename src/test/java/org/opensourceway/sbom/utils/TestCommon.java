@@ -4,8 +4,7 @@ import org.opensourceway.sbom.dao.ProductRepository;
 import org.opensourceway.sbom.dao.RawSbomRepository;
 import org.opensourceway.sbom.model.entity.Product;
 import org.opensourceway.sbom.model.entity.RawSbom;
-import org.opensourceway.sbom.model.enums.SbomFormat;
-import org.opensourceway.sbom.model.enums.SbomSpecification;
+import org.opensourceway.sbom.model.enums.SbomContentType;
 import org.opensourceway.sbom.model.spdx.RelationshipType;
 import org.opensourceway.sbom.model.spdx.SpdxDocument;
 import org.opensourceway.sbom.model.spdx.SpdxPackage;
@@ -63,9 +62,7 @@ public class TestCommon {
 
         RawSbom condition = new RawSbom();
         condition.setProduct(productOptional.get());
-        condition.setSpec(SbomSpecification.SPDX_2_2.getSpecification());
-        condition.setSpecVersion(SbomSpecification.SPDX_2_2.getVersion());
-        condition.setFormat(SbomFormat.JSON.getFileExtName());
+        condition.setValueType(SbomContentType.SPDX_2_2_JSON_SBOM.getType());
 
         RawSbom existRawSbom = rawSbomRepository.queryRawSbom(condition);
         if (existRawSbom != null) {
