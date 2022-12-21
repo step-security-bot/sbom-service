@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
-@ImportResource(locations={"classpath:spring-batch/sbom-read-job.xml"})
+@ImportResource(locations = {"classpath:spring-batch/sbom-read-job.xml"})
 @EnableTransactionManagement
 @EnableAsync
 public class SbomManagerApplication extends SpringBootServletInitializer {
