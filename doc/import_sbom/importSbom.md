@@ -2,7 +2,7 @@
 
 依托SBOM客户端工具[sbom-generator](https://github.com/opensourceways/sbom-tools/tree/main/sbom-generator)、[sbom-tracer](https://github.com/opensourceways/sbom-tools/tree/main/sbom-tracer)结合CI/CD发布流水线，生成SBOM初始化数据：**原始态的SBOM文件**、**eBPF监控数据**、**高阶语言包管理器配置文件**等。
 
-通过调用SBOM-Service的数据导入API将SBOM初始化数据上传至服务端，SBOM-Service将会通过导入流程执行：**监控数据解析**、**软件成分分析**、**依赖组件分析**、**SBOM元数据存储**、**上游社区数据卷积**、**漏洞安全数据卷积**、**License合规数据卷积**、**统计数据预计算**等。
+通过调用SBOM-Service的[数据导入API](https://github.com/opensourceways/sbom-service/blob/main/doc/api/制品发布.md)将SBOM初始化数据上传至服务端，SBOM-Service将会通过导入流程执行：**监控数据解析**、**软件成分分析**、**依赖组件分析**、**SBOM元数据存储**、**上游社区数据卷积**、**漏洞安全数据卷积**、**License合规数据卷积**、**统计数据预计算**等。
 
 [流程步骤配置文件](https://github.com/opensourceways/sbom-service/blob/main/batch/src/main/resources/spring-batch/sbom-read-job.xml)。
 

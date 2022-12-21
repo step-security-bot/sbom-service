@@ -9,8 +9,7 @@ import java.util.UUID;
 
 public interface RawSbomRepository extends JpaRepository<RawSbom, UUID> {
 
-    @Query(value = "select * from raw_sbom where product_id = :#{#rawSbom.product.id} and format = :#{#rawSbom.format}" +
-            " and spec = :#{#rawSbom.spec} and spec_version = :#{#rawSbom.specVersion}",
+    @Query(value = "select * from raw_sbom where product_id = :#{#rawSbom.product.id} and value_type = :#{#rawSbom.valueType}",
             nativeQuery = true)
     RawSbom queryRawSbom(RawSbom rawSbom);
 
