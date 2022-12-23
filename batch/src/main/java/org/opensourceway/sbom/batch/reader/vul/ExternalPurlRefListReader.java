@@ -135,7 +135,9 @@ public class ExternalPurlRefListReader implements ItemReader<List<ExternalPurlRe
             Chunk<List<ExternalPurlRef>> retryInputs = (Chunk<List<ExternalPurlRef>>) this.chunkContext.getAttribute(BatchContextConstants.BUILD_IN_BATCH_CHUNK_FAILED_INPUT_KEY);
             assert retryInputs != null;
             remainingSize += CollectionUtils.size(retryInputs.getItems());
-            logger.info("restore failed chunks, failed chunks size:{}, first element pkg id:{}",
+            logger.info("restore failed chunks, job id:{}, remain chunk size:{}, failed chunks size:{}, first element pkg id:{}",
+                    stepExecution.getJobExecution().getId(),
+                    this.chunks.size(),
                     retryInputs.getItems().size(),
                     retryInputs.getItems().get(0).get(0).getPkg().getId());
         }
