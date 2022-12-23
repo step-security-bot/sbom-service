@@ -284,7 +284,7 @@ public class SbomServiceImpl implements SbomService {
 
         return packageRepository.getPackageInfoByName(productName, equalPackageName, packageName, SbomConstants.MAX_QUERY_LINE)
                 .stream()
-                .map(PackageWithStatisticsVo::fromPackage)
+                .map(this::packageWithStatisticsVoFromPackage)
                 .toList();
     }
 
@@ -299,7 +299,7 @@ public class SbomServiceImpl implements SbomService {
         Page<Package> result = packageRepository.getPackageInfoByNameForPage(req.getProductName(), req.getExactly(),
                 req.getPackageName(), req.getVulSeverity(), req.getNoLicense(), req.getMultiLicense(),
                 req.getLegalLicense(), req.getLicenseId(), pageable);
-        return new PageVo<>(new PageImpl<>(result.stream().map(PackageWithStatisticsVo::fromPackage).toList(),
+        return new PageVo<>(new PageImpl<>(result.stream().map(this::packageWithStatisticsVoFromPackage).toList(),
                 result.getPageable(), result.getTotalElements()));
     }
 
@@ -383,6 +383,18 @@ public class SbomServiceImpl implements SbomService {
         packagePurlVo.setPurl(PurlUtil.canonicalizePurl(externalPurlRef.getPurl()));
 
         return packagePurlVo;
+    }
+
+    private PackageWithStatisticsVo packageWithStatisticsVoFromPackage(Package pkg) {
+        var vo = new PackageWithStatisticsVo();
+        vo.setId(pkg.getId());
+        vo.setName(pkg.getName());
+        vo.setVersion(pkg.getVersion());
+        vo.setLicense(licenseRepository.findSpdxLicenseIdByPkgId(pkg.getId()));
+        vo.setCopyright(pkg.getCopyright());
+        vo.setSupplier(pkg.getSupplier());
+        vo.setStatistics(PackageStatisticsVo.fromPackage(pkg));
+        return vo;
     }
 
     private Page<ExternalPurlRef> queryPackageInfoByBinaryFromDB(ExternalPurlRefCondition condition, Pageable pageable) {

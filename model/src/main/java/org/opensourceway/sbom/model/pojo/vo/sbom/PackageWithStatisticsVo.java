@@ -1,8 +1,7 @@
 package org.opensourceway.sbom.model.pojo.vo.sbom;
 
-import org.opensourceway.sbom.model.entity.Package;
-
 import java.io.Serializable;
+import java.util.List;
 import java.util.UUID;
 
 public class PackageWithStatisticsVo implements Serializable {
@@ -13,7 +12,7 @@ public class PackageWithStatisticsVo implements Serializable {
 
     private String version;
 
-    private String licenseConcluded;
+    private List<String> license;
 
     private String copyright;
 
@@ -45,12 +44,12 @@ public class PackageWithStatisticsVo implements Serializable {
         this.version = version;
     }
 
-    public String getLicenseConcluded() {
-        return licenseConcluded;
+    public List<String> getLicense() {
+        return license;
     }
 
-    public void setLicenseConcluded(String licenseConcluded) {
-        this.licenseConcluded = licenseConcluded;
+    public void setLicense(List<String> license) {
+        this.license = license;
     }
 
     public String getCopyright() {
@@ -77,15 +76,4 @@ public class PackageWithStatisticsVo implements Serializable {
         this.statistics = statistics;
     }
 
-    public static PackageWithStatisticsVo fromPackage(Package pkg) {
-        var vo = new PackageWithStatisticsVo();
-        vo.setId(pkg.getId());
-        vo.setName(pkg.getName());
-        vo.setVersion(pkg.getVersion());
-        vo.setLicenseConcluded(pkg.getLicenseConcluded());
-        vo.setCopyright(pkg.getCopyright());
-        vo.setSupplier(pkg.getSupplier());
-        vo.setStatistics(PackageStatisticsVo.fromPackage(pkg));
-        return vo;
-    }
 }
