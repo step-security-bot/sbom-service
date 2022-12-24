@@ -6,6 +6,7 @@ import org.opensourceway.sbom.model.entity.Package;
 import org.opensourceway.sbom.model.entity.Product;
 import org.opensourceway.sbom.model.entity.ProductStatistics;
 import org.opensourceway.sbom.model.entity.RawSbom;
+import org.opensourceway.sbom.model.pojo.request.sbom.AddProductRequest;
 import org.opensourceway.sbom.model.pojo.request.sbom.PublishSbomRequest;
 import org.opensourceway.sbom.model.pojo.request.sbom.QuerySbomPackagesRequest;
 import org.opensourceway.sbom.model.pojo.response.sbom.PublishResultResponse;
@@ -77,4 +78,6 @@ public interface SbomService {
     PageVo<VulnerabilityVo> queryVulnerability(String productName, String packageId, String severity, String vulId, Pageable pageable);
 
     Graph queryVulImpact(String productName, String vulId);
+
+    void addProduct(AddProductRequest req);
 }

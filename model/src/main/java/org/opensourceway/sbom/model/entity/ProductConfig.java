@@ -15,7 +15,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -117,5 +119,12 @@ public class ProductConfig {
 
     public void setProductConfigValues(List<ProductConfigValue> productConfigValues) {
         this.productConfigValues = productConfigValues;
+    }
+
+    public void addProductConfigValue(ProductConfigValue productConfigValue) {
+        if (Objects.isNull(productConfigValues)) {
+            productConfigValues = new ArrayList<>();
+        }
+        productConfigValues.add(productConfigValue);
     }
 }

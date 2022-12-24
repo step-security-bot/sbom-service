@@ -28,6 +28,8 @@ import org.opensourceway.sbom.model.entity.ExternalVulRef;
 import org.opensourceway.sbom.model.entity.License;
 import org.opensourceway.sbom.model.entity.Package;
 import org.opensourceway.sbom.model.entity.Product;
+import org.opensourceway.sbom.model.entity.ProductConfig;
+import org.opensourceway.sbom.model.entity.ProductConfigValue;
 import org.opensourceway.sbom.model.entity.ProductStatistics;
 import org.opensourceway.sbom.model.entity.ProductType;
 import org.opensourceway.sbom.model.entity.RawSbom;
@@ -37,6 +39,7 @@ import org.opensourceway.sbom.model.entity.Vulnerability;
 import org.opensourceway.sbom.model.enums.SbomContentType;
 import org.opensourceway.sbom.model.enums.SbomFormat;
 import org.opensourceway.sbom.model.enums.SbomSpecification;
+import org.opensourceway.sbom.model.pojo.request.sbom.AddProductRequest;
 import org.opensourceway.sbom.model.pojo.request.sbom.PublishSbomRequest;
 import org.opensourceway.sbom.model.pojo.request.sbom.QuerySbomPackagesRequest;
 import org.opensourceway.sbom.model.pojo.response.sbom.PublishResultResponse;
@@ -80,11 +83,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -136,6 +142,9 @@ public class SbomServiceImpl implements SbomService {
 
     @Value("${sbom.service.website.domain}")
     private String sbomWebsiteDomain;
+
+    @Value("${product_type.addable}")
+    private String[] addableProductTypes;
 
     @Override
     public UUID publishSbom(PublishSbomRequest publishSbomRequest) {
@@ -622,5 +631,70 @@ public class SbomServiceImpl implements SbomService {
                     startNode.setSize(startNode.getSize() + 1);
                     extractTransitiveDepRecursively(graph, ref, node);
                 });
+    }
+
+    @Override
+    public void addProduct(AddProductRequest req) {
+        if (Arrays.stream(addableProductTypes).noneMatch(it -> StringUtils.equals(it, req.getProductType()))) {
+            throw new RuntimeException("not allowed to add product with type [%s]".formatted(req.getProductType()));
+        }
+
+        productTypeRepository.lockTable();
+        productTypeRepository.findById(req.getProductType()).orElseThrow(
+                () -> new RuntimeException("invalid productType: %s, valid types: %s".formatted(req.getProductType(), queryProductType())));
+
+        productRepository.findByName(req.getProductName()).ifPresent(product -> {
+            throw new RuntimeException("product [%s] already exists".formatted(req.getProductName()));
+        });
+
+        Map<String, ProductConfig> productConfigs = productConfigRepository.findByProductTypeOrderByOrdAsc(req.getProductType())
+                .stream().collect(Collectors.toMap(ProductConfig::getName, Function.identity()));
+        Set<String> productConfigNames = productConfigs.values().stream().map(ProductConfig::getName).collect(Collectors.toSet());
+        if (!productConfigNames.containsAll(req.getAttribute().keySet())) {
+            throw new RuntimeException("invalid attribute keys, valid keys: %s".formatted(productConfigNames));
+        }
+
+        if (req.getAttribute().values().stream().anyMatch(it -> StringUtils.isBlank(it.getValue()) || StringUtils.isBlank(it.getLabel()))) {
+            throw new RuntimeException("there exists blank values or labels in attribute");
+        }
+
+        req.getAttribute().forEach((key, value) -> productConfigs.get(key).getProductConfigValues().forEach(it -> {
+            if (StringUtils.equals(it.getValue(), value.getValue()) && !StringUtils.equals(it.getLabel(), value.getLabel())) {
+                throw new RuntimeException("the label of value [%s] already exists, it is [%s], not [%s]".formatted(value.getValue(), it.getLabel(), value.getLabel()));
+            }
+            if (StringUtils.equals(it.getLabel(), value.getLabel()) && !StringUtils.equals(it.getValue(), value.getValue())) {
+                throw new RuntimeException("the value of label [%s] already exists, it is [%s], not [%s]".formatted(value.getLabel(), it.getValue(), value.getValue()));
+            }
+        }));
+
+        Map<String, String> productAttribute = req.getAttribute().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getValue()));
+        productAttribute.put("productType", req.getProductType());
+        String attr;
+        try {
+            attr = Mapper.objectMapper.writeValueAsString(productAttribute);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("attribute is not a valid json object");
+        }
+        Optional.ofNullable(productRepository.queryProductByFullAttributes(attr)).ifPresent(product -> {
+            throw new RuntimeException("product with attribute [%s] already exists, its name is [%s]".formatted(req.getAttribute(), product.getName()));
+        });
+
+        req.getAttribute().forEach((key, value) -> {
+            if (productConfigs.get(key).getProductConfigValues().stream()
+                    .noneMatch(it -> StringUtils.equals(it.getValue(), value.getValue()) && StringUtils.equals(it.getLabel(), value.getLabel()))) {
+                ProductConfigValue productConfigValue = new ProductConfigValue();
+                productConfigValue.setProductConfig(productConfigs.get(key));
+                productConfigValue.setValue(value.getValue());
+                productConfigValue.setLabel(value.getLabel());
+                productConfigs.get(key).addProductConfigValue(productConfigValue);
+                productConfigRepository.save(productConfigs.get(key));
+            }
+        });
+
+        Product product = new Product();
+        product.setName(req.getProductName());
+        product.setAttribute(productAttribute);
+        productRepository.save(product);
     }
 }

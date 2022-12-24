@@ -24,4 +24,6 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     @Query(value = "SELECT A.* FROM product A, sbom B WHERE A.id = B.product_id and B.id = :sbomId",
             nativeQuery = true)
     Product findBySbomId(UUID sbomId);
+
+    void deleteByName(String name);
 }
