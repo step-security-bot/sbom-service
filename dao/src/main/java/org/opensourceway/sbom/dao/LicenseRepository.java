@@ -32,7 +32,4 @@ public interface LicenseRepository extends JpaRepository<License, UUID> {
             nativeQuery = true)
     Page<Map> findUniversal(String productName, String license, Boolean isLegal, Pageable pageable);
 
-    @Query(value = "SELECT A.spdx_license_id FROM license A, pkg_license_relp B WHERE A.id = B.license_id and B.pkg_id = :packageId",
-            nativeQuery = true)
-    List<String> findSpdxLicenseIdByPkgId(UUID packageId);
 }
