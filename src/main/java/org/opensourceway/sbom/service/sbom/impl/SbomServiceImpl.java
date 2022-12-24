@@ -27,6 +27,7 @@ import org.opensourceway.sbom.model.entity.ExternalPurlRef;
 import org.opensourceway.sbom.model.entity.ExternalVulRef;
 import org.opensourceway.sbom.model.entity.License;
 import org.opensourceway.sbom.model.entity.Package;
+import org.opensourceway.sbom.model.entity.PkgLicenseRelp;
 import org.opensourceway.sbom.model.entity.Product;
 import org.opensourceway.sbom.model.entity.ProductStatistics;
 import org.opensourceway.sbom.model.entity.ProductType;
@@ -390,7 +391,7 @@ public class SbomServiceImpl implements SbomService {
         vo.setId(pkg.getId());
         vo.setName(pkg.getName());
         vo.setVersion(pkg.getVersion());
-        vo.setLicense(licenseRepository.findSpdxLicenseIdByPkgId(pkg.getId()));
+        vo.setLicenses(pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).map(License::getSpdxLicenseId).toList());
         vo.setCopyright(pkg.getCopyright());
         vo.setSupplier(pkg.getSupplier());
         vo.setStatistics(PackageStatisticsVo.fromPackage(pkg));

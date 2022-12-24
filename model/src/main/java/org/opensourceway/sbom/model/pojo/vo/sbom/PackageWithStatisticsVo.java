@@ -12,7 +12,7 @@ public class PackageWithStatisticsVo implements Serializable {
 
     private String version;
 
-    private List<String> license;
+    private List<String> licenses;
 
     private String copyright;
 
@@ -44,12 +44,12 @@ public class PackageWithStatisticsVo implements Serializable {
         this.version = version;
     }
 
-    public List<String> getLicense() {
-        return license;
+    public List<String> getLicenses() {
+        return licenses;
     }
 
-    public void setLicense(List<String> license) {
-        this.license = license;
+    public void setLicenses(List<String> licenses) {
+        this.licenses = licenses;
     }
 
     public String getCopyright() {
