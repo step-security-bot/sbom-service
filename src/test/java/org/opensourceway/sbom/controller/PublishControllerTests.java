@@ -8,12 +8,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.opensourceway.sbom.SbomManagerApplication;
 import org.opensourceway.sbom.TestConstants;
+import org.opensourceway.sbom.dao.ProductConfigRepository;
+import org.opensourceway.sbom.dao.ProductConfigValueRepository;
 import org.opensourceway.sbom.dao.ProductRepository;
+import org.opensourceway.sbom.dao.ProductTypeRepository;
 import org.opensourceway.sbom.dao.RawSbomRepository;
 import org.opensourceway.sbom.model.constants.PublishSbomConstants;
 import org.opensourceway.sbom.model.entity.Product;
+import org.opensourceway.sbom.model.entity.ProductConfig;
 import org.opensourceway.sbom.model.entity.RawSbom;
 import org.opensourceway.sbom.model.enums.SbomContentType;
+import org.opensourceway.sbom.model.pojo.request.sbom.AddProductRequest;
 import org.opensourceway.sbom.model.pojo.request.sbom.PublishSbomRequest;
 import org.opensourceway.sbom.utils.Mapper;
 import org.opensourceway.sbom.utils.SbomApplicationContextHolder;
@@ -25,10 +30,14 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Map;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -54,6 +63,15 @@ public class PublishControllerTests {
 
     @Autowired
     private TestCommon testCommon;
+
+    @Autowired
+    private ProductTypeRepository productTypeRepository;
+
+    @Autowired
+    private ProductConfigValueRepository productConfigValueRepository;
+
+    @Autowired
+    private ProductConfigRepository productConfigRepository;
 
     @Test
     public void uploadSbomFileFailed() throws Exception {
@@ -367,6 +385,195 @@ public class PublishControllerTests {
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andDo(print())
                 .andExpect(status().isAccepted());
+    }
+
+    @Test
+    public void addProductNonAddableProductType() throws Exception {
+        AddProductRequest req = new AddProductRequest();
+        req.setProductType(TestConstants.TEST_PRODUCT_TYPE + "wrong");
+        req.setProductName(TestConstants.PUBLISH_SAMPLE_PRODUCT_NAME);
+        req.setAttribute(Map.of("arg", new AddProductRequest.ConfigValueLabel("4", "4")));
+
+        this.mockMvc
+                .perform(post("/sbom-api/addProduct")
+                        .content(Mapper.objectMapper.writeValueAsString(req))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isInternalServerError())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(content().string("not allowed to add product with type [%s]".formatted(TestConstants.TEST_PRODUCT_TYPE + "wrong")));
+    }
+
+    @Test
+    public void addProductInvalidProductType() throws Exception {
+        AddProductRequest req = new AddProductRequest();
+        req.setProductType("invalidProductType");
+        req.setProductName(TestConstants.PUBLISH_SAMPLE_PRODUCT_NAME);
+        req.setAttribute(Map.of("arg", new AddProductRequest.ConfigValueLabel("4", "4")));
+
+        this.mockMvc
+                .perform(post("/sbom-api/addProduct")
+                        .content(Mapper.objectMapper.writeValueAsString(req))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isInternalServerError())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(content().string(containsString("invalid productType: %s, valid types:".formatted(req.getProductType()))));
+    }
+
+    @Test
+    public void addProductExist() throws Exception {
+        AddProductRequest req = new AddProductRequest();
+        req.setProductType(TestConstants.TEST_PRODUCT_TYPE);
+        req.setProductName(TestConstants.PUBLISH_SAMPLE_PRODUCT_NAME);
+        req.setAttribute(Map.of("arg", new AddProductRequest.ConfigValueLabel("4", "4")));
+
+        this.mockMvc
+                .perform(post("/sbom-api/addProduct")
+                        .content(Mapper.objectMapper.writeValueAsString(req))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isInternalServerError())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(content().string("product [%s] already exists".formatted(TestConstants.PUBLISH_SAMPLE_PRODUCT_NAME)));
+    }
+
+    @Test
+    public void addProductInvalidAttrKey() throws Exception {
+        AddProductRequest req = new AddProductRequest();
+        req.setProductType(TestConstants.TEST_PRODUCT_TYPE);
+        req.setProductName(TestConstants.PUBLISH_SAMPLE_PRODUCT_NAME + "new");
+        req.setAttribute(Map.of("invalid_attr", new AddProductRequest.ConfigValueLabel("4", "4")));
+
+        this.mockMvc
+                .perform(post("/sbom-api/addProduct")
+                        .content(Mapper.objectMapper.writeValueAsString(req))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isInternalServerError())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(content().string(containsString("invalid attribute keys, valid keys:")));
+    }
+
+    @Test
+    public void addProductBlankValue() throws Exception {
+        AddProductRequest req = new AddProductRequest();
+        req.setProductType(TestConstants.TEST_PRODUCT_TYPE);
+        req.setProductName(TestConstants.PUBLISH_SAMPLE_PRODUCT_NAME + "new");
+        req.setAttribute(Map.of("arg", new AddProductRequest.ConfigValueLabel(" ", "4")));
+
+        this.mockMvc
+                .perform(post("/sbom-api/addProduct")
+                        .content(Mapper.objectMapper.writeValueAsString(req))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isInternalServerError())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(content().string("there exists blank values or labels in attribute"));
+    }
+
+    @Test
+    public void addProductLabelOfValueExist() throws Exception {
+        AddProductRequest req = new AddProductRequest();
+        req.setProductType(TestConstants.TEST_PRODUCT_TYPE);
+        req.setProductName(TestConstants.PUBLISH_SAMPLE_PRODUCT_NAME + "new");
+        req.setAttribute(Map.of("arg", new AddProductRequest.ConfigValueLabel("4", "5")));
+
+        this.mockMvc
+                .perform(post("/sbom-api/addProduct")
+                        .content(Mapper.objectMapper.writeValueAsString(req))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isInternalServerError())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(content().string("the label of value [4] already exists, it is [4], not [5]"));
+    }
+
+    @Test
+    public void addProductValueOfLabelExist() throws Exception {
+        AddProductRequest req = new AddProductRequest();
+        req.setProductType(TestConstants.TEST_PRODUCT_TYPE);
+        req.setProductName(TestConstants.PUBLISH_SAMPLE_PRODUCT_NAME + "new");
+        req.setAttribute(Map.of("arg", new AddProductRequest.ConfigValueLabel("5", "4")));
+
+        this.mockMvc
+                .perform(post("/sbom-api/addProduct")
+                        .content(Mapper.objectMapper.writeValueAsString(req))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isInternalServerError())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(content().string("the value of label [4] already exists, it is [4], not [5]"));
+    }
+
+    @Test
+    public void addProductSameAttrProductExist() throws Exception {
+        AddProductRequest req = new AddProductRequest();
+        req.setProductType(TestConstants.TEST_PRODUCT_TYPE);
+        req.setProductName(TestConstants.PUBLISH_SAMPLE_PRODUCT_NAME + "new");
+        req.setAttribute(Map.of("arg", new AddProductRequest.ConfigValueLabel("4", "4")));
+
+        this.mockMvc
+                .perform(post("/sbom-api/addProduct")
+                        .content(Mapper.objectMapper.writeValueAsString(req))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isInternalServerError())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(content().string("product with attribute [%s] already exists, its name is [%s]"
+                        .formatted(req.getAttribute(), TestConstants.PUBLISH_SAMPLE_PRODUCT_NAME)));
+    }
+
+    @Test
+    @Transactional
+    public void addProductSuccess() throws Exception {
+        String productName = TestConstants.PUBLISH_SAMPLE_PRODUCT_NAME + "new";
+        String productConfigName = "arg";
+        String value = "testValue";
+        String label = "testLabel";
+
+        productRepository.deleteByName(productName);
+        assertThat(productRepository.findByName(productName).orElse(null)).isNull();
+
+        ProductConfig productConfig = productConfigRepository.findByProductTypeAndName(TestConstants.TEST_PRODUCT_TYPE, productConfigName).orElse(null);
+        assertThat(productConfig).isNotNull();
+        productConfigValueRepository.deleteByProductConfigIdAndValue(productConfig.getId(), value);
+        assertThat(productConfigValueRepository.findByProductTypeAndConfigNameAndValue(
+                TestConstants.TEST_PRODUCT_TYPE, productConfigName, value).orElse(null)).isNull();
+
+        AddProductRequest req = new AddProductRequest();
+        req.setProductType(TestConstants.TEST_PRODUCT_TYPE);
+        req.setProductName(productName);
+        req.setAttribute(Map.of("arg", new AddProductRequest.ConfigValueLabel(value, label)));
+
+        this.mockMvc
+                .perform(post("/sbom-api/addProduct")
+                        .content(Mapper.objectMapper.writeValueAsString(req))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(content().string("Success"));
+
+        assertThat(productRepository.findByName(productName).orElse(null)).isNotNull();
+        assertThat(productConfigValueRepository.findByProductTypeAndConfigNameAndValue(
+                TestConstants.TEST_PRODUCT_TYPE, productConfigName, value).orElse(null)).isNotNull();
+
+        productRepository.deleteByName(productName);
+        assertThat(productRepository.findByName(productName).orElse(null)).isNull();
+
+        productConfigValueRepository.deleteByProductConfigIdAndValue(productConfig.getId(), value);
+        assertThat(productConfigValueRepository.findByProductTypeAndConfigNameAndValue(
+                TestConstants.TEST_PRODUCT_TYPE, productConfigName, value).orElse(null)).isNull();
     }
 }
 

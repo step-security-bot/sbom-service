@@ -50,7 +50,8 @@ ON CONFLICT (id) DO UPDATE
 -- OpenHarmony
 INSERT INTO product_config(id, name, label, ord, product_type)
 VALUES
-('f7856269-0339-4fe7-80fa-de15042d40d9', 'version', '版本号', 1, 'OpenHarmony')
+('f7856269-0339-4fe7-80fa-de15042d40d9', 'version', '版本号', 1, 'OpenHarmony'),
+('cae4dd66-17b5-4485-9ee1-199beadf097e', 'component', '形态组件', 2, 'OpenHarmony')
 ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, label = EXCLUDED.label, ord = EXCLUDED.ord, product_type = EXCLUDED.product_type;
 

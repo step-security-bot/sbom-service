@@ -11,6 +11,7 @@ import org.opensourceway.sbom.model.entity.Product;
 import org.opensourceway.sbom.model.entity.ProductStatistics;
 import org.opensourceway.sbom.model.entity.RawSbom;
 import org.opensourceway.sbom.model.entity.RepoMeta;
+import org.opensourceway.sbom.model.pojo.request.sbom.AddProductRequest;
 import org.opensourceway.sbom.model.pojo.request.sbom.PublishSbomRequest;
 import org.opensourceway.sbom.model.pojo.request.sbom.QuerySbomPackagesRequest;
 import org.opensourceway.sbom.model.pojo.response.sbom.PublishResultResponse;
@@ -703,5 +704,22 @@ public class SbomController {
                 CollectionUtils.size(response.getUpstreamList()),
                 CollectionUtils.size(response.getPatchList()));
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping("/addProduct")
+    public @ResponseBody ResponseEntity queryProductByFullAttributes(@RequestBody AddProductRequest addProductRequest) {
+        logger.info("add product: {}", addProductRequest);
+
+        try {
+            sbomService.addProduct(addProductRequest);
+            logger.info("successfully add product: {}", addProductRequest.getProductName());
+            return ResponseEntity.status(HttpStatus.OK).body("Success");
+        } catch (RuntimeException e) {
+            logger.error("failed to add product.", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("failed to add product.", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("failed to add product.");
+        }
     }
 }
