@@ -2,6 +2,7 @@ package org.opensourceway.sbom.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -17,6 +18,7 @@ import javax.persistence.Index;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +66,13 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<ProductStatistics> productStatistics;
+
+    /**
+     * Create time of a product.
+     */
+    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @CreationTimestamp
+    private Timestamp createTime;
 
     public UUID getId() {
         return id;
