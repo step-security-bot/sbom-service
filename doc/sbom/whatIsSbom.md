@@ -28,10 +28,12 @@ SBOM致力于软件安全供应链透明的数据底座、跨组织共享、并�
 
 ![](https://www.openeuler.org/assets/SBOM.471fa2d1.png)
 
-
-
 # 参考
 
 1. [基于SBOM的开源社区软件供应链安全解决方案](https://www.openeuler.org/zh/blog/robell/openEuler_SBOM_Practice.html)
 2. [谈谈我对云原生与软件供应链安全的思考](https://developer.aliyun.com/article/1005501?utm_content=m_1000357528)
 3. [awesome-sbom](https://github.com/awesomeSBOM/awesome-sbom)
+
+---
+
+[返回目录](../../README.md)

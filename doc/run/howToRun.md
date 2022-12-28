@@ -32,3 +32,7 @@ Sensitive data, such as *password*, are passed by *docker secret*.
     -e GITLAB_API_TOKEN_FILE="/run/secrets/gitlab_api_token" \
     sbom-service
     ```
+
+---
+
+[返回目录](../../README.md)
