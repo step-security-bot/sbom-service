@@ -10,7 +10,6 @@ import org.opensourceway.sbom.model.entity.Package;
 import org.opensourceway.sbom.model.entity.Product;
 import org.opensourceway.sbom.model.entity.ProductStatistics;
 import org.opensourceway.sbom.model.entity.RawSbom;
-import org.opensourceway.sbom.model.entity.RepoMeta;
 import org.opensourceway.sbom.model.pojo.request.sbom.AddProductRequest;
 import org.opensourceway.sbom.model.pojo.request.sbom.PublishSbomRequest;
 import org.opensourceway.sbom.model.pojo.request.sbom.QuerySbomPackagesRequest;
@@ -608,34 +607,6 @@ public class SbomController {
         }
 
         logger.info("finish manual launch fetch-openEuler-repo-meta job, coast:{} ms", System.currentTimeMillis() - start);
-        return ResponseEntity.status(HttpStatus.OK).body("OK");
-    }
-
-    @Deprecated
-    private Boolean isOpenHarmonyFetchRepoMetaRunning = Boolean.FALSE;
-
-    @GetMapping("/fetchOpenHarmonyRepoMeta")
-    @Deprecated
-    public @ResponseBody ResponseEntity fetchOpenHarmonyRepoMeta() {
-        if (isOpenHarmonyFetchRepoMetaRunning) {
-            logger.warn("start manual launch fetch-OpenHarmony-repo-meta, has job running");
-            return ResponseEntity.status(HttpStatus.OK).body("Running");
-        } else {
-            isOpenHarmonyFetchRepoMetaRunning = Boolean.TRUE;
-            logger.info("start manual launch fetch-OpenHarmony-repo-meta");
-        }
-
-        long start = System.currentTimeMillis();
-        try {
-            List<RepoMeta> result = repoService.fetchOpenHarmonyRepoMeta();
-            logger.info("fetch-OpenHarmony-repo-meta result size:{}", result.size());
-        } catch (Exception e) {
-            logger.error("manual launch fetch-OpenHarmony-repo-meta job failed", e);
-        } finally {
-            isOpenHarmonyFetchRepoMetaRunning = Boolean.FALSE;
-        }
-
-        logger.info("finish manual launch fetch-OpenHarmony-repo-meta job, coast:{} ms", System.currentTimeMillis() - start);
         return ResponseEntity.status(HttpStatus.OK).body("OK");
     }
 

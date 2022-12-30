@@ -27,4 +27,12 @@ public class SbomRepoConstants {
 
     public static final String OPENEULER_REPO_SOURCE_URL_PATTERN = "%s/%s/%s/tree/%s";
 
+    public static final String OPEN_HARMONY_GITEE_ORG = "openharmony";
+
+    public static final String OPEN_HARMONY_THIRD_PARTY_REPO_PREFIX = "third_party_";
+
+    public static final String OPEN_HARMONY_THIRD_PARTY_META_FILE = "README.OpenSource";
+
+    public static final String UPSTREAM_URL = "upstream_url";
+
 }

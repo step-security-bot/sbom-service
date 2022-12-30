@@ -690,7 +690,7 @@ class SbomServiceTest {
                 .findFirst().orElse(null);
         assertThat(pkg).isNotNull();
         ExternalPurlRef externalPurlRef = pkg.getExternalPurlRefs().get(0);
-        String purl = licenseService.getPurlsForLicense(externalPurlRef.getPurl(), productType, productVersion);
+        String purl = licenseService.getPurlsForLicense(externalPurlRef.getPurl(), product);
         assertThat(purl).isEqualTo("pkg:gitee/src-openeuler/capstone@openEuler-22.03-LTS");
         ComplianceResponse[] responseArr = licenseClient.getComplianceResponse(List.of(purl));
         assertThat(responseArr.length).isEqualTo(1);
@@ -702,7 +702,7 @@ class SbomServiceTest {
                 .findFirst().orElse(null);
         assertThat(pkg1).isNotNull();
         ExternalPurlRef externalPurlRef1 = pkg1.getExternalPurlRefs().get(0);
-        String purl1 = licenseService.getPurlsForLicense(externalPurlRef1.getPurl(), productType, productVersion);
+        String purl1 = licenseService.getPurlsForLicense(externalPurlRef1.getPurl(), product);
         assertThat(purl1).isEqualTo("pkg:gitee/src-openeuler/hadoop-3.1@openEuler-22.03-LTS");
         ComplianceResponse[] responseArr1 = licenseClient.getComplianceResponse(List.of(purl));
         assertThat(responseArr1.length).isEqualTo(1);

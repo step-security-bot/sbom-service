@@ -1,7 +1,6 @@
 package org.opensourceway.sbom.quartz.config;
 
 import org.opensourceway.sbom.quartz.jobs.FetchOpenEulerRepoMetaJob;
-import org.opensourceway.sbom.quartz.jobs.FetchOpenHarmonyRepoMetaJob;
 import org.opensourceway.sbom.quartz.jobs.ReadSbomJob;
 import org.opensourceway.sbom.quartz.jobs.RestartFailedReadJob;
 import org.quartz.CronScheduleBuilder;
@@ -66,24 +65,6 @@ public class ScheduleBatchJobConfig {
                 .withIdentity("fetchOpenEulerRepoMeta")
                 .startNow()
                 .withSchedule(CronScheduleBuilder.cronSchedule("0 31 14 ? * SAT *"))
-                .build();
-    }
-
-    @Bean
-    public JobDetail fetchOpenHarmonyRepoMetaJobDetail() {
-        return JobBuilder.newJob(FetchOpenHarmonyRepoMetaJob.class)
-                .withIdentity("fetchOpenHarmonyRepoMeta")
-                .storeDurably()
-                .build();
-    }
-
-    @Bean
-    public Trigger fetchOpenHarmonyRepoMetaJobTrigger() {
-        return TriggerBuilder.newTrigger()
-                .forJob(fetchOpenHarmonyRepoMetaJobDetail())
-                .withIdentity("fetchOpenHarmonyRepoMeta")
-                .startNow()
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 0 ? * SAT *"))
                 .build();
     }
 

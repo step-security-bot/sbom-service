@@ -83,7 +83,7 @@ public class VcsPackageGenerator extends AbstractPackageGenerator {
         RepoInfo repoInfo = vcsService.getRepoInfo(org, repo);
         String sourceUrl = getSourceUrl(org, repo, commitId, tag, url, vcsService);
         String revision = StringUtils.isEmpty(tag) ? commitId : tag;
-        Identifier identifier = new Identifier(vcsEnum.name().toLowerCase(), org, repo, version.replace("_", "."));
+        Identifier identifier = new Identifier(vcsEnum.name().toLowerCase(), org, repo, version);
         VcsInfo vcsInfo = new VcsInfo(VcsType.Companion.getGIT(), repoInfo.repoUrl(), revision, "");
         Package pkg = new Package(identifier, ExtensionsKt.toPurl(identifier), "", repoInfo.authors(),
                 repoInfo.licenses(), ProcessedDeclaredLicense.EMPTY, null, repoInfo.description(),
