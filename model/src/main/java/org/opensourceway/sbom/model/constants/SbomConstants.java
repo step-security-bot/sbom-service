@@ -73,4 +73,6 @@ public class SbomConstants {
      * <a href="https://gitee.com/src-openeuler/some-modules/blob/openEuler-22.03-LTS/openeuler-xxxxxx.patch">https://gitee.com/src-openeuler/some-modules/blob/openEuler-22.03-LTS/openeuler-xxxxxx.patch</a>
      */
     public static final String OPENEULER_PATCH_INFO_URL_PATTERN = "%s/%s/%s/blob/%s/%s";
+
+    public static final String PRODUCT_NAME = "product_name";
 }

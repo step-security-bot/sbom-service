@@ -109,22 +109,20 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
         logger.info("Start to extract License for sbom {}, chunk size:{}", sbomId, externalPurlChunk.size());
         Set<Pair<ExternalPurlRef, LicenseInfoVo>> resultSet;
         Product product = productRepository.findBySbomId(sbomId);
-        String productVersion = product.getProductVersion();
-        String productType = product.getProductType();
-        if (SbomConstants.PRODUCT_OPENEULER_NAME.equals(productType)) {
-            resultSet = extractOpenEulerLicense(sbomId, externalPurlChunk, productType, productVersion);
+        if (SbomConstants.PRODUCT_OPENEULER_NAME.equals(product.getProductType())) {
+            resultSet = extractOpenEulerLicense(sbomId, externalPurlChunk, product);
         } else {
-            resultSet = extractOtherLicense(sbomId, externalPurlChunk, productType, productVersion);
+            resultSet = extractOtherLicense(sbomId, externalPurlChunk, product);
         }
         logger.info("End to extract license for sbom {}", sbomId);
         return getLicenseAndPkgToDeal(resultSet);
     }
 
-    private Set<Pair<ExternalPurlRef, LicenseInfoVo>> extractOpenEulerLicense(UUID sbomId, List<ExternalPurlRef> externalPurlChunk, String productType, String productVersion) {
+    private Set<Pair<ExternalPurlRef, LicenseInfoVo>> extractOpenEulerLicense(UUID sbomId, List<ExternalPurlRef> externalPurlChunk, Product product) {
         Set<Pair<ExternalPurlRef, LicenseInfoVo>> resultSet = new HashSet<>();
         List<String> noRepoMetaPkgList = new ArrayList<>();
         for (ExternalPurlRef purlRef : externalPurlChunk) {
-            List<RepoMeta> repoMetaList = repoMetaRepository.queryRepoMetaByPackageName(productType, productVersion, purlRef.getPurl().getName());
+            List<RepoMeta> repoMetaList = repoMetaRepository.queryRepoMetaByPackageName(product.getProductType(), product.getProductVersion(), purlRef.getPurl().getName());
             if (ObjectUtils.isEmpty(repoMetaList)) {
                 noRepoMetaPkgList.add(purlRef.getPurl().getName());
             } else {
@@ -143,19 +141,19 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
         if (!ObjectUtils.isEmpty(noRepoMetaPkgList)) {
             logger.warn("ExtractLicenseProcessor can't find package's repoMeta, sbomId:{}, branch:{}, pkgName list:{}",
                     sbomId,
-                    productVersion,
+                    product.getProductVersion(),
                     noRepoMetaPkgList);
         }
 
         return resultSet;
     }
 
-    private Set<Pair<ExternalPurlRef, LicenseInfoVo>> extractOtherLicense(UUID sbomId, List<ExternalPurlRef> externalPurlChunk, String productType, String productVersion) {
+    private Set<Pair<ExternalPurlRef, LicenseInfoVo>> extractOtherLicense(UUID sbomId, List<ExternalPurlRef> externalPurlChunk, Product product) {
         Set<Pair<ExternalPurlRef, LicenseInfoVo>> resultSet = new HashSet<>();
         Set<String> repoPurlSet = new HashSet<>();
         Map<ExternalPurlRef, String> pkgRepoPurlTrans = new HashMap<>();
         externalPurlChunk.forEach(purlRef -> {
-            String purlForLicense = licenseService.getPurlsForLicense(purlRef.getPurl(), productType, productVersion);
+            String purlForLicense = licenseService.getPurlsForLicense(purlRef.getPurl(), product);
             if (!Objects.isNull(purlForLicense)) {
                 repoPurlSet.add(purlForLicense);
                 pkgRepoPurlTrans.put(purlRef, purlForLicense);

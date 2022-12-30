@@ -1,5 +1,7 @@
 package org.opensourceway.sbom.analyzer.parser;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.StringUtils;
 import org.opensourceway.sbom.analyzer.pkggen.VcsPackageGenerator;
 import org.opensourceway.sbom.api.vcs.VcsApi;
@@ -8,12 +10,14 @@ import org.opensourceway.sbom.dao.RepoMetaRepository;
 import org.opensourceway.sbom.model.constants.BatchContextConstants;
 import org.opensourceway.sbom.model.constants.PublishSbomConstants;
 import org.opensourceway.sbom.model.constants.SbomConstants;
+import org.opensourceway.sbom.model.constants.SbomRepoConstants;
 import org.opensourceway.sbom.model.entity.Product;
 import org.opensourceway.sbom.model.entity.RepoMeta;
 import org.opensourceway.sbom.model.pojo.vo.analyzer.GitRepoDefault;
 import org.opensourceway.sbom.model.pojo.vo.analyzer.GitRepoManifest;
 import org.opensourceway.sbom.model.pojo.vo.analyzer.GitRepoProject;
 import org.opensourceway.sbom.model.pojo.vo.analyzer.GitRepoRemote;
+import org.opensourceway.sbom.model.pojo.vo.repo.ThirdPartyMetaVo;
 import org.opensourceway.sbom.utils.Mapper;
 import org.ossreviewtoolkit.model.CuratedPackage;
 import org.ossreviewtoolkit.model.Identifier;
@@ -25,13 +29,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -48,13 +52,8 @@ public class GitRepoParser {
 
     private static final Logger logger = LoggerFactory.getLogger(GitRepoParser.class);
 
-    private static final String THIRD_PARTY_REPO_PREFIX = "third_party_";
-
     @Autowired
     private VcsPackageGenerator vcsPackageGenerator;
-
-    @Autowired
-    private RepoMetaRepository repoMetaRepository;
 
     @Autowired
     private ProductRepository productRepository;
@@ -65,6 +64,9 @@ public class GitRepoParser {
 
     @Value("${gitee.domain.url}")
     private String giteeDomainUrl;
+
+    @Autowired
+    private RepoMetaRepository repoMetaRepository;
 
     public Set<CuratedPackage> parse(Path gitRepoDirPath) throws IOException {
         Path defaultManifest = Paths.get(gitRepoDirPath.toString(), PublishSbomConstants.GIT_REPO_DEFAULT_MANIFEST);
@@ -154,29 +156,17 @@ public class GitRepoParser {
         String revision = Optional.ofNullable(Optional.ofNullable(project.getRevision()).orElse(remote.getRevision()))
                 .orElse(manifestDefault.getRevision());
         String upstream = Optional.ofNullable(project.getUpstream()).orElse(manifestDefault.getUpstream());
-        String tag = null;
-        String commitId = null;
-        if (revision.contains("refs/tags/")) {
-            tag = revision.replace("refs/tags/", "");
-        } else if (upstream.contains("refs/tags/")) {
-            tag = upstream.replace("refs/tags/", "");
-        }
-        if (Pattern.compile("[\\da-z]{40}").matcher(revision).matches()) {
-            commitId = revision;
-        }
+        String tag = getTag(revision, upstream);
+        String commitId = getCommitId(revision);
+
         if (Objects.isNull(tag) && Objects.isNull(commitId)) {
             throw new RuntimeException("No tag or commit id is provided for project [%s]".formatted(project.getName()));
         }
-        if (Objects.isNull(tag)) {
+        if (Objects.isNull(tag) || Pattern.compile("[\\da-z]{40}").matcher(tag).matches()) {
             return vcsPackageGenerator.generatePackageFromVcs(host, org, repo, commitId, commitId, null, url);
         }
 
-        String version = tag;
-        matcher = Pattern.compile("\\D*([.\\-_\\da-zA-Z]*)").matcher(tag);
-        if (matcher.matches()) {
-            version = matcher.group(1);
-        }
-        return vcsPackageGenerator.generatePackageFromVcs(host, org, repo, version, commitId, tag, url);
+        return vcsPackageGenerator.generatePackageFromVcs(host, org, repo, tag, commitId, tag, url);
     }
 
     private GitRepoRemote getRemote(GitRepoProject project, GitRepoDefault manifestDefault, Map<String, GitRepoRemote> nameToRemote) {
@@ -207,62 +197,108 @@ public class GitRepoParser {
         throw new RuntimeException("Can't get url from remote [%s]".formatted(remote.getName()));
     }
 
+    private String getTag(String revision, String upstream) {
+        if (upstream.contains("refs/tags/")) {
+            return upstream.replace("refs/tags/", "");
+        }
+        if (revision.contains("refs/tags/")) {
+            return revision.replace("refs/tags/", "");
+        }
+        if (StringUtils.isNotEmpty(upstream)) {
+            return upstream;
+        }
+        if (StringUtils.isNotEmpty(revision)) {
+            return revision;
+        }
+        return null;
+    }
+
+    private String getCommitId(String revision) {
+        return Pattern.compile("[\\da-z]{40}").matcher(revision).matches() ? revision : null;
+    }
+
     public Set<CuratedPackage> correctPackageNameVersion(String productName, Set<CuratedPackage> packages) {
         Product product = productRepository.findByName(productName)
                 .orElseThrow(() -> new RuntimeException("can't find %s's product metadata".formatted(productName)));
         String productType = product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_TYPE_KEY);
 
         Set<CuratedPackage> correctedPackages = new HashSet<>();
+        Set<RepoMeta> repoMetas = new HashSet<>();
+        repoMetaRepository.deleteByProductName(productName);
+
         packages.stream()
                 .map(CuratedPackage::getPkg)
                 .filter(pkg -> StringUtils.equalsIgnoreCase(productType, SbomConstants.PRODUCT_OPENHARMONY_NAME)
-                        && pkg.getId().getName().startsWith(THIRD_PARTY_REPO_PREFIX))
+                        && pkg.getId().getName().startsWith(SbomRepoConstants.OPEN_HARMONY_THIRD_PARTY_REPO_PREFIX))
                 .forEach(pkg -> {
                     logger.info("Convert name and version for OpenHarmony third packages: {}", pkg.getId().getName());
-                    handleOpenHarmonyThirdPartyRepo(productType, pkg, correctedPackages);
+                    handleOpenHarmonyThirdPartyRepo(pkg, correctedPackages, repoMetas, productName);
                 });
 
         packages.stream()
                 .map(CuratedPackage::getPkg)
                 .filter(pkg -> !StringUtils.equalsIgnoreCase(productType, SbomConstants.PRODUCT_OPENHARMONY_NAME)
-                        || !pkg.getId().getName().startsWith(THIRD_PARTY_REPO_PREFIX))
-                .forEach(pkg -> correctedPackages.add(pkg.toCuratedPackage()));
+                        || !pkg.getId().getName().startsWith(SbomRepoConstants.OPEN_HARMONY_THIRD_PARTY_REPO_PREFIX))
+                .forEach(pkg -> handleOpenHarmonyNonThirdPartyRepo(pkg, correctedPackages, repoMetas, productName));
+
+        repoMetaRepository.saveAll(repoMetas);
 
         return correctedPackages;
     }
 
-    private void handleOpenHarmonyThirdPartyRepo(String productType, Package pkg, Set<CuratedPackage> correctedPackages) {
-        RepoMeta repoMeta = repoMetaRepository.findByProductTypeAndRepoNameAndBranch(productType, pkg.getId().getName(), pkg.getVcs().getRevision())
-                .orElse(null);
+    private void handleOpenHarmonyThirdPartyRepo(Package pkg, Set<CuratedPackage> correctedPackages, Set<RepoMeta> repoMetas,
+                                                 String productName) {
+        try {
+            String thirdPartyMetaUrl = MessageFormat.format("{0}/{1}/{2}/raw/{3}/{4}",
+                    giteeDomainUrl, SbomRepoConstants.OPEN_HARMONY_GITEE_ORG, pkg.getId().getName(), pkg.getVcs().getRevision(),
+                    SbomRepoConstants.OPEN_HARMONY_THIRD_PARTY_META_FILE);
+            String thirdPartyMeta = giteeApi.getFileContext(thirdPartyMetaUrl);
+            List<ThirdPartyMetaVo> vos = Mapper.jsonMapper.readValue(thirdPartyMeta, new TypeReference<>() {});
+            Identifier identifier = new Identifier(pkg.getId().getType(), pkg.getId().getNamespace(),
+                    pkg.getId().getName().replace(SbomRepoConstants.OPEN_HARMONY_THIRD_PARTY_REPO_PREFIX, ""),
+                    StringUtils.isEmpty(vos.get(0).getVersion().strip()) ? pkg.getId().getVersion() : vos.get(0).getVersion().strip());
+            Package correctedPkg = new Package(identifier, ExtensionsKt.toPurl(identifier), "", pkg.getAuthors(),
+                    pkg.getDeclaredLicenses(), pkg.getDeclaredLicensesProcessed(), pkg.getConcludedLicense(), pkg.getDescription(),
+                    pkg.getHomepageUrl(), pkg.getBinaryArtifact(), pkg.getSourceArtifact(),
+                    pkg.getVcs(), pkg.getVcsProcessed(), pkg.isMetaDataOnly(), pkg.isModified());
+            correctedPackages.add(correctedPkg.toCuratedPackage());
 
-        if (Objects.isNull(repoMeta)) {
-            correctedPackages.add(pkg.toCuratedPackage());
-            return;
+            RepoMeta repoMeta = repoMetaRepository.findByProductTypeAndRepoNameAndBranch(
+                    SbomConstants.PRODUCT_OPENHARMONY_NAME, pkg.getId().getName(), pkg.getVcs().getRevision()).orElse(new RepoMeta());
+            repoMeta.setProductType(SbomConstants.PRODUCT_OPENHARMONY_NAME);
+            repoMeta.setRepoName(pkg.getId().getName());
+            repoMeta.setBranch(pkg.getVcs().getRevision());
+            repoMeta.setPackageNames(new String[]{correctedPkg.getId().getName()});
+            repoMeta.setDownloadLocation(MessageFormat.format("{0}/{1}/{2}/tree/{3}",
+                    giteeDomainUrl, SbomRepoConstants.OPEN_HARMONY_GITEE_ORG, pkg.getId().getName(), pkg.getVcs().getRevision()));
+            repoMeta.setExtendedAttr(Map.of(SbomRepoConstants.UPSTREAM_URL, vos.get(0).getUpstreamUrl().strip(),
+                    SbomConstants.PRODUCT_NAME, productName));
+            repoMetas.add(repoMeta);
+        } catch (JsonProcessingException e) {
+            logger.warn("The {} of repo [{}] with version [{}] is invalid",
+                    SbomRepoConstants.OPEN_HARMONY_THIRD_PARTY_META_FILE, pkg.getId().getName(), pkg.getVcs().getRevision());
+            handleOpenHarmonyNonThirdPartyRepo(pkg, correctedPackages, repoMetas, productName);
+        } catch (RuntimeException e) {
+            logger.warn("Unknown exception occurs when fetch repo meta for repo [{}] with version [{}]",
+                    pkg.getId().getName(), pkg.getVcs().getRevision(), e);
+            handleOpenHarmonyNonThirdPartyRepo(pkg, correctedPackages, repoMetas, productName);
         }
 
-        Identifier identifier = new Identifier(pkg.getId().getType(), pkg.getId().getNamespace(),
-                getUpstreamName(pkg, repoMeta), getUpstreamVersion(pkg, repoMeta));
-
-        Package correctedPkg = new Package(identifier, ExtensionsKt.toPurl(identifier), "", pkg.getAuthors(),
-                pkg.getDeclaredLicenses(), pkg.getDeclaredLicensesProcessed(), pkg.getConcludedLicense(), pkg.getDescription(),
-                pkg.getHomepageUrl(), pkg.getBinaryArtifact(), pkg.getSourceArtifact(),
-                pkg.getVcs(), pkg.getVcsProcessed(), pkg.isMetaDataOnly(), pkg.isModified());
-        correctedPackages.add(correctedPkg.toCuratedPackage());
     }
 
-    private String getUpstreamName(Package pkg, RepoMeta repoMeta) {
-        String upstreamName = getUpstreamInfo(pkg.getId().getName().replace(THIRD_PARTY_REPO_PREFIX, ""), repoMeta).get("upstream_name");
-        return ObjectUtils.isEmpty(upstreamName) ? pkg.getId().getName() : upstreamName;
-    }
+    private void handleOpenHarmonyNonThirdPartyRepo(Package pkg, Set<CuratedPackage> correctedPackages, Set<RepoMeta> repoMetas,
+                                                    String productName) {
+        RepoMeta repoMeta = repoMetaRepository.findByProductTypeAndRepoNameAndBranch(
+                SbomConstants.PRODUCT_OPENHARMONY_NAME, pkg.getId().getName(), pkg.getVcs().getRevision()).orElse(new RepoMeta());
+        repoMeta.setProductType(SbomConstants.PRODUCT_OPENHARMONY_NAME);
+        repoMeta.setRepoName(pkg.getId().getName());
+        repoMeta.setBranch(pkg.getVcs().getRevision());
+        repoMeta.setPackageNames(new String[]{pkg.getId().getName()});
+        repoMeta.setDownloadLocation(MessageFormat.format("{0}/{1}/{2}/tree/{3}",
+                giteeDomainUrl, SbomRepoConstants.OPEN_HARMONY_GITEE_ORG, pkg.getId().getName(), pkg.getVcs().getRevision()));
+        repoMeta.setExtendedAttr(Map.of(SbomConstants.PRODUCT_NAME, productName));
+        repoMetas.add(repoMeta);
 
-    private String getUpstreamVersion(Package pkg, RepoMeta repoMeta) {
-        String upstreamVersion = getUpstreamInfo(pkg.getId().getName().replace(THIRD_PARTY_REPO_PREFIX, ""), repoMeta).get("upstream_version");
-        return ObjectUtils.isEmpty(upstreamVersion) ? pkg.getId().getVersion() : upstreamVersion;
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, String> getUpstreamInfo(String pkgName, RepoMeta repoMeta) {
-        return (Map<String, String>) Optional.ofNullable(repoMeta.getExtendedAttr())
-                .map(it -> it.getOrDefault(pkgName, Map.of())).orElse(Map.of());
+        correctedPackages.add(pkg.toCuratedPackage());
     }
 }

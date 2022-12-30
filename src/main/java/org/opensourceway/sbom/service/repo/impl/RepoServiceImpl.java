@@ -2,7 +2,6 @@ package org.opensourceway.sbom.service.repo.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
-import org.opensourceway.sbom.api.repo.RepoMetaHandler;
 import org.opensourceway.sbom.api.repo.RepoMetaParser;
 import org.opensourceway.sbom.api.repo.RepoService;
 import org.opensourceway.sbom.dao.ExternalPurlRefRepository;
@@ -17,7 +16,6 @@ import org.opensourceway.sbom.model.entity.Package;
 import org.opensourceway.sbom.model.entity.RepoMeta;
 import org.opensourceway.sbom.model.pojo.response.sbom.UpstreamAndPatchInfoResponse;
 import org.opensourceway.sbom.model.pojo.vo.repo.RepoInfoVo;
-import org.opensourceway.sbom.model.pojo.vo.repo.RepoMetaVo;
 import org.opensourceway.sbom.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.model.spdx.ReferenceType;
 import org.slf4j.Logger;
@@ -35,7 +33,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
@@ -57,9 +54,6 @@ public class RepoServiceImpl implements RepoService {
 
     @Autowired
     private ExternalPurlRefRepository externalPurlRefRepository;
-
-    @Autowired
-    private RepoMetaHandler repoMetaHandler;
 
     @Override
     public Set<RepoInfoVo> fetchOpenEulerRepoMeta() throws IOException {
@@ -125,24 +119,4 @@ public class RepoServiceImpl implements RepoService {
         return response;
     }
 
-    @Override
-    public List<RepoMeta> fetchOpenHarmonyRepoMeta() {
-        Set<RepoMetaVo> vos = repoMetaHandler.fetchRepoMeta();
-        Set<RepoMeta> repoMetas = vos.stream()
-                .map(this::convertRepoMetaVo)
-                .collect(Collectors.toSet());
-        return repoMetaRepository.saveAll(repoMetas);
-    }
-
-    private RepoMeta convertRepoMetaVo(RepoMetaVo vo) {
-        RepoMeta repoMeta = repoMetaRepository.findByProductTypeAndRepoNameAndBranch(
-                SbomConstants.PRODUCT_OPENHARMONY_NAME, vo.getRepoName(), vo.getBranch()).orElse(new RepoMeta());
-        repoMeta.setProductType(SbomConstants.PRODUCT_OPENHARMONY_NAME);
-        repoMeta.setRepoName(vo.getRepoName());
-        repoMeta.setPackageNames(vo.getPackageNames());
-        repoMeta.setDownloadLocation(vo.getDownloadLocation());
-        repoMeta.setBranch(vo.getBranch());
-        repoMeta.setExtendedAttr(vo.getExtendedAttr());
-        return repoMeta;
-    }
 }

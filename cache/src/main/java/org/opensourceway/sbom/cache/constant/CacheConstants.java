@@ -29,4 +29,6 @@ public class CacheConstants {
     public static final String OPENEULER_REPO_META_CACHE_NAME = "openEulerRepoMeta";
 
     public static final String OPENEULER_REPO_META_CACHE_KEY_PATTERN = "'openeuler_repo_meta_' + #repo + '_' + #branch";
+
+    public static final String OPENHARMONY_THIRD_PARTY_REPO_META_CACHE_NAME = "OpenHarmonyThirdPartyRepoMeta";
 }
