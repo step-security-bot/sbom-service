@@ -5,6 +5,7 @@ val packageUrlJavaVersion: String by project
 dependencies {
     implementation(project(":model"))
     implementation(project(":interface"))
+    implementation(project(":dao"))
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("com.fasterxml.jackson.core:jackson-databind")

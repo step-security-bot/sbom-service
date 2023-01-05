@@ -25,6 +25,7 @@ import org.opensourceway.sbom.model.entity.Product;
 import org.opensourceway.sbom.model.entity.RepoMeta;
 import org.opensourceway.sbom.model.pojo.vo.license.ExtractLicenseVo;
 import org.opensourceway.sbom.model.pojo.vo.license.LicenseInfoVo;
+import org.opensourceway.sbom.utils.RepoMetaUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
@@ -69,6 +70,9 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
 
     @Autowired
     private RepoMetaLicenseCache repoMetaLicenseCache;
+
+    @Autowired
+    private RepoMetaUtil repoMetaUtil;
 
     @Autowired
     private LicenseObjectCache licenseObjectCache;
@@ -122,11 +126,10 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
         Set<Pair<ExternalPurlRef, LicenseInfoVo>> resultSet = new HashSet<>();
         List<String> noRepoMetaPkgList = new ArrayList<>();
         for (ExternalPurlRef purlRef : externalPurlChunk) {
-            List<RepoMeta> repoMetaList = repoMetaRepository.queryRepoMetaByPackageName(product.getProductType(), product.getProductVersion(), purlRef.getPurl().getName());
-            if (ObjectUtils.isEmpty(repoMetaList)) {
+            RepoMeta repoMeta = repoMetaUtil.getRepoMeta(product, purlRef.getPurl().getName()).orElse(null);
+            if (ObjectUtils.isEmpty(repoMeta)) {
                 noRepoMetaPkgList.add(purlRef.getPurl().getName());
             } else {
-                RepoMeta repoMeta = repoMetaList.get(0);
                 RepoMeta openEulerRepoMeta = repoMetaLicenseCache.getRepoMeta(purlRef.getPurl(), product, repoMeta.getRepoName(), repoMeta.getBranch());
                 if (openEulerRepoMeta.getExtendedAttr().get(SbomRepoConstants.REPO_LICENSE) == null) {
                     continue;
