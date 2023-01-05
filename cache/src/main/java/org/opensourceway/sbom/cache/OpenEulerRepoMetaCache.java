@@ -1,10 +1,7 @@
 package org.opensourceway.sbom.cache;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.opensourceway.sbom.api.license.LicenseClient;
-import org.opensourceway.sbom.api.license.LicenseService;
 import org.opensourceway.sbom.api.vcs.VcsApi;
 import org.opensourceway.sbom.cache.config.CacheProperties;
 import org.opensourceway.sbom.cache.constant.CacheConstants;
@@ -12,9 +9,7 @@ import org.opensourceway.sbom.dao.RepoMetaRepository;
 import org.opensourceway.sbom.model.constants.SbomConstants;
 import org.opensourceway.sbom.model.constants.SbomRepoConstants;
 import org.opensourceway.sbom.model.entity.RepoMeta;
-import org.opensourceway.sbom.model.pojo.vo.license.LicenseInfoVo;
 import org.opensourceway.sbom.utils.OpenEulerAdvisorParser;
-import org.opensourceway.sbom.utils.PurlUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,12 +40,6 @@ public class OpenEulerRepoMetaCache {
     private VcsApi giteeApi;
 
     @Autowired
-    private LicenseClient licenseClient;
-
-    @Autowired
-    private LicenseService licenseService;
-
-    @Autowired
     private RepoMetaRepository repoMetaRepository;
 
     @Autowired
@@ -79,8 +68,7 @@ public class OpenEulerRepoMetaCache {
 
         ExecutorService executorService = Executors.newWorkStealingPool();
         List<Callable<Boolean>> fetchTasks = Arrays.asList(
-                new FetchUpstreamCallable(repoMeta),
-                new FetchLicenseCallable(repoMeta)
+                new FetchUpstreamCallable(repoMeta)
         );
         try {
             List<Boolean> tasksResult = executorService.invokeAll(fetchTasks).stream()
@@ -111,44 +99,6 @@ public class OpenEulerRepoMetaCache {
             executorService.shutdown();
         }
         return repoMeta;
-    }
-
-    class FetchLicenseCallable implements Callable<Boolean> {
-
-        private final RepoMeta repoMeta;
-
-        FetchLicenseCallable(RepoMeta repoMeta) {
-            this.repoMeta = repoMeta;
-        }
-
-        @Override
-        public Boolean call() {
-            Map<String, Object> extendedAttrs = repoMeta.getExtendedAttr() == null ? new ConcurrentHashMap<>() : repoMeta.getExtendedAttr();
-            if (extendedAttrs.containsKey(SbomRepoConstants.REPO_LICENSE)) {
-                return null;
-            }
-            LicenseInfoVo licenseInfoVo = new LicenseInfoVo();
-            boolean isUpdateRepoMeta = Boolean.TRUE;
-            try {
-                String purl = PurlUtil.canonicalizePurl(PurlUtil.newPackageURL("gitee", SbomRepoConstants.OPENEULER_REPO_ORG,
-                        repoMeta.getRepoName(), repoMeta.getBranch(), null, null));
-                licenseInfoVo = licenseService.getLicenseInfoVoFromPurl(List.of(purl)).get(purl);
-
-                if (ObjectUtils.isEmpty(licenseInfoVo)) {
-                    return null;
-                }
-            } catch (Exception e) {
-                logger.error("get license for repo {} branch {} from compliance failed, skip it", repoMeta.getRepoName(), repoMeta.getBranch(), e);
-                isUpdateRepoMeta = Boolean.FALSE;
-            }
-
-            extendedAttrs.put(SbomRepoConstants.REPO_LICENSE, licenseInfoVo.getRepoLicense());
-            extendedAttrs.put(SbomRepoConstants.REPO_LICENSE_ILLEGAL, licenseInfoVo.getRepoLicenseIllegal());
-            extendedAttrs.put(SbomRepoConstants.REPO_LICENSE_LEGAL, licenseInfoVo.getRepoLicenseLegal());
-            extendedAttrs.put(SbomRepoConstants.REPO_COPYRIGHT, licenseInfoVo.getRepoCopyrightLegal());
-            repoMeta.setExtendedAttr(extendedAttrs);
-            return isUpdateRepoMeta;
-        }
     }
 
     class FetchUpstreamCallable implements Callable<Boolean> {

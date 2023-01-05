@@ -9,7 +9,7 @@ import org.opensourceway.sbom.api.license.LicenseClient;
 import org.opensourceway.sbom.api.license.LicenseService;
 import org.opensourceway.sbom.cache.LicenseObjectCache;
 import org.opensourceway.sbom.cache.LicenseStandardMapCache;
-import org.opensourceway.sbom.cache.OpenEulerRepoMetaCache;
+import org.opensourceway.sbom.cache.RepoMetaLicenseCache;
 import org.opensourceway.sbom.cache.constant.CacheConstants;
 import org.opensourceway.sbom.dao.PackageRepository;
 import org.opensourceway.sbom.dao.ProductRepository;
@@ -68,7 +68,7 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
     private RepoMetaRepository repoMetaRepository;
 
     @Autowired
-    private OpenEulerRepoMetaCache openEulerRepoMetaCache;
+    private RepoMetaLicenseCache repoMetaLicenseCache;
 
     @Autowired
     private LicenseObjectCache licenseObjectCache;
@@ -109,16 +109,16 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
         logger.info("Start to extract License for sbom {}, chunk size:{}", sbomId, externalPurlChunk.size());
         Set<Pair<ExternalPurlRef, LicenseInfoVo>> resultSet;
         Product product = productRepository.findBySbomId(sbomId);
-        if (SbomConstants.PRODUCT_OPENEULER_NAME.equals(product.getProductType())) {
-            resultSet = extractOpenEulerLicense(sbomId, externalPurlChunk, product);
+        if (SbomConstants.PRODUCT_OPENEULER_NAME.equals(product.getProductType()) || SbomConstants.PRODUCT_OPENHARMONY_NAME.equals(product.getProductType())) {
+            resultSet = extractLicenseWithRepoMeta(sbomId, externalPurlChunk, product);
         } else {
-            resultSet = extractOtherLicense(sbomId, externalPurlChunk, product);
+            resultSet = extractLicenseWithoutRepoMeta(sbomId, externalPurlChunk, product);
         }
         logger.info("End to extract license for sbom {}", sbomId);
         return getLicenseAndPkgToDeal(resultSet);
     }
 
-    private Set<Pair<ExternalPurlRef, LicenseInfoVo>> extractOpenEulerLicense(UUID sbomId, List<ExternalPurlRef> externalPurlChunk, Product product) {
+    private Set<Pair<ExternalPurlRef, LicenseInfoVo>> extractLicenseWithRepoMeta(UUID sbomId, List<ExternalPurlRef> externalPurlChunk, Product product) {
         Set<Pair<ExternalPurlRef, LicenseInfoVo>> resultSet = new HashSet<>();
         List<String> noRepoMetaPkgList = new ArrayList<>();
         for (ExternalPurlRef purlRef : externalPurlChunk) {
@@ -127,7 +127,7 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
                 noRepoMetaPkgList.add(purlRef.getPurl().getName());
             } else {
                 RepoMeta repoMeta = repoMetaList.get(0);
-                RepoMeta openEulerRepoMeta = openEulerRepoMetaCache.getRepoMeta(repoMeta.getRepoName(), repoMeta.getBranch());
+                RepoMeta openEulerRepoMeta = repoMetaLicenseCache.getRepoMeta(purlRef.getPurl(), product, repoMeta.getRepoName(), repoMeta.getBranch());
                 if (openEulerRepoMeta.getExtendedAttr().get(SbomRepoConstants.REPO_LICENSE) == null) {
                     continue;
                 }
@@ -148,7 +148,7 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
         return resultSet;
     }
 
-    private Set<Pair<ExternalPurlRef, LicenseInfoVo>> extractOtherLicense(UUID sbomId, List<ExternalPurlRef> externalPurlChunk, Product product) {
+    private Set<Pair<ExternalPurlRef, LicenseInfoVo>> extractLicenseWithoutRepoMeta(UUID sbomId, List<ExternalPurlRef> externalPurlChunk, Product product) {
         Set<Pair<ExternalPurlRef, LicenseInfoVo>> resultSet = new HashSet<>();
         Set<String> repoPurlSet = new HashSet<>();
         Map<ExternalPurlRef, String> pkgRepoPurlTrans = new HashMap<>();
