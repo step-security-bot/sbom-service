@@ -22,6 +22,7 @@ import org.opensourceway.sbom.model.pojo.vo.sbom.SupplySourceInfo;
 import org.opensourceway.sbom.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.model.spdx.ReferenceType;
 import org.opensourceway.sbom.model.spdx.RelationshipType;
+import org.opensourceway.sbom.utils.RepoMetaUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
@@ -56,6 +57,9 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
     @Autowired
     private OpenEulerRepoMetaCache openEulerUpstreamCache;
 
+    @Autowired
+    private RepoMetaUtil repoMetaUtil;
+
     private StepExecution stepExecution;
 
     private ExecutionContext jobContext;
@@ -67,6 +71,7 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
                 (UUID) this.jobContext.get(BatchContextConstants.BATCH_SBOM_ID_KEY) : null;
         String productVersion = stepExecution.getExecutionContext().getString(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY);
         String productType = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_TYPE_KEY);
+        String productName = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_NAME_KEY);
 
         logger.info("start SupplySourceInfoProcessor sbomId:{}, productType:{}, productVersion:{}, first pkg id:{}",
                 sbomId, productType, productVersion, pkgIdList.get(0).toString());
@@ -82,7 +87,7 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
                     return;
                 }
                 Package pkg = packageOptional.get();
-                getRepoMeta(productVersion, pkg.getName()).ifPresentOrElse(repoMeta -> {
+                repoMetaUtil.getRepoMeta(productType, productVersion, productName, pkg.getName()).ifPresentOrElse(repoMeta -> {
                     supplyDownloadLocation(supplySourceInfo, pkg, repoMeta);
                     supplyUpstream(supplySourceInfo, pkg, repoMeta);
                     supplyPatchInfo(supplySourceInfo, pkg, repoMeta);
@@ -102,18 +107,6 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
 
         logger.info("finish SupplySourceInfoProcessor sbomId:{}", sbomId);
         return supplySourceInfo;
-    }
-
-    private Optional<RepoMeta> getRepoMeta(String productVersion, String pkgName) {
-        String productType = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_TYPE_KEY);
-        if (StringUtils.equalsIgnoreCase(productType, SbomConstants.PRODUCT_OPENEULER_NAME)) {
-            return repoMetaRepository.queryRepoMetaByPackageName(productType, productVersion, pkgName)
-                    .stream().findFirst();
-        } else if (StringUtils.equalsIgnoreCase(productType, SbomConstants.PRODUCT_OPENHARMONY_NAME)) {
-            String productName = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_NAME_KEY);
-            return repoMetaRepository.findByProductNameAndPackageName(productName, pkgName);
-        }
-        return Optional.empty();
     }
 
     @Override
