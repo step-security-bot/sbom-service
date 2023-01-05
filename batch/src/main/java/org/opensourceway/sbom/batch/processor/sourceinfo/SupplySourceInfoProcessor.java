@@ -109,18 +109,6 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
         return supplySourceInfo;
     }
 
-    private Optional<RepoMeta> getRepoMeta(String productVersion, String pkgName) {
-        String productType = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_TYPE_KEY);
-        if (StringUtils.equalsIgnoreCase(productType, SbomConstants.PRODUCT_OPENEULER_NAME)) {
-            return repoMetaRepository.queryRepoMetaByPackageName(productType, productVersion, pkgName)
-                    .stream().findFirst();
-        } else if (StringUtils.equalsIgnoreCase(productType, SbomConstants.PRODUCT_OPENHARMONY_NAME)) {
-            String productName = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_NAME_KEY);
-            return repoMetaRepository.findByProductNameAndPackageName(productName, pkgName);
-        }
-        return Optional.empty();
-    }
-
     @Override
     public void beforeStep(@NotNull StepExecution stepExecution) {
         this.stepExecution = stepExecution;
