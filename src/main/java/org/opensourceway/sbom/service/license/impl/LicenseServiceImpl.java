@@ -62,7 +62,7 @@ public class LicenseServiceImpl implements LicenseService {
         for (ComplianceResponse response : responseArr) {
             if ("false".equals(response.getResult().getIsSca())) {
                 scanLicense(response.getPurl());
-                return licenseInfoVoMap;
+                continue;
             }
             LicenseInfoVo licenseInfoVo = new LicenseInfoVo();
             licenseInfoVo.setRepoLicense(response.getResult().getRepoLicense());

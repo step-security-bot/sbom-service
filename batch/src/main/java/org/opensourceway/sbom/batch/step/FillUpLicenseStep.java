@@ -94,21 +94,25 @@ public class FillUpLicenseStep implements Tasklet {
         try {
             Map<String, LicenseInfo> licenseInfoMap = licenseInfoMapCache
                     .getLicenseInfoMap(CacheConstants.LICENSE_INFO_MAP_CACHE_KEY_DEFAULT_VALUE);
-            spdxLicense = licenseStandardMapCache.getLicenseStandardMap(CacheConstants.LICENSE_STANDARD_MAP_CACHE_KEY_PATTERN).getOrDefault(spdxLicense.toLowerCase(), spdxLicense);
             SpdxExpression spdxExpression = SpdxExpression.parse(spdxLicense);
 
-            if (!spdxExpression.licenses().stream().distinct().allMatch(licenseInfoMap::containsKey)) {
+            if (!spdxExpression.licenses().stream().distinct().map(this::tryGetSpdxLicenseId).allMatch(licenseInfoMap::containsKey)) {
                 return null;
             }
 
             return spdxExpression.licenses().stream()
                     .distinct()
+                    .map(this::tryGetSpdxLicenseId)
                     .map(it -> toLicense(it, existLicenses, licenseInfoMap))
                     .collect(Collectors.toSet());
         } catch (SpdxException e) {
             invalidLicenses.add(spdxLicense);
             return null;
         }
+    }
+
+    private String tryGetSpdxLicenseId(String license) {
+        return licenseStandardMapCache.getLicenseStandardMap(CacheConstants.LICENSE_STANDARD_MAP_CACHE_KEY_PATTERN).getOrDefault(license.toLowerCase(), license);
     }
 
     private License toLicense(String spdxLicense, Map<String, License> existLicenses, Map<String, LicenseInfo> licenseInfoMap) {
