@@ -2,10 +2,11 @@
 
 * 一、[SBOM介绍](doc/sbom/whatIsSbom.md)
 * 二、[SBOM Service介绍](doc/sbom/sbomService.md)
-* 三、[特性清单](doc/features/features.md)
-* 四、[SBOM导入流程](doc/import_sbom/importSbom.md)
-* 五、[运行](doc/run/howToRun.md)
-* 六、API文档
+* 三、[SBOM数据字段](doc/sbom/sbomFields.md)
+* 四、[特性清单](doc/features/features.md)
+* 五、[SBOM导入流程](doc/import_sbom/importSbom.md)
+* 六、[运行](doc/run/howToRun.md)
+* 七、API文档
   1. [查询制品SBOM看板统计数据](doc/api/查询制品SBOM看板统计数据.md)
   2. [查询制品漏洞列表](doc/api/查询制品漏洞列表.md)
   3. [查询制品license列表](doc/api/查询制品license列表.md)
@@ -21,4 +22,4 @@
   13. [制品发布](doc/api/制品发布.md)
   14. [查询制品发布结果](doc/api/查询制品发布结果.md)
   15. [新增制品元数据](doc/api/新增制品元数据.md)
-* 七、[依赖模块](doc/module/module.md)
+* 八、[依赖模块](doc/module/module.md)

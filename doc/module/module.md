@@ -14,6 +14,16 @@ ORT是一款开源软件依赖审查工具套件，对其进行改造用于对�
 
 BCC是一个继承eBPF的开源Linux动态跟踪工具，可对程序进行高效而安全的跟踪。基于BCC中的[sslsniff](https://github.com/iovisor/bcc/blob/master/tools/sslsniff.py)、[execsnoop](https://github.com/iovisor/bcc/blob/master/tools/execsnoop.py)进行改造，实现监控构建过程中对依赖软件的操作，包括：进程命令、网络请求等。
 
+# SBOM高阶依赖服务
+
+## 统一漏洞库（开发中）
+
+源码仓：[https://github.com/opensourceways/uvp](https://github.com/opensourceways/uvp)
+
+## 貂蝉License服务
+
+源码仓：[https://github.com/openComplianceCode](https://github.com/openComplianceCode)
+
 # Acknowledgement
 
 [Syft](https://github.com/anchore/syft)
