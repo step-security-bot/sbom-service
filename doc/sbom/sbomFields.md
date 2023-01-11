@@ -20,7 +20,7 @@
 
 # SBOM Service对主流SBOM标准协议的支持
 
-当前SBOM Service根据最小元素集为基础进行了一定的字段扩充，以SBOM元数据形式持久化，解耦于[SPDX](https://spdx.dev/)、[CycloneDX](https://cyclonedx.org/)、[SWID](https://nvd.nist.gov/products/swid)等主流SBOM标准协议。SBOM Service提供SOBM文件导出功能，导出时可以自由选择具体的SBOM协议和文件格式（XML、JSON、YAML）。下表罗列了SBOM Service中当前主要支持的数据字段
+当前SBOM Service根据最小元素集为基础进行了一定的字段扩充，以SBOM元数据形式持久化，解耦于[SPDX](https://spdx.dev/)、[CycloneDX](https://cyclonedx.org/)、[SWID](https://nvd.nist.gov/products/swid)等主流SBOM标准协议。SBOM Service提供SBOM文件导出功能，导出时可以自由选择具体的SBOM协议和文件格式（XML、JSON、YAML）。下表罗列了SBOM Service中当前主要支持的数据字段
 
 
 | 最小集数据字段       | SPDX                                                                                                                                              | CycloneDX |
