@@ -1,6 +1,6 @@
 # SBOM最小元素集
 
-美国国家电信和信息管理局(NITA)在14028号政令的要求下，在2021年7月12日发布了[《SBOM 最小元素集》](https://www.ntia.gov/files/ntia/publications/sbom_minimum_elements_report.pdf)，该文档为各组织和厂商开发SBOM工具提供了数据格式的参考。NITA发布的SBOM最小元素集包括：
+美国国家电信和信息管理局(NTIA)在14028号政令的要求下，在2021年7月12日发布了[《SBOM 最小元素集》](https://www.ntia.gov/files/ntia/publications/sbom_minimum_elements_report.pdf)，该文档为各组织和厂商开发SBOM工具提供了数据格式的参考。NITA发布的SBOM最小元素集包括：
 
 
 | 数据字段                                      | 描述                                                           |
@@ -48,8 +48,6 @@
 SBOM服务已实现漏洞数据的卷积，在数据库中独立存储。当前导出时暂时将漏洞数据合在SBOM文件中，SPDX使用数据字段：document->packages->externalRefs(category:SECURITY)->CVE，CycloneDX使用数据字段：xxxxx。
 
 SBOM Service正在根据业界主流规范（静态SBOM数据+动态漏洞数据），计划采用SBOM+VEX的方案将SBOM数据和漏洞数据分开生成。
-
-![]()
 
 ---
 
