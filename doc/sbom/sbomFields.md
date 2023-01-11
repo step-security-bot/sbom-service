@@ -16,32 +16,32 @@
 | 组件的哈希（Hash of the Component）           | 组件的哈希值，可用于二进制文件等类型组件的消费场景。           |
 | 生命周期阶段（Lifecycle Phase）               | 生成SBOM数据所处的生命周期阶段。                               |
 | 其他组件关系（Other Component Relationships） | 用于扩展组件间依赖以外的依赖关系，例如：补丁关系、源码引用等。 |
-| License信息（License Information）            | 有助于大型、复杂软件的合规性管理。                             |
+| 组件License信息（License Information）        | 有助于大型、复杂软件的合规性管理。                             |
 
 # SBOM Service对主流SBOM标准协议的支持
 
 当前SBOM Service根据最小元素集为基础进行了一定的字段扩充，以SBOM元数据形式持久化，解耦于[SPDX](https://spdx.dev/)、[CycloneDX](https://cyclonedx.org/)、[SWID](https://nvd.nist.gov/products/swid)等主流SBOM标准协议。SBOM Service提供SOBM文件导出功能，导出时可以自由选择具体的SBOM协议和文件格式（XML、JSON、YAML）。下表罗列了SBOM Service中当前主要支持的数据字段
 
 
-| 最小集数据字段   | SPDX（已实现）                                                                                                                                    | CycloneDX（已实现） | SWID（待实现） |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | -------------- |
-| 组件供应商名称   | document->packages->supplier                                                                                                                      |                     |                |
-| 组件名称         | document->packages->name                                                                                                                          |                     |                |
-| 组件版本         | document->packages->versionInfo（openEuler使用了epoch:version-release格式）                                                                       |                     |                |
-| 组件其他唯一标识 | document->packages->externalRefs(category:PACKAGE_MANAGER)->purl                                                                                  |                     |                |
-| 组件依赖关系     | document->packages->externalRefs(category:EXTERNAL_MANAGER)->purl                                                                                 |                     |                |
-| SBOM数据作者     | document->creationInfo->creators                                                                                                                  |                     |                |
-| SBOM时间戳       | document->creationInfo->createdz                                                                                                                  |                     |                |
-| *组件的哈希*     | document->packages->checksums                                                                                                                     |                     |                |
-| *生命周期阶段*   | 未支持                                                                                                                                            |                     |                |
-| *其他组件关系*   | 内部子组件：document->packages->externalRefs(category:PROVIDE_MANAGER)->purl<br/>运行时依赖：document->relationships(relationshipType:DEPENDS_ON) |                     |                |
-| *License信息*    | document->packages->licenseDeclared<br />document->packages->licenseConcluded                                                                     |                     |                |
-| *Copyright信息*  | document->packages->copyrightText                                                                                                                 |                     |                |
-| *上游社区信息*   | document->packages->externalRefs(category:SOURCE_MANAGER)->url                                                                                    |                     |                |
-| *补丁信息*       | 补丁文件：document->files(fileTypes:SOURCE)<br />补丁关系：document->relationships(relationshipType:PATCH_APPLIED)                                |                     |                |
-| *组件来源*       | document->packages->downloadLocation                                                                                                              |                     |                |
-| *组件信息*       | document->packages->description<br />document->packages->summary                                                                                  |                     |                |
-| *组件官网/博客*  | document->packages->homepage                                                                                                                      |                     |                |
+| 最小集数据字段       | SPDX                                                                                                                                              | CycloneDX |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| **组件供应商名称**   | document->packages->supplier                                                                                                                      |           |
+| **组件名称**         | document->packages->name                                                                                                                          |           |
+| **组件版本**         | document->packages->versionInfo（openEuler使用了epoch:version-release格式）                                                                       |           |
+| **组件其他唯一标识** | document->packages->externalRefs(category:PACKAGE_MANAGER)->purl                                                                                  |           |
+| **组件依赖关系**     | document->packages->externalRefs(category:EXTERNAL_MANAGER)->purl                                                                                 |           |
+| **SBOM数据作者**     | document->creationInfo->creators                                                                                                                  |           |
+| **SBOM时间戳**       | document->creationInfo->created                                                                                                                   |           |
+| *组件的哈希*         | document->packages->checksums                                                                                                                     |           |
+| *生命周期阶段*       | 未支持                                                                                                                                            |           |
+| *其他组件关系*       | 内部子组件：document->packages->externalRefs(category:PROVIDE_MANAGER)->purl<br/>运行时依赖：document->relationships(relationshipType:DEPENDS_ON) |           |
+| *组件License信息*    | document->packages->licenseDeclared<br />document->packages->licenseConcluded                                                                     |           |
+| *组件Copyright信息*  | document->packages->copyrightText                                                                                                                 |           |
+| *组件上游社区信息*   | document->packages->externalRefs(category:SOURCE_MANAGER)->url                                                                                    |           |
+| *组件补丁信息*       | 补丁文件：document->files(fileTypes:SOURCE)<br />补丁关系：document->relationships(relationshipType:PATCH_APPLIED)                                |           |
+| *组件来源*           | document->packages->downloadLocation                                                                                                              |           |
+| *组件信息*           | document->packages->description<br />document->packages->summary                                                                                  |           |
+| *组件官网/博客*      | document->packages->homepage                                                                                                                      |           |
 
 # SBOM与漏洞信息
 

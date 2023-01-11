@@ -1,6 +1,6 @@
-# sbom-tools
+# 依赖解析模块
 
-sbom-tools通过对业界开源服务和SBOM生态工具进行改造，实现构建过程监控、构建元数据解析、SBOM格式数据转换等功能。包含：ORT、eBPF、Syft等
+[sbom-tools](https://github.com/opensourceways/sbom-tools "sbom-tools")通过对业界开源服务和SBOM生态工具进行改造，实现构建过程监控、构建元数据解析、SBOM格式数据转换等功能。包含：ORT、eBPF、Syft等
 
 ## [sbom-generator](https://github.com/opensourceways/sbom-tools/tree/main/sbom-generator "sbom-generator")
 
@@ -23,6 +23,12 @@ BCC是一个继承eBPF的开源Linux动态跟踪工具，可对程序进行高�
 ## 貂蝉License服务
 
 源码仓：[https://github.com/openComplianceCode](https://github.com/openComplianceCode)
+
+# 服务看板
+
+## [sbom-website](https://github.com/opensourceways/sbom-website "sbom-website")
+
+SBOM Service前端服务，提供全局风险看板、软件包详情展示、软件成分查询、开源软件反向追溯链查询、漏洞影响范围追溯、SBOM文件下载等功能。
 
 # Acknowledgement
 
