@@ -52,7 +52,8 @@ public class ProductConfigCache {
     public ProductConfigVo queryProductConfigByProductType(String productType) {
         logger.info("query product config for cache");
         List<ProductConfig> productConfigs = productConfigRepository.findByProductTypeOrderByOrdAsc(productType);
-        List<Product> products = productRepository.queryProductByPartialAttributes("{\"productType\": \"%s\"}".formatted(productType));
+        List<Product> products = productRepository.queryProductByPartialAttributes("{\"productType\": \"%s\"}".formatted(productType))
+                .stream().filter(product -> Objects.nonNull(product.getSbom())).toList();
 
         ProductConfigVo vo = new ProductConfigVo();
         fillUpProductConfigRecursively(vo, products, productConfigs, 0);
