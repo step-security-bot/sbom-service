@@ -40,7 +40,7 @@
 | *组件上游社区信息*      | document->packages->externalRefs(category:SOURCE_MANAGER)->url                                                                        | document->components->externalReferences(type:vcs)->url                                                          |
 | *组件补丁信息*        | 补丁文件：document->files(fileTypes:SOURCE)<br />补丁关系：document->relationships(relationshipType:PATCH_APPLIED)                              | 补丁文件：document->components->pedigree->patches                                                                     |
 | *组件来源*          | document->packages->downloadLocation                                                                                                  | document->components->externalReferences(type:distribution)->url                                                 |
-| *组件信息*          | document->packages->description<br />document->packages->summary                                                                      | document->components->description<br />document->components->properties(name:summary)                            |
+| *组件信息*          | document->packages->description<br />document->packages->summary                                                                      | document->components->description<br />document->components->properties(name:summary)->value                     |
 | *组件官网/博客*       | document->packages->homepage                                                                                                          | document->components->externalReferences(type:website)->url                                                      |
 
 备注
