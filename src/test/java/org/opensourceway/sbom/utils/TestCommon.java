@@ -2,6 +2,16 @@ package org.opensourceway.sbom.utils;
 
 import org.opensourceway.sbom.dao.ProductRepository;
 import org.opensourceway.sbom.dao.RawSbomRepository;
+import org.opensourceway.sbom.model.cyclonedx.Component;
+import org.opensourceway.sbom.model.cyclonedx.ComponentType;
+import org.opensourceway.sbom.model.cyclonedx.CycloneDXDocument;
+import org.opensourceway.sbom.model.cyclonedx.Dependency;
+import org.opensourceway.sbom.model.cyclonedx.ExternalReference;
+import org.opensourceway.sbom.model.cyclonedx.ExternalReferenceType;
+import org.opensourceway.sbom.model.cyclonedx.Property;
+import org.opensourceway.sbom.model.cyclonedx.Vulnerability;
+import org.opensourceway.sbom.model.cyclonedx.VulnerabilityMethod;
+import org.opensourceway.sbom.model.cyclonedx.VulnerabilitySeverity;
 import org.opensourceway.sbom.model.entity.Product;
 import org.opensourceway.sbom.model.entity.RawSbom;
 import org.opensourceway.sbom.model.enums.SbomContentType;
@@ -13,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,8 +46,8 @@ public class TestCommon {
         assertThat(spdxDocument.getCreationInfo().licenseListVersion()).isEqualTo("3.16");
         assertThat(spdxDocument.getCreationInfo().created()).isEqualTo("2022-06-27T08:05:09Z");
         assertThat(spdxDocument.getDocumentNamespace()).isEqualTo("spdx://57eaa8d8-9572-44ff-ace4-d4ac38292265");
-        assertThat(spdxDocument.getPackages().size()).isEqualTo(78);
-        assertThat(spdxDocument.getRelationships().size()).isEqualTo(36);
+        assertThat(spdxDocument.getPackages().size()).isEqualTo(76);
+        assertThat(spdxDocument.getRelationships().size()).isEqualTo(5);
 
         Optional<SpdxPackage> pkgOptional = spdxDocument.getPackages().stream()
                 .filter(tempPkg -> StringUtils.endsWithIgnoreCase("SPDXRef-Package-github-abseil-cpp-20210324.2", tempPkg.getSpdxId()))
@@ -52,6 +63,74 @@ public class TestCommon {
         assertThat(relationship.spdxElementId()).isEqualTo("SPDXRef-Package-PyPI-asttokens-2.0.5");
         assertThat(relationship.relationshipType().name()).isEqualTo(RelationshipType.DEPENDS_ON.name());
         assertThat(relationship.relatedSpdxElement()).isEqualTo("SPDXRef-Package-PyPI-six-1.16.0");
+    }
+
+    public static void assertCycloneDXDocument(CycloneDXDocument cycloneDXDocument) {
+        assertThat(cycloneDXDocument.getBomFormat()).isEqualTo("CycloneDX");
+        assertThat(cycloneDXDocument.getSpecVersion()).isEqualTo("1.4");
+        assertThat(cycloneDXDocument.getMetadata().getTimestamp()).isEqualTo("2022-06-27T08:05:09Z");
+        assertThat(cycloneDXDocument.getMetadata().getLicenses().get(0).getExpression()).isEqualTo("CC0-1.0");
+        assertThat(cycloneDXDocument.getMetadata().getTools().get(0).getName()).isEqualTo("OSS Review Toolkit");
+        assertThat(cycloneDXDocument.getMetadata().getTools().get(0).getVersion()).isEqualTo("e5b343ff71-dirty");
+        assertThat(cycloneDXDocument.getMetadata().getComponent().getName()).isEqualTo("mindsporeTest");
+        assertThat(cycloneDXDocument.getMetadata().getComponent().getType()).isEqualTo(ComponentType.APPLICATION);
+        assertThat(cycloneDXDocument.getComponents().size()).isEqualTo(76);
+        assertThat(cycloneDXDocument.getDependencies().size()).isEqualTo(76);
+
+        Optional<Component> pkgOptional = cycloneDXDocument.getComponents().stream()
+                .filter(tempPkg -> StringUtils.endsWithIgnoreCase("SPDXRef-Package-github-abseil-cpp-20210324.2", tempPkg.getBomRef()))
+                .findFirst();
+        assertThat(pkgOptional.isPresent()).isTrue();
+        Component pkg = pkgOptional.get();
+        Optional<ExternalReference> externalReferenceOptional = pkg.getExternalReferences().stream().filter(externalRef ->
+                externalRef.getType().equals(ExternalReferenceType.WEBSITE)).findFirst();
+        assertThat(externalReferenceOptional.isPresent()).isTrue();
+        ExternalReference externalReference = externalReferenceOptional.get();
+        assertThat(externalReference.getUrl()).isEqualTo("https://abseil.io");
+
+        Optional<ExternalReference> externalReferenceOptional1 = pkg.getExternalReferences().stream().filter(externalRef ->
+                externalRef.getType().equals(ExternalReferenceType.DISTRIBUTION)).findFirst();
+        assertThat(externalReferenceOptional1.isPresent()).isTrue();
+        ExternalReference externalReference1 = externalReferenceOptional1.get();
+        assertThat(externalReference1.getUrl()).isEqualTo("NONE");
+
+        assertThat(pkg.getLicenses().get(0).getExpression()).isEqualTo("NOASSERTION");
+        assertThat(pkg.getName()).isEqualTo("abseil-cpp");
+        assertThat(pkg.getVersion()).isEqualTo("20210324.2");
+        assertThat(pkg.getType()).isEqualTo(ComponentType.LIBRARY);
+        assertThat(pkg.getPurl()).isEqualTo("pkg:github/abseil-cpp@20210324.2");
+        assertThat(pkg.getCopyright()).isEqualTo("NONE");
+
+        Optional<Property> propertyOptional = pkg.getProperties().stream().filter(property ->
+                property.getName().equals("summary")).findFirst();
+        assertThat(propertyOptional.isPresent()).isTrue();
+        Property property = propertyOptional.get();
+        assertThat(property.getValue()).isEqualTo("Abseil Common Libraries (C++)");
+
+        List<Dependency> dependencies = cycloneDXDocument.getDependencies();
+        Optional<Dependency> dependencyOptional = dependencies.stream().filter(dependency ->
+                dependency.getRef().equals("SPDXRef-Package-PyPI-asttokens-2.0.5")).findFirst();
+        assertThat(dependencyOptional.isPresent()).isTrue();
+        Dependency dependency = dependencyOptional.get();
+        assertThat(dependency.getDependsOn().size()).isEqualTo(1);
+        assertThat(dependency.getDependsOn().get(0)).isEqualTo("SPDXRef-Package-PyPI-six-1.16.0");
+
+        List<Vulnerability> vulnerabilities = cycloneDXDocument.getVulnerabilities();
+        assertThat(vulnerabilities.size()).isEqualTo(4);
+        Optional<Vulnerability> vulnerabilityOptional = vulnerabilities.stream().filter(vlnerability ->
+                vlnerability.getId().equals("CVE-2022-00001-test")).findFirst();
+        assertThat(vulnerabilityOptional.isPresent()).isTrue();
+        Vulnerability vulnerability = vulnerabilityOptional.get();
+        assertThat(vulnerability.getAffects().size()).isEqualTo(1);
+        assertThat(vulnerability.getAffects().get(0).getRef()).isEqualTo("SPDXRef-Package-PyPI-asttokens-2.0.5");
+        assertThat(vulnerability.getSource().getName()).isEqualTo("NVD");
+        assertThat(vulnerability.getSource().getUrl()).isEqualTo("http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00001-test");
+        assertThat(vulnerability.getRatings().size()).isEqualTo(1);
+        assertThat(vulnerability.getRatings().get(0).getMethod()).isEqualTo(VulnerabilityMethod.CVSS2);
+        assertThat(vulnerability.getRatings().get(0).getScore()).isEqualTo("9.8");
+        assertThat(vulnerability.getRatings().get(0).getSeverity()).isEqualTo(VulnerabilitySeverity.HIGH);
+        assertThat(vulnerability.getRatings().get(0).getVector()).isEqualTo("(AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H)");
+
     }
 
     public void cleanPublishRawSbomData(String productName) {
