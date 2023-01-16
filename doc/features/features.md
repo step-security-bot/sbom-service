@@ -48,8 +48,7 @@
   - [ ] GitBOM
   - [ ] OBBOM
   - [ ] 统一漏洞数据交换格式
-  - [ ] SBOM文件导出（CycloneDX协议）
-  - [ ] SBOM文件导出（SWID协议）
+  - [X] SBOM文件导出（CycloneDX协议）
 
 ---
 
