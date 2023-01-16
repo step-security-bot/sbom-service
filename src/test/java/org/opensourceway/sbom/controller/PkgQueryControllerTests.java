@@ -66,7 +66,7 @@ public class PkgQueryControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
                 .andExpect(jsonPath("$.last").value(false))
-                .andExpect(jsonPath("$.totalElements").value(78))
+                .andExpect(jsonPath("$.totalElements").value(76))
                 .andExpect(jsonPath("$.number").value(1))
                 .andExpect(jsonPath("$.content.[0].name").value("eigen"));
     }

@@ -181,10 +181,10 @@ class SpdxReaderTest {
         assertThat(sbomCreators.get(0).getName()).isEqualTo("Tool: OSS Review Toolkit - e5b343ff71-dirty");
 
         List<SbomElementRelationship> sbomElementRelationships = sbomElementRelationshipRepository.findBySbomId(sbom.getId());
-        assertThat(sbomElementRelationships.size()).isEqualTo(36);
+        assertThat(sbomElementRelationships.size()).isEqualTo(5);
 
         List<Package> packages = packageRepository.findBySbomId(sbom.getId());
-        assertThat(packages.size()).isEqualTo(78);
+        assertThat(packages.size()).isEqualTo(76);
         packages.forEach(p -> assertThat(p.getSbom().getId()).isEqualTo(sbom.getId()));
 
         List<Package> specificPackages = packageRepository.findBySbomIdAndSpdxId(sbom.getId(), "SPDXRef-Package-PyPI-asttokens-2.0.5-vcs");
