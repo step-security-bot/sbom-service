@@ -154,7 +154,7 @@ public class CycloneDXWriter implements SbomWriter {
 
         setPurl(purlVo, component);
         component.setGroup(purlVo.getNamespace());
-        component.setVersion(purlVo.getVersion());
+        component.setVersion(pkg.getVersion());
         component.setType(ComponentType.LIBRARY);
         component.setBomRef(pkg.getSpdxId());
         List<Patch> patches = new ArrayList<>();
