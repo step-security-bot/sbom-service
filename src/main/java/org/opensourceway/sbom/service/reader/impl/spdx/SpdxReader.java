@@ -253,7 +253,7 @@ public class SpdxReader implements SbomReader {
                 .collect(Collectors.toMap(it -> Triple.of(it.getCategory(), it.getType(),
                         PurlUtil.canonicalizePurl(it.getPurl())), Function.identity()));
         spdxPackage.getExternalRefs().forEach(it -> {
-            if (List.of(ReferenceType.PURL, ReferenceType.URL, ReferenceType.CHECKSUM).contains(it.referenceType())) {
+            if (List.of(ReferenceType.PURL, ReferenceType.CHECKSUM).contains(it.referenceType())) {
                 ExternalPurlRef externalPurlRef = existExternalPurlRefs.getOrDefault(
                         Triple.of(it.referenceCategory().name(), it.referenceType().getType(),
                                 PurlUtil.canonicalizePurl(it.referenceLocator())), new ExternalPurlRef());

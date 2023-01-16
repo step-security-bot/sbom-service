@@ -75,4 +75,6 @@ public class SbomConstants {
     public static final String OPENEULER_PATCH_INFO_URL_PATTERN = "%s/%s/%s/blob/%s/%s";
 
     public static final String PRODUCT_NAME = "product_name";
+
+    public static final String PRODUCT_TYPE = "productType";
 }
