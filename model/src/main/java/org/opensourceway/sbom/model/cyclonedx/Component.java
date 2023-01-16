@@ -7,49 +7,49 @@ import java.util.List;
 
 public class Component {
 
-    ComponentType type;
+    private ComponentType type;
 
-    String name;
+    private String name;
 
     @JsonProperty("bom-ref")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    String bomRef;
+    private String bomRef;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    Supplier supplier;
+    private Supplier supplier;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    String group;
+    private String group;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    String version;
+    private String version;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    String description;
+    private String description;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    List<Hash> hashes;
+    private List<Hash> hashes;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    List<License> licenses;
+    private List<License> licenses;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    String copyright;
+    private String copyright;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    String purl;
+    private String purl;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    List<ExternalReference> externalReferences;
+    private List<ExternalReference> externalReferences;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    List<Component> components;
+    private List<Component> components;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    Pedigree pedigree;
+    private Pedigree pedigree;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    List<Property> properties;
+    private List<Property> properties;
 
     public Component(String name) {
         this.name = name;

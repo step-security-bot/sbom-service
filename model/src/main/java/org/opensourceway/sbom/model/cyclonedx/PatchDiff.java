@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 
 public class PatchDiff {
 
-    String url;
+    private String url;
 
     public String getUrl() {
         return url;

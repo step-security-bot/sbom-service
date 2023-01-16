@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 public class Supplier {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    String name;
+    private String name;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    String url;
+    private String url;
 
     public Supplier(@JsonInclude(JsonInclude.Include.NON_EMPTY) String name, @JsonInclude(JsonInclude.Include.NON_EMPTY) String url) {
         this.name = name;

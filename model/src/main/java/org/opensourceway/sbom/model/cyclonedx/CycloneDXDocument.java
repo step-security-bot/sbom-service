@@ -14,26 +14,26 @@ public class CycloneDXDocument implements SbomDocument, Serializable {
         this.serialNumber = serialNumber;
     }
 
-    String bomFormat;
+    private String bomFormat;
 
-    String specVersion;
+    private String specVersion;
 
-    Integer version;
-
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    String serialNumber;
+    private Integer version;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    Metadata metadata;
+    private String serialNumber;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    List<Component> components;
+    private Metadata metadata;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    List<Dependency> dependencies;
+    private List<Component> components;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    List<Vulnerability> vulnerabilities;
+    private List<Dependency> dependencies;
+
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<Vulnerability> vulnerabilities;
 
     @JsonCreator
     public CycloneDXDocument(String bomFormat, String specVersion, Integer version,

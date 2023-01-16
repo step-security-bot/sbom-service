@@ -7,7 +7,7 @@ import java.util.List;
 
 public class Pedigree {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    List<Patch> patches;
+    private List<Patch> patches;
 
     public List<Patch> getPatches() {
         return patches;

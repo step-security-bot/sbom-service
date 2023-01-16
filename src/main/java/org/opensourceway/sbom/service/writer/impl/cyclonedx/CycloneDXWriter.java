@@ -63,26 +63,35 @@ import java.util.Map;
 public class CycloneDXWriter implements SbomWriter {
     private static final Logger logger = LoggerFactory.getLogger(CycloneDXWriter.class);
 
-
     private static final String BOM_FORMAT = "CycloneDX";
+
     private static final String CYCLONEDX_VERSION = "1.4";
+
+    private static final String SERIAL_NUMBER_PREFIX = "urn:uuid:";
+
+    private static final String RELATION_CATEGORY = "RelationCategory";
+
+    private static final String SUMMARY = "summary";
+
+    private static final String TOOL = "Tool";
+
+    private static final String ORGANIZATION = "Organization";
+
+    private static final Integer VERSION = 1;
 
     @Autowired
     private SbomRepository sbomRepository;
 
-
     @Override
     public byte[] write(String productName, SbomFormat format) throws IOException {
         Sbom sbom = sbomRepository.findByProductName(productName).orElseThrow(() -> new RuntimeException("can't find %s's sbom metadata".formatted(productName)));
-        CycloneDXDocument document = new CycloneDXDocument("urn:uuid:" + sbom.getId().toString());
+        CycloneDXDocument document = new CycloneDXDocument(SERIAL_NUMBER_PREFIX + sbom.getId().toString());
 
         document.setBomFormat(BOM_FORMAT);
         document.setSpecVersion(CYCLONEDX_VERSION);
-        document.setVersion(1);
+        document.setVersion(VERSION);
         setMetadata(sbom, document);
-
         setComponents(sbom, document);
-
         setDependencies(sbom, document);
         setVulnerabilities(sbom, document);
 
@@ -96,20 +105,22 @@ public class CycloneDXWriter implements SbomWriter {
         metadata.setLicenses(List.of(new License(sbom.getDataLicense())));
         metadata.setComponent(parseMetaDataComponent(sbom));
         document.setMetadata(metadata);
-
     }
 
     private void setToolsAndManufacture(Sbom sbom, Metadata metadata) {
         List<String> creators = sbom.getSbomCreators().stream().map(SbomCreator::getName).toList();
         Tool tool = new Tool();
-
-        for (String creator : creators) {
-            if (creator.startsWith("Tool")) {
-                tool.setVersion(creator.split("-", 2)[1].strip());
-                tool.setName(creator.split("-", 2)[0].split(":")[1].strip());
-            } else if (creator.startsWith("Organization")) {
-                metadata.setManufacture(new Manufacture(creator.split(":")[1].strip()));
+        try {
+            for (String creator : creators) {
+                if (creator.startsWith(TOOL)) {
+                    tool.setVersion(creator.split("-", 2)[1].strip());
+                    tool.setName(creator.split("-", 2)[0].split(":")[1].strip());
+                } else if (creator.startsWith(ORGANIZATION)) {
+                    metadata.setManufacture(new Manufacture(creator.split(":")[1].strip()));
+                }
             }
+        } catch (Exception e) {
+            logger.error("parse creators error for sbom {}", sbom.getId());
         }
         metadata.setTools(List.of(tool));
     }
@@ -119,7 +130,7 @@ public class CycloneDXWriter implements SbomWriter {
         String productType = product.getAttribute().get(SbomConstants.PRODUCT_TYPE);
         String name = product.getName();
         Component component = new Component(name);
-        component.setVersion(product.getAttribute().get("version"));
+        component.setVersion(product.getAttribute().get(SbomConstants.PRODUCT_ATTRIBUTE_VERSION));
         if (SbomConstants.PRODUCT_OPENEULER_NAME.equals(productType) || SbomConstants.PRODUCT_OPENHARMONY_NAME.equals(productType)) {
             component.setType(ComponentType.OPERATING_SYSTEM);
         } else {
@@ -134,10 +145,9 @@ public class CycloneDXWriter implements SbomWriter {
 
         setComponentSupplier(pkg, component);
         component.setDescription(pkg.getDescription());
-        component.setProperties(new ArrayList<>(Collections.singletonList(new Property("summary", pkg.getSummary()))));
+        component.setProperties(new ArrayList<>(Collections.singletonList(new Property(SUMMARY, pkg.getSummary()))));
         setComponentHashes(pkg, component);
         setExternalReferenceAndComponents(pkg, component);
-
         component.setLicenses(List.of(new License(pkg.getLicenseConcluded())));
         PackageUrlVo purlVo = pkg.getExternalPurlRefs().stream()
                 .filter(externalPurlRef -> externalPurlRef.getCategory().equals(ReferenceCategory.PACKAGE_MANAGER.toString())).map(ExternalPurlRef::getPurl).toList().get(0);
@@ -155,7 +165,6 @@ public class CycloneDXWriter implements SbomWriter {
             }
             component.setPedigree(new Pedigree(patches));
         }
-
         return component;
     }
 
@@ -166,7 +175,6 @@ public class CycloneDXWriter implements SbomWriter {
         for (Package pkg : packages) {
             components.add(transformPackage(pkg, pkgPatchMap));
         }
-
         document.setComponents(components);
     }
 
@@ -228,23 +236,25 @@ public class CycloneDXWriter implements SbomWriter {
         nestedComponent.setName(externalPurlRef.getPurl().getName());
         nestedComponent.setVersion(externalPurlRef.getPurl().getVersion());
         if (ObjectUtils.isNotEmpty(nestedComponent.getProperties())) {
-            nestedComponent.getProperties().add(new Property("RelationCategory", externalPurlRef.getCategory()));
+            nestedComponent.getProperties().add(new Property(RELATION_CATEGORY, externalPurlRef.getCategory()));
         } else {
-            nestedComponent.setProperties(new ArrayList<>(Collections.singletonList(new Property("RelationCategory", externalPurlRef.getCategory()))));
+            nestedComponent.setProperties(new ArrayList<>(Collections.singletonList(new Property(RELATION_CATEGORY, externalPurlRef.getCategory()))));
         }
         if (ObjectUtils.isNotEmpty(component.getComponents())) {
             component.getComponents().add(nestedComponent);
         } else {
             component.setComponents(new ArrayList<>(Collections.singletonList(nestedComponent)));
         }
-
-
     }
 
     private void setComponentSupplier(Package pkg, Component component) {
-        if (ObjectUtils.isNotEmpty(pkg.getSupplier())) {
-            Supplier supplier = new Supplier(null, pkg.getSupplier().split(":", 2)[1].strip());
-            component.setSupplier(supplier);
+        try {
+            if (ObjectUtils.isNotEmpty(pkg.getSupplier())) {
+                Supplier supplier = new Supplier(null, pkg.getSupplier().split(":", 2)[1].strip());
+                component.setSupplier(supplier);
+            }
+        } catch (Exception e) {
+            logger.error("parse supplier error for package {}", pkg.getId());
         }
     }
 
@@ -305,7 +315,6 @@ public class CycloneDXWriter implements SbomWriter {
         for (ExternalVulRef externalVulRef : vulPackageMap.keySet()) {
             Vulnerability vulnerability = new Vulnerability();
             vulnerability.setId(externalVulRef.getVulnerability().getVulId());
-
             List<VulScore> vulScores = externalVulRef.getVulnerability().getVulScores();
             vulnerability.setRatings(vulScores.stream().map(this::transformVulRatings).toList());
             vulnerability.setAffects(vulPackageMap.get(externalVulRef));
@@ -316,10 +325,8 @@ public class CycloneDXWriter implements SbomWriter {
                 VulnerabilitySource source = new VulnerabilitySource(vulReference.getUrl(), vulReference.getSource());
                 vulnerability.setSource(source);
             }
-
             vulnerabilities.add(vulnerability);
         }
-
         document.setVulnerabilities(vulnerabilities);
     }
 

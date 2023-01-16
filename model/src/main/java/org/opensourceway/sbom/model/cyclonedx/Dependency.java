@@ -5,10 +5,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 
 public class Dependency {
-    String ref;
+    private String ref;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    List<String> dependsOn;
+    private List<String> dependsOn;
 
     public String getRef() {
         return ref;

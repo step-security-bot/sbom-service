@@ -4,16 +4,16 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 public class Rating {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    String score;
+    private String score;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    VulnerabilitySeverity severity;
+    private VulnerabilitySeverity severity;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    VulnerabilityMethod method;
+    private VulnerabilityMethod method;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    String vector;
+    private String vector;
 
     public Rating(@JsonInclude(JsonInclude.Include.NON_EMPTY) String score,
                   @JsonInclude(JsonInclude.Include.NON_EMPTY) VulnerabilitySeverity severity,

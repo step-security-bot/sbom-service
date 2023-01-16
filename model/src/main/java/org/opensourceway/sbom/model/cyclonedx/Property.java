@@ -1,9 +1,9 @@
 package org.opensourceway.sbom.model.cyclonedx;
 
 public class Property {
-    String name;
+    private String name;
 
-    String value;
+    private String value;
 
     public Property(String name, String value) {
         this.name = name;

@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 public class License implements Serializable {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    String expression;
+    private String expression;
 
     @JsonCreator
     public License(@JsonInclude(JsonInclude.Include.NON_EMPTY) String expression) {

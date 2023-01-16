@@ -5,9 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Hash {
 
     @JsonProperty("alg")
-    Algorithm algorithm;
+    private Algorithm algorithm;
 
-    String content;
+    private String content;
 
     public Hash(Algorithm algorithm, String content) {
         this.algorithm = algorithm;

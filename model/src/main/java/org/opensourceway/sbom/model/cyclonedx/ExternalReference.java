@@ -6,15 +6,15 @@ import java.util.List;
 
 public class ExternalReference {
 
-    String url;
+    private String url;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    String comment;
+    private String comment;
 
-    ExternalReferenceType type;
+    private ExternalReferenceType type;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    List<Hash> hashes;
+    private List<Hash> hashes;
 
     public ExternalReference(String url, @JsonInclude(JsonInclude.Include.NON_EMPTY) String comment, ExternalReferenceType type, @JsonInclude(JsonInclude.Include.NON_EMPTY) List<Hash> hashes) {
         this.url = url;

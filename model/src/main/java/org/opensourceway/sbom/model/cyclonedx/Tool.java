@@ -6,19 +6,19 @@ import java.util.List;
 
 public class Tool {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    String vendor;
+    private String vendor;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    String name;
+    private String name;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    String version;
+    private String version;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    List<Hash> hashes;
+    private List<Hash> hashes;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    List<ExternalReference> externalReferences;
+    private List<ExternalReference> externalReferences;
 
     public String getVendor() {
         return vendor;

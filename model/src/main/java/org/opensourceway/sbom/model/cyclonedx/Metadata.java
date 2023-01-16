@@ -8,18 +8,18 @@ import java.util.List;
 
 public class Metadata implements Serializable {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    String timestamp;
+    private String timestamp;
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    List<Tool> tools;
+    private List<Tool> tools;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    Manufacture manufacture;
+    private Manufacture manufacture;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    Component component;
+    private Component component;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    List<License> licenses;
+    private List<License> licenses;
 
     @JsonCreator
     public Metadata(@JsonInclude(JsonInclude.Include.NON_EMPTY) String timestamp,

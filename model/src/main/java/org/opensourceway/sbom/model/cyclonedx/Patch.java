@@ -3,10 +3,10 @@ package org.opensourceway.sbom.model.cyclonedx;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 public class Patch {
-    PatchType type;
+    private PatchType type;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    PatchDiff diff;
+    private PatchDiff diff;
 
     public Patch(PatchType type, PatchDiff diff) {
         this.type = type;

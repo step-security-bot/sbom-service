@@ -77,4 +77,6 @@ public class SbomConstants {
     public static final String PRODUCT_NAME = "product_name";
 
     public static final String PRODUCT_TYPE = "productType";
+
+    public static final String PRODUCT_ATTRIBUTE_VERSION = "version";
 }
