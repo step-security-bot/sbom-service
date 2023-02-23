@@ -18,21 +18,30 @@
         </step>
 
         <decision id="skipAnalyzeSbomContentDecision" decider="skipAnalyzeSbomContentDecider">
-            <next on="INORDER_TRACE_DATA" to="AnalyzeTraceDataTask"/>
-            <next on="INORDER_DEFINITION_FILE" to="AnalyzeDefinitionFileTask"/>
+            <next on="INORDER_TRACE_DATA" to="analyzeTraceDataTask"/>
+            <next on="INORDER_DEFINITION_FILE" to="analyzeDefinitionFileTask"/>
             <next on="*" to="parseSbomMetadataTask"/>
         </decision>
 
-        <step id="AnalyzeTraceDataTask" next="parseSbomMetadataTask">
+        <step id="analyzeTraceDataTask" next="parseSbomMetadataTask">
             <tasklet ref="analyzeTraceDataStep"/>
         </step>
 
-        <step id="AnalyzeDefinitionFileTask" next="parseSbomMetadataTask">
+        <step id="analyzeDefinitionFileTask" next="parseSbomMetadataTask">
             <tasklet ref="analyzeDefinitionFileStep"/>
         </step>
 
-        <step id="parseSbomMetadataTask" next="persistSbomMetadataTask">
+        <step id="parseSbomMetadataTask" next="openHarmonySpecialTaskDecision">
             <tasklet ref="parseSbomMetadataStep"/>
+        </step>
+
+        <decision id="openHarmonySpecialTaskDecision" decider="openHarmonySpecialTaskDecider">
+            <next on="OPENHARMONY_SPECIAL_TASK" to="openHarmonySpecialTask"/>
+            <next on="*" to="persistSbomMetadataTask"/>
+        </decision>
+
+        <step id="openHarmonySpecialTask" next="persistSbomMetadataTask">
+            <tasklet ref="openHarmonySpecialTaskStep"/>
         </step>
 
         <step id="persistSbomMetadataTask" next="sbomConsumers">
@@ -230,6 +239,12 @@
 
     <bean id="parseSbomMetadataStep"
           class="org.opensourceway.sbom.batch.step.ParseSbomMetadataStep"/>
+
+    <bean id="openHarmonySpecialTaskDecider"
+          class="org.opensourceway.sbom.batch.decider.OpenHarmonySpecialTaskDecider"/>
+
+    <bean id="openHarmonySpecialTaskStep"
+          class="org.opensourceway.sbom.batch.step.OpenHarmonySpecialTaskStep"/>
 
     <bean id="persistSbomMetadataStep"
           class="org.opensourceway.sbom.batch.step.PersistSbomMetadataStep"/>

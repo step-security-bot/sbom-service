@@ -33,8 +33,12 @@ public class PurlUtil {
 
     public static PackageURL newPackageURL(final String type, final String namespace, final String name,
                                            final String version, final TreeMap<String, String> qualifiers,
-                                           final String subpath) throws MalformedPackageURLException {
-        return new PackageURL(type, namespace, name, version, qualifiers, subpath);
+                                           final String subpath) {
+        try {
+            return new PackageURL(type, namespace, name, version, qualifiers, subpath);
+        } catch (MalformedPackageURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static PackageURL newPackageURL(final String type, final String name) throws MalformedPackageURLException {
@@ -64,22 +68,14 @@ public class PurlUtil {
     }
 
     public static PackageURL PackageUrlVoToPackageURL(PackageUrlVo vo) {
-        try {
-            return PurlUtil.newPackageURL(vo.getType(), vo.getNamespace(), vo.getName(), vo.getVersion(),
-                    vo.getQualifiers(), vo.getSubpath());
-        } catch (MalformedPackageURLException e) {
-            throw new RuntimeException(e);
-        }
+        return PurlUtil.newPackageURL(vo.getType(), vo.getNamespace(), vo.getName(), vo.getVersion(),
+                vo.getQualifiers(), vo.getSubpath());
     }
 
     public static String convertPackageType(PackageUrlVo vo, String type) {
         PackageURL packageURL = PackageUrlVoToPackageURL(vo);
-        try {
-            return canonicalizePurl(PurlUtil.newPackageURL(type, packageURL.getNamespace(), packageURL.getName(), packageURL.getVersion(),
-                    (TreeMap<String, String>) packageURL.getQualifiers(), packageURL.getSubpath()));
-        } catch (MalformedPackageURLException e) {
-            throw new RuntimeException(e);
-        }
+        return canonicalizePurl(PurlUtil.newPackageURL(type, packageURL.getNamespace(), packageURL.getName(), packageURL.getVersion(),
+                (TreeMap<String, String>) packageURL.getQualifiers(), packageURL.getSubpath()));
     }
 
     @Deprecated

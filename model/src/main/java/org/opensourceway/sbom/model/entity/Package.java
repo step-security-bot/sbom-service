@@ -94,7 +94,7 @@ public class Package {
      * Indicates whether the file contents of the package have been used for the creation of the associated sbom document.
      */
     @Column(name = "files_analyzed")
-    private boolean filesAnalyzed;
+    private Boolean filesAnalyzed;
 
     /**
      * Concluded license for the package as SPDX expression.
@@ -241,11 +241,11 @@ public class Package {
         this.downloadLocation = downloadLocation;
     }
 
-    public boolean isFilesAnalyzed() {
+    public Boolean isFilesAnalyzed() {
         return filesAnalyzed;
     }
 
-    public void setFilesAnalyzed(boolean filesAnalyzed) {
+    public void setFilesAnalyzed(Boolean filesAnalyzed) {
         this.filesAnalyzed = filesAnalyzed;
     }
 

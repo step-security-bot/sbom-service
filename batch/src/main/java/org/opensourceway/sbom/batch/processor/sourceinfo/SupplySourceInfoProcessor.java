@@ -7,7 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import org.opensourceway.sbom.api.vcs.VcsApi;
 import org.opensourceway.sbom.cache.OpenEulerRepoMetaCache;
 import org.opensourceway.sbom.dao.PackageRepository;
-import org.opensourceway.sbom.dao.RepoMetaRepository;
 import org.opensourceway.sbom.model.constants.BatchContextConstants;
 import org.opensourceway.sbom.model.constants.SbomConstants;
 import org.opensourceway.sbom.model.constants.SbomRepoConstants;
@@ -22,6 +21,8 @@ import org.opensourceway.sbom.model.pojo.vo.sbom.SupplySourceInfo;
 import org.opensourceway.sbom.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.model.spdx.ReferenceType;
 import org.opensourceway.sbom.model.spdx.RelationshipType;
+import org.opensourceway.sbom.utils.OpenHarmonyThirdPartyUtil;
+import org.opensourceway.sbom.utils.PurlUtil;
 import org.opensourceway.sbom.utils.RepoMetaUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,15 +38,13 @@ import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, SupplySourceInfo>, StepExecutionListener {
 
     private static final Logger logger = LoggerFactory.getLogger(SupplySourceInfoProcessor.class);
-
-    @Autowired
-    private RepoMetaRepository repoMetaRepository;
 
     @Autowired
     private PackageRepository packageRepository;
@@ -59,6 +58,9 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
 
     @Autowired
     private RepoMetaUtil repoMetaUtil;
+
+    @Autowired
+    private OpenHarmonyThirdPartyUtil openHarmonyThirdPartyUtil;
 
     private StepExecution stepExecution;
 
@@ -87,11 +89,15 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
                     return;
                 }
                 Package pkg = packageOptional.get();
-                repoMetaUtil.getRepoMeta(productType, productVersion, productName, pkg.getName()).ifPresentOrElse(repoMeta -> {
-                    supplyDownloadLocation(supplySourceInfo, pkg, repoMeta);
-                    supplyUpstream(supplySourceInfo, pkg, repoMeta);
-                    supplyPatchInfo(supplySourceInfo, pkg, repoMeta);
-                }, () -> noRepoMetaPkgList.add(pkg.getName()));
+                if (StringUtils.equals(SbomConstants.PRODUCT_OPENHARMONY_NAME, productType)) {
+                    supplyUpstreamForOpenHarmony(pkg);
+                } else {
+                    repoMetaUtil.getRepoMeta(productType, productVersion, productName, pkg.getName()).ifPresentOrElse(repoMeta -> {
+                        supplyDownloadLocation(supplySourceInfo, pkg, repoMeta);
+                        supplyUpstream(supplySourceInfo, pkg, repoMeta);
+                        supplyPatchInfo(supplySourceInfo, pkg, repoMeta);
+                    }, () -> noRepoMetaPkgList.add(pkg.getName()));
+                }
             } catch (Exception e) {
                 logger.error("SupplySourceInfoProcessor failed, package id:{}", pkgId, e);
                 throw new RuntimeException(e);
@@ -126,15 +132,6 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
     }
 
     private void supplyUpstream(SupplySourceInfo supplySourceInfo, Package pkg, RepoMeta repoMeta) {
-        String productType = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_TYPE_KEY);
-        if (StringUtils.equalsIgnoreCase(productType, SbomConstants.PRODUCT_OPENEULER_NAME)) {
-            supplyUpstreamForOpenEuler(supplySourceInfo, pkg, repoMeta);
-        } else if (StringUtils.equalsIgnoreCase(productType, SbomConstants.PRODUCT_OPENHARMONY_NAME)) {
-            supplyUpstreamForOpenHarmony(supplySourceInfo, pkg, repoMeta);
-        }
-    }
-
-    private void supplyUpstreamForOpenEuler(SupplySourceInfo supplySourceInfo, Package pkg, RepoMeta repoMeta) {
         if (pkg.getExternalPurlRefs() == null) {
             pkg.setExternalPurlRefs(new ArrayList<>());
         }
@@ -167,17 +164,28 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
         }
     }
 
-    private void supplyUpstreamForOpenHarmony(SupplySourceInfo supplySourceInfo, Package pkg, RepoMeta repoMeta) {
-        String upstreamUrl = (String) Optional.ofNullable(repoMeta.getExtendedAttr())
-                .map(it -> it.get(SbomRepoConstants.UPSTREAM_URL)).orElse(null);
-        if (StringUtils.isEmpty(upstreamUrl)) {
+    private void supplyUpstreamForOpenHarmony(Package pkg) {
+        if (pkg.getExternalPurlRefs() == null) {
             return;
         }
-        if (pkg.getExternalPurlRefs() == null) {
-            pkg.setExternalPurlRefs(new ArrayList<>());
+
+        var ref = pkg.getExternalPurlRefs().stream()
+                .filter(it -> ReferenceCategory.PACKAGE_MANAGER.name().equals(it.getCategory()))
+                .findFirst().orElse(null);
+        if (Objects.isNull(ref)) {
+            return;
+        }
+
+        if (!ref.getPurl().getName().startsWith(SbomRepoConstants.OPEN_HARMONY_THIRD_PARTY_REPO_PREFIX)) {
+            return;
         }
 
         try {
+            var meta = openHarmonyThirdPartyUtil.getThirdPartyMeta(PurlUtil.canonicalizePurl(ref.getPurl()));
+            if (Objects.isNull(meta) || StringUtils.isBlank(meta.getUpstreamUrl().strip())) {
+                return;
+            }
+
             ExternalPurlRef upstreamPurl = new ExternalPurlRef();
             upstreamPurl.setCategory(ReferenceCategory.SOURCE_MANAGER.name());
             upstreamPurl.setType(ReferenceType.URL.getType());
@@ -185,7 +193,7 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
 
             PackageUrlVo vo = new PackageUrlVo();
             vo.setType("upstream");
-            vo.setName(upstreamUrl);
+            vo.setName(meta.getUpstreamUrl().strip());
             upstreamPurl.setPurl(vo);
             if (pkg.getExternalPurlRefs().contains(upstreamPurl)) {
                 logger.warn("upstreamPurl: {} already exists in package: {}", upstreamPurl.getPurl(), pkg.getId());
@@ -193,7 +201,7 @@ public class SupplySourceInfoProcessor implements ItemProcessor<List<UUID>, Supp
             }
             pkg.getExternalPurlRefs().add(upstreamPurl);
         } catch (Exception e) {
-            logger.error("supplyUpstream failed, upstream:{}", upstreamUrl, e);
+            logger.error("supplyUpstream failed, purl: {}", ref.getPurl(), e);
             throw new RuntimeException(e);
         }
     }
