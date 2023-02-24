@@ -152,9 +152,10 @@ public class LicenseServiceImpl implements LicenseService {
             return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(),
                     packageUrlVo.getName(), packageUrlVo.getVersion(), null, null)));
         } else {
-            // TODO If license service supports repo with commitId, change the version from branch to commitId.
+            var version = packageUrlVo.getQualifiers().getOrDefault(
+                    SbomRepoConstants.OPEN_HARMONY_PURL_QUALIFIER_REVISION, packageUrlVo.getVersion());
             return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(),
-                    packageUrlVo.getName(), packageUrlVo.getVersion(), null, null)));
+                    packageUrlVo.getName(), version, null, null)));
         }
     }
 
