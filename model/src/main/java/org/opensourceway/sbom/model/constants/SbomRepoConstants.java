@@ -33,6 +33,6 @@ public class SbomRepoConstants {
 
     public static final String OPEN_HARMONY_THIRD_PARTY_META_FILE = "README.OpenSource";
 
-    public static final String UPSTREAM_URL = "upstream_url";
+    public static final String OPEN_HARMONY_PURL_QUALIFIER_REVISION = "revision";
 
 }

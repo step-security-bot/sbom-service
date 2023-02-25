@@ -400,7 +400,7 @@ public class SbomServiceImpl implements SbomService {
         vo.setId(pkg.getId());
         vo.setName(pkg.getName());
         vo.setVersion(pkg.getVersion());
-        vo.setLicenses(pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).map(License::getSpdxLicenseId).toList());
+        vo.setLicenses(pkg.getPkgLicenseRelps().stream().map(PkgLicenseRelp::getLicense).map(LicenseVo::fromLicense).toList());
         vo.setCopyright(pkg.getCopyright());
         vo.setSupplier(pkg.getSupplier());
         vo.setStatistics(PackageStatisticsVo.fromPackage(pkg));

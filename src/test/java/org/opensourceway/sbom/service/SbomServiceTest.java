@@ -20,6 +20,7 @@ import org.opensourceway.sbom.dao.PackageRepository;
 import org.opensourceway.sbom.dao.ProductRepository;
 import org.opensourceway.sbom.dao.ProductTypeRepository;
 import org.opensourceway.sbom.dao.RawSbomRepository;
+import org.opensourceway.sbom.dao.RepoMetaRepository;
 import org.opensourceway.sbom.dao.SbomRepository;
 import org.opensourceway.sbom.model.constants.BatchContextConstants;
 import org.opensourceway.sbom.model.constants.SbomConstants;
@@ -29,6 +30,7 @@ import org.opensourceway.sbom.model.entity.Package;
 import org.opensourceway.sbom.model.entity.Product;
 import org.opensourceway.sbom.model.entity.ProductType;
 import org.opensourceway.sbom.model.entity.RawSbom;
+import org.opensourceway.sbom.model.entity.RepoMeta;
 import org.opensourceway.sbom.model.entity.Sbom;
 import org.opensourceway.sbom.model.enums.CvssSeverity;
 import org.opensourceway.sbom.model.enums.SbomContentType;
@@ -49,6 +51,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.util.ObjectUtils;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -98,6 +101,9 @@ class SbomServiceTest {
 
     @Autowired
     private PackageRepository packageRepository;
+
+    @Autowired
+    private RepoMetaRepository repoMetaRepository;
 
     private static String packageId = null;
 
@@ -683,8 +689,6 @@ class SbomServiceTest {
         assertThat(sbom).isNotNull();
         Product product = productRepository.findBySbomId(sbom.getId());
         assertThat(product.getAttribute().get(BatchContextConstants.BATCH_PRODUCT_VERSION_KEY)).isEqualTo("openEuler-22.03-LTS");
-        String productVersion = product.getProductVersion();
-        String productType = product.getProductType();
         Package pkg = sbom.getPackages().stream()
                 .filter(it -> StringUtils.equals(it.getSpdxId(), "SPDXRef-eb661a27c2fb073c"))
                 .findFirst().orElse(null);
@@ -703,7 +707,13 @@ class SbomServiceTest {
         assertThat(pkg1).isNotNull();
         ExternalPurlRef externalPurlRef1 = pkg1.getExternalPurlRefs().get(0);
         String purl1 = licenseService.getPurlsForLicense(externalPurlRef1.getPurl(), product);
-        assertThat(purl1).isEqualTo("pkg:gitee/src-openeuler/hadoop-3.1@openEuler-22.03-LTS");
+        List<RepoMeta> repoMetaList = repoMetaRepository.queryRepoMetaByPackageName(SbomConstants.PRODUCT_OPENEULER_NAME,
+                product.getProductVersion(), externalPurlRef1.getPurl().getName());
+        if (!ObjectUtils.isEmpty(repoMetaList) && !repoMetaList.get(0).getDownloadLocation().isEmpty()) {
+            assertThat(purl1).isEqualTo("pkg:gitee/src-openeuler/hadoop-3.1@openEuler-22.03-LTS");
+        } else {
+            assertThat(purl1).isEqualTo("pkg:gitee/src-openeuler/hadoop-3.1-common@openEuler-22.03-LTS");
+        }
         ComplianceResponse[] responseArr1 = licenseClient.getComplianceResponse(List.of(purl));
         assertThat(responseArr1.length).isEqualTo(1);
         assertThat(responseArr1[0].getPurl()).isEqualTo(purl);

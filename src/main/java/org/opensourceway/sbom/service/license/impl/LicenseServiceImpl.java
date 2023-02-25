@@ -1,7 +1,6 @@
 package org.opensourceway.sbom.service.license.impl;
 
 import com.github.packageurl.MalformedPackageURLException;
-import org.apache.commons.lang3.StringUtils;
 import org.opensourceway.sbom.api.license.LicenseClient;
 import org.opensourceway.sbom.api.license.LicenseService;
 import org.opensourceway.sbom.dao.RepoMetaRepository;
@@ -26,7 +25,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @Qualifier("LicenseServiceImpl")
@@ -154,15 +152,10 @@ public class LicenseServiceImpl implements LicenseService {
             return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(),
                     packageUrlVo.getName(), packageUrlVo.getVersion(), null, null)));
         } else {
-            String repoName = packageUrlVo.getName();
-            String version = packageUrlVo.getVersion();
-            Optional<RepoMeta> repoMetaOptional = repoMetaRepository.findByProductNameAndPackageName(product.getName(), packageUrlVo.getName());
-            if (repoMetaOptional.isPresent() && StringUtils.isNotEmpty(repoMetaOptional.get().getRepoName())) {
-                repoName = repoMetaOptional.get().getRepoName();
-                version = repoMetaOptional.get().getBranch();
-            }
+            var version = packageUrlVo.getQualifiers().getOrDefault(
+                    SbomRepoConstants.OPEN_HARMONY_PURL_QUALIFIER_REVISION, packageUrlVo.getVersion());
             return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(),
-                    repoName, version, null, null)));
+                    packageUrlVo.getName(), version, null, null)));
         }
     }
 

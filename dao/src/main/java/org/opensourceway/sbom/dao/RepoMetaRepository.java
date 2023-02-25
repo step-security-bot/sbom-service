@@ -30,13 +30,4 @@ public interface RepoMetaRepository extends JpaRepository<RepoMeta, UUID> {
     @Query(value = "SELECT * FROM repo_meta WHERE product_type = :productType AND branch = :branch AND :packageName = ANY(package_names)",
             nativeQuery = true)
     List<RepoMeta> queryRepoMetaByPackageName(@Param("productType") String productType, @Param("branch") String branch, @Param("packageName") String packageName);
-
-    @Query(value = "SELECT * FROM repo_meta WHERE jsonb_extract_path_text(extended_attr, 'product_name') = :productName AND :packageName = ANY(package_names)",
-            nativeQuery = true)
-    Optional<RepoMeta> findByProductNameAndPackageName(String productName, String packageName);
-
-    @Modifying(flushAutomatically = true)
-    @Query(value = "DELETE FROM repo_meta WHERE jsonb_extract_path_text(extended_attr, 'product_name') = :productName",
-            nativeQuery = true)
-    void deleteByProductName(String productName);
 }
