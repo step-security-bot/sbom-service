@@ -105,7 +105,7 @@
             </flow>
             <flow>
                 <!-- In org.opensourceway.sbom.manager.batch.job.JobConfiguration.restartSbomReadJob, use this step id decide rawSbom record's new taskStatus -->
-                <step id="resolveMavenDepTask" next="purlConsumers" parent="stepDelayRetry">
+                <step id="resolveMavenDepTask" next="extractUvp" parent="stepDelayRetry">
                     <tasklet>
                         <chunk commit-interval="3" retry-limit="3">
                             <reader>
@@ -134,71 +134,35 @@
                         </chunk>
                     </tasklet>
                 </step>
-                <split id="purlConsumers" task-executor="taskExecutor">
-                    <flow>
-                        <step id="extractOssIndex">
-                            <tasklet>
-                                <chunk commit-interval="2" retry-limit="3">
-                                    <reader>
-                                        <beans:bean id="extractOssIndexReader"
-                                                    class="org.opensourceway.sbom.batch.reader.vul.ExternalPurlRefListReader"
-                                                    scope="step">
-                                            <beans:constructor-arg ref="ossIndexServiceImpl"/>
-                                        </beans:bean>
-                                    </reader>
-                                    <processor>
-                                        <beans:bean id="extractOssIndexProcessor"
-                                                    class="org.opensourceway.sbom.batch.processor.vul.ExtractOssIndexProcessor"
-                                                    scope="step">
-                                        </beans:bean>
-                                    </processor>
-                                    <writer>
-                                        <beans:bean id="extractOssIndexWriter"
-                                                    class="org.opensourceway.sbom.batch.writer.vul.ExternalPurlRefListWriter"
-                                                    scope="step">
-                                            <beans:constructor-arg ref="ossIndexServiceImpl"/>
-                                        </beans:bean>
-                                    </writer>
-                                    <retryable-exception-classes>
-                                        <include class="java.lang.Exception"/>
-                                    </retryable-exception-classes>
-                                </chunk>
-                            </tasklet>
-                        </step>
-                    </flow>
-                    <flow>
-                        <step id="extractCveManger">
-                            <tasklet>
-                                <chunk commit-interval="2" retry-limit="3">
-                                    <!-- retry-limit: 1(first execution) + 2(twice retry) = 3-->
-                                    <reader>
-                                        <beans:bean id="extractCveManagerReader"
-                                                    class="org.opensourceway.sbom.batch.reader.vul.ExternalPurlRefListReader"
-                                                    scope="step">
-                                            <beans:constructor-arg ref="cveManagerServiceImpl"/>
-                                        </beans:bean>
-                                    </reader>
-                                    <processor>
-                                        <beans:bean id="extractCveManagerProcessor"
-                                                    class="org.opensourceway.sbom.batch.processor.vul.ExtractCveManagerProcessor"
-                                                    scope="step">
-                                        </beans:bean>
-                                    </processor>
-                                    <writer>
-                                        <beans:bean id="extractCveManagerWriter"
-                                                    class="org.opensourceway.sbom.batch.writer.vul.ExternalPurlRefListWriter"
-                                                    scope="step">
-                                            <beans:constructor-arg ref="cveManagerServiceImpl"/>
-                                        </beans:bean>
-                                    </writer>
-                                    <retryable-exception-classes>
-                                        <include class="java.lang.Exception"/>
-                                    </retryable-exception-classes>
-                                </chunk>
-                            </tasklet>
-                        </step>
-                    </flow>
-                </split>
+                <step id="extractUvp" parent="resolveMavenDepTask">
+                    <tasklet>
+                        <chunk commit-interval="2" retry-limit="3">
+                            <reader>
+                                <beans:bean id="extractUvpReader"
+                                            class="org.opensourceway.sbom.batch.reader.vul.ExternalPurlRefListReader"
+                                            scope="step">
+                                    <beans:constructor-arg ref="uvpServiceImpl"/>
+                                </beans:bean>
+                            </reader>
+                            <processor>
+                                <beans:bean id="extractUvpProcessor"
+                                            class="org.opensourceway.sbom.batch.processor.vul.ExtractUvpProcessor"
+                                            scope="step">
+                                </beans:bean>
+                            </processor>
+                            <writer>
+                                <beans:bean id="extractUvpWriter"
+                                            class="org.opensourceway.sbom.batch.writer.vul.ExternalPurlRefListWriter"
+                                            scope="step">
+                                    <beans:constructor-arg ref="uvpServiceImpl"/>
+                                </beans:bean>
+                            </writer>
+                            <retryable-exception-classes>
+                                <include class="java.lang.Exception"/>
+                            </retryable-exception-classes>
+                        </chunk>
+                    </tasklet>
+                </step>
             </flow>
         </split>
 

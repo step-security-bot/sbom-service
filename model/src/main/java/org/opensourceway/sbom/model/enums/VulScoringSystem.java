@@ -3,9 +3,9 @@ package org.opensourceway.sbom.model.enums;
 import org.apache.commons.lang3.StringUtils;
 
 public enum VulScoringSystem {
-    CVSS2,
+    CVSS_V2,
 
-    CVSS3;
+    CVSS_V3;
 
     public static VulScoringSystem findVulScoringSystemByName(String scoringSystem) {
         for (VulScoringSystem vulScoringSystem : VulScoringSystem.values()) {

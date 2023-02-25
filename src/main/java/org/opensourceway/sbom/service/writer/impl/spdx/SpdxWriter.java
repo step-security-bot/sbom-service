@@ -5,7 +5,6 @@ import org.opensourceway.sbom.dao.SbomRepository;
 import org.opensourceway.sbom.model.constants.SbomConstants;
 import org.opensourceway.sbom.model.entity.Checksum;
 import org.opensourceway.sbom.model.entity.ExternalPurlRef;
-import org.opensourceway.sbom.model.entity.ExternalVulRef;
 import org.opensourceway.sbom.model.entity.File;
 import org.opensourceway.sbom.model.entity.Package;
 import org.opensourceway.sbom.model.entity.PkgVerfCode;
@@ -113,8 +112,6 @@ public class SpdxWriter implements SbomWriter {
     private void setExternalRefs(Package pkg, SpdxPackage spdxPackage) {
         List<SpdxExternalReference> spdxExternalReferences = new ArrayList<>(
                 pkg.getExternalPurlRefs().stream().map(this::transformExternalPurlRef).collect(Collectors.toSet()).stream().toList());
-        spdxExternalReferences.addAll(pkg.getExternalVulRefs().stream()
-                .map(this::transformExternalVulRef).collect(Collectors.toSet()).stream().toList());
         spdxPackage.setExternalRefs(spdxExternalReferences);
     }
 
@@ -129,15 +126,6 @@ public class SpdxWriter implements SbomWriter {
             return new SpdxExternalReference(ref.getComment(), ReferenceCategory.valueOf(ref.getCategory()),
                     ReferenceType.findReferenceType(ref.getType()), PurlUtil.canonicalizePurl(ref.getPurl()));
         }
-    }
-
-    private SpdxExternalReference transformExternalVulRef(ExternalVulRef ref) {
-        if (Objects.isNull(ref)) {
-            return null;
-        }
-
-        return new SpdxExternalReference(ref.getComment(), ReferenceCategory.valueOf(ref.getCategory()),
-                ReferenceType.findReferenceType(ref.getType()), ref.getVulnerability().getVulId());
     }
 
     private SpdxPackageVerificationCode transformPkgVerfCode(PkgVerfCode pkgVerfCode) {

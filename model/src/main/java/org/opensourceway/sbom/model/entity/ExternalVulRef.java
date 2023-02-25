@@ -43,18 +43,6 @@ public class ExternalVulRef {
     private String category;
 
     /**
-     * Type of the external reference, may be 'cve', etc.
-     */
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String type;
-
-    /**
-     * Status of a vulnerability in a package.
-     */
-    @Column(columnDefinition = "TEXT")
-    private String status;
-
-    /**
      * Human-readable information about the purpose and target of the reference.
      */
     @Column(columnDefinition = "TEXT")
@@ -99,21 +87,21 @@ public class ExternalVulRef {
         this.category = category;
     }
 
-    public String getType() {
-        return type;
-    }
+//    public String getType() {
+//        return type;
+//    }
+//
+//    public void setType(String type) {
+//        this.type = type;
+//    }
 
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
+//    public String getStatus() {
+//        return status;
+//    }
+//
+//    public void setStatus(String status) {
+//        this.status = status;
+//    }
 
     public String getComment() {
         return comment;

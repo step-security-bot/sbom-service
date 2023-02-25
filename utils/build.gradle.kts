@@ -1,6 +1,7 @@
 val commonsLang3Version: String by project
 val commonsCompressVersion: String by project
 val packageUrlJavaVersion: String by project
+val cvssCalculatorVersion: String by project
 
 dependencies {
     implementation(project(":model"))
@@ -17,6 +18,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.yaml:snakeyaml")
+    implementation("us.springett:cvss-calculator:$cvssCalculatorVersion")
 
     api("com.google.guava:guava:31.1-jre")
 }

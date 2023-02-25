@@ -2,16 +2,12 @@ package org.opensourceway.sbom.model.pojo.vo.sbom;
 
 import org.opensourceway.sbom.model.entity.ExternalVulRef;
 import org.opensourceway.sbom.model.entity.Package;
-import org.opensourceway.sbom.model.entity.Vulnerability;
 import org.opensourceway.sbom.model.enums.CvssSeverity;
-import org.opensourceway.sbom.model.enums.VulSource;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class PackageStatisticsVo implements Serializable {
 
@@ -86,9 +82,9 @@ public class PackageStatisticsVo implements Serializable {
             vo.setNoneVulCount(statistics.getNoneVulCount());
             vo.setUnknownVulCount(statistics.getUnknownVulCount());
         } else {
-            Map<CvssSeverity, Long> vulSeverityVulCountMap = dedupVulnerability(pkg.getExternalVulRefs().stream()
+            Map<CvssSeverity, Long> vulSeverityVulCountMap = pkg.getExternalVulRefs().stream()
                     .map(ExternalVulRef::getVulnerability)
-                    .distinct())
+                    .distinct()
                     .collect(Collectors.groupingBy(CvssSeverity::calculateVulCvssSeverity, Collectors.counting()));
             vo.setCriticalVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.CRITICAL, 0L));
             vo.setHighVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.HIGH, 0L));
@@ -100,17 +96,4 @@ public class PackageStatisticsVo implements Serializable {
         return vo;
     }
 
-    private static Stream<Vulnerability> dedupVulnerability(Stream<Vulnerability> vulnerabilityStream) {
-        var sourceToVul = vulnerabilityStream.collect(Collectors.groupingBy(Vulnerability::getSource, Collectors.toList()));
-        var ossIndexVuls = sourceToVul.getOrDefault(VulSource.OSS_INDEX.name(), new ArrayList<>());
-        var cveManagerVuls = sourceToVul.getOrDefault(VulSource.CVE_MANAGER.name(), new ArrayList<>());
-        var ossIndexVulIds = ossIndexVuls.stream().map(Vulnerability::getVulId).toList();
-        var cveManagerDupVuls = cveManagerVuls.stream()
-                .filter(vul -> ossIndexVulIds.contains(vul.getVulId()))
-                .toList();
-        ossIndexVuls.addAll(cveManagerVuls);
-        ossIndexVuls.removeAll(cveManagerDupVuls);
-        return ossIndexVuls.stream();
-
-    }
 }

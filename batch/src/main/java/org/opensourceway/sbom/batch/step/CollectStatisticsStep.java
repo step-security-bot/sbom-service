@@ -15,9 +15,7 @@ import org.opensourceway.sbom.model.entity.Product;
 import org.opensourceway.sbom.model.entity.ProductStatistics;
 import org.opensourceway.sbom.model.entity.Sbom;
 import org.opensourceway.sbom.model.entity.SbomElementRelationship;
-import org.opensourceway.sbom.model.entity.Vulnerability;
 import org.opensourceway.sbom.model.enums.CvssSeverity;
-import org.opensourceway.sbom.model.enums.VulSource;
 import org.opensourceway.sbom.model.spdx.ReferenceCategory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +35,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class CollectStatisticsStep implements Tasklet {
     private static final Logger logger = LoggerFactory.getLogger(CollectStatisticsStep.class);
@@ -90,18 +86,18 @@ public class CollectStatisticsStep implements Tasklet {
     }
 
     private void collectVulStatistics(ProductStatistics statistics, Sbom sbom) {
-        statistics.setVulCount(dedupVulnerability(sbom.getPackages().stream()
+        statistics.setVulCount(sbom.getPackages().stream()
                 .map(Package::getExternalVulRefs)
                 .flatMap(List::stream)
                 .map(ExternalVulRef::getVulnerability)
-                .distinct())
+                .distinct()
                 .count());
 
-        Map<CvssSeverity, Long> vulSeverityVulCountMap = dedupVulnerability(sbom.getPackages().stream()
+        Map<CvssSeverity, Long> vulSeverityVulCountMap = sbom.getPackages().stream()
                 .map(Package::getExternalVulRefs)
                 .flatMap(List::stream)
                 .map(ExternalVulRef::getVulnerability)
-                .distinct())
+                .distinct()
                 .collect(Collectors.groupingBy(CvssSeverity::calculateVulCvssSeverity, Collectors.counting()));
         statistics.setCriticalVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.CRITICAL, 0L));
         statistics.setHighVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.HIGH, 0L));
@@ -121,27 +117,13 @@ public class CollectStatisticsStep implements Tasklet {
         statistics.setPackageWithoutVulCount(vulSeverityPackageCountMap.getOrDefault(CvssSeverity.NA, 0L));
     }
 
-    private Stream<Vulnerability> dedupVulnerability(Stream<Vulnerability> vulnerabilityStream) {
-        var sourceToVul = vulnerabilityStream.collect(Collectors.groupingBy(Vulnerability::getSource, Collectors.toList()));
-        var ossIndexVuls = sourceToVul.getOrDefault(VulSource.OSS_INDEX.name(), new ArrayList<>());
-        var cveManagerVuls = sourceToVul.getOrDefault(VulSource.CVE_MANAGER.name(), new ArrayList<>());
-        var ossIndexVulIds = ossIndexVuls.stream().map(Vulnerability::getVulId).toList();
-        var cveManagerDupVuls = cveManagerVuls.stream()
-                .filter(vul -> ossIndexVulIds.contains(vul.getVulId()))
-                .toList();
-        ossIndexVuls.addAll(cveManagerVuls);
-        ossIndexVuls.removeAll(cveManagerDupVuls);
-        return ossIndexVuls.stream();
-
-    }
-
     private CvssSeverity calculatePackageMostSevereCvssSeverity(List<ExternalVulRef> externalVulRefs) {
         if (ObjectUtils.isEmpty(externalVulRefs)) {
             return CvssSeverity.NA;
         }
-        return dedupVulnerability(externalVulRefs.stream()
+        return externalVulRefs.stream()
                 .map(ExternalVulRef::getVulnerability)
-                .distinct())
+                .distinct()
                 .map(CvssSeverity::calculateVulCvssSeverity)
                 .max((Comparator.comparing(CvssSeverity::getSeverity)))
                 .orElse(CvssSeverity.UNKNOWN);
@@ -203,14 +185,14 @@ public class CollectStatisticsStep implements Tasklet {
     }
 
     private void collectPackageVulStatistics(PackageStatistics statistics, Package pkg) {
-        statistics.setVulCount(dedupVulnerability(pkg.getExternalVulRefs().stream()
+        statistics.setVulCount(pkg.getExternalVulRefs().stream()
                 .map(ExternalVulRef::getVulnerability)
-                .distinct())
+                .distinct()
                 .count());
 
-        Map<CvssSeverity, Long> vulSeverityVulCountMap = dedupVulnerability(pkg.getExternalVulRefs().stream()
+        Map<CvssSeverity, Long> vulSeverityVulCountMap = pkg.getExternalVulRefs().stream()
                 .map(ExternalVulRef::getVulnerability)
-                .distinct())
+                .distinct()
                 .collect(Collectors.groupingBy(CvssSeverity::calculateVulCvssSeverity, Collectors.counting()));
         statistics.setCriticalVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.CRITICAL, 0L));
         statistics.setHighVulCount(vulSeverityVulCountMap.getOrDefault(CvssSeverity.HIGH, 0L));

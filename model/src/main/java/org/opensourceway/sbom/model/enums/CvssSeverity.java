@@ -61,7 +61,7 @@ public enum CvssSeverity {
     }
 
     public static CvssSeverity calculateCvssSeverity(VulScoringSystem vulScoringSystem, Double score) {
-        if (VulScoringSystem.CVSS2.equals(vulScoringSystem)) {
+        if (VulScoringSystem.CVSS_V2.equals(vulScoringSystem)) {
             for (CvssSeverity severity : CvssSeverity.values()) {
                 if (Objects.isNull(severity.getCvss2LowerBound())) {
                     continue;
@@ -70,7 +70,7 @@ public enum CvssSeverity {
                     return severity;
                 }
             }
-        } else if (VulScoringSystem.CVSS3.equals(vulScoringSystem)) {
+        } else if (VulScoringSystem.CVSS_V3.equals(vulScoringSystem)) {
             for (CvssSeverity severity : CvssSeverity.values()) {
                 if (Objects.isNull(severity.getCvss3LowerBound())) {
                     continue;
@@ -93,11 +93,11 @@ public enum CvssSeverity {
             cvssSeverity = CvssSeverity.valueOf(scores.get(0).getSeverity());
         } else if (scores.size() > 1) {
             VulScore cvss3 = scores.stream()
-                    .filter(score -> StringUtils.equals(score.getScoringSystem(), VulScoringSystem.CVSS3.name()))
+                    .filter(score -> StringUtils.equals(score.getScoringSystem(), VulScoringSystem.CVSS_V3.name()))
                     .findFirst()
                     .orElse(null);
             VulScore cvss2 = scores.stream()
-                    .filter(score -> StringUtils.equals(score.getScoringSystem(), VulScoringSystem.CVSS2.name()))
+                    .filter(score -> StringUtils.equals(score.getScoringSystem(), VulScoringSystem.CVSS_V2.name()))
                     .findFirst()
                     .orElse(null);
 

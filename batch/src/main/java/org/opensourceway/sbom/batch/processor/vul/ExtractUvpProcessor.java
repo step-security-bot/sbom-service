@@ -21,35 +21,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public class ExtractCveManagerProcessor implements ItemProcessor<List<ExternalPurlRef>, Set<Pair<ExternalPurlRef, Object>>>, StepExecutionListener {
-
-    private static final Logger logger = LoggerFactory.getLogger(ExtractCveManagerProcessor.class);
+public class ExtractUvpProcessor implements ItemProcessor<List<ExternalPurlRef>, Set<Pair<ExternalPurlRef, Object>>>, StepExecutionListener {
+    private static final Logger logger = LoggerFactory.getLogger(ExtractUvpProcessor.class);
 
     private StepExecution stepExecution;
 
     private ExecutionContext jobContext;
 
     @Autowired
-    @Qualifier("cveManagerServiceImpl")
-    VulService cveManagerService;
-
-    @Nullable
-    @Override
-    public Set<Pair<ExternalPurlRef, Object>> process(List<ExternalPurlRef> chunk) {
-        UUID sbomId = this.jobContext.containsKey(BatchContextConstants.BATCH_SBOM_ID_KEY) ?
-                (UUID) this.jobContext.get(BatchContextConstants.BATCH_SBOM_ID_KEY) : null;
-        logger.info("start ExtractCveManagerProcessor sbomId:{}, chunk size:{}, first item id:{}",
-                sbomId,
-                chunk.size(),
-                CollectionUtils.isEmpty(chunk) ? "" : chunk.get(0).getId().toString());
-
-        String productType = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_TYPE_KEY);
-        Set<Pair<ExternalPurlRef, Object>> resultSet = cveManagerService.extractVulForPurlRefChunk(sbomId, chunk, productType);
-
-        logger.info("finish ExtractCveManagerProcessor sbomId:{}, resultSet size:{}", sbomId, resultSet.size());
-        return resultSet;
-    }
-
+    @Qualifier("uvpServiceImpl")
+    private VulService uvpService;
 
     @Override
     public void beforeStep(@NotNull StepExecution stepExecution) {
@@ -57,8 +38,26 @@ public class ExtractCveManagerProcessor implements ItemProcessor<List<ExternalPu
         this.jobContext = this.stepExecution.getJobExecution().getExecutionContext();
     }
 
+    @Nullable
+    @Override
+    public Set<Pair<ExternalPurlRef, Object>> process(List<ExternalPurlRef> chunk) {
+        UUID sbomId = this.jobContext.containsKey(BatchContextConstants.BATCH_SBOM_ID_KEY) ?
+                (UUID) this.jobContext.get(BatchContextConstants.BATCH_SBOM_ID_KEY) : null;
+        logger.info("start ExtractUvpProcessor sbomId:{}, chunk size:{}, first item id:{}",
+                sbomId,
+                chunk.size(),
+                CollectionUtils.isEmpty(chunk) ? "" : chunk.get(0).getId().toString());
+
+        String productType = jobContext.getString(BatchContextConstants.BATCH_SBOM_PRODUCT_TYPE_KEY);
+        Set<Pair<ExternalPurlRef, Object>> resultSet = uvpService.extractVulForPurlRefChunk(sbomId, chunk, productType);
+
+        logger.info("finish ExtractUvpProcessor sbomId:{}, resultSet size:{}", sbomId, resultSet.size());
+        return resultSet;
+    }
+
     @Override
     public ExitStatus afterStep(@NotNull StepExecution stepExecution) {
         return null;
     }
+
 }
