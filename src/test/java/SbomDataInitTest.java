@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.opensourceway.sbom.SbomManagerApplication;
 import org.opensourceway.sbom.TestConstants;
+import org.opensourceway.sbom.clients.vul.UvpClientImpl;
 import org.opensourceway.sbom.dao.ExternalPurlRefRepository;
 import org.opensourceway.sbom.dao.ExternalVulRefRepository;
 import org.opensourceway.sbom.dao.FileRepository;
@@ -35,10 +36,13 @@ import org.opensourceway.sbom.model.enums.CvssSeverity;
 import org.opensourceway.sbom.model.enums.SbomFileType;
 import org.opensourceway.sbom.model.enums.VulRefSource;
 import org.opensourceway.sbom.model.enums.VulScoringSystem;
+import org.opensourceway.sbom.model.pojo.response.vul.uvp.UvpVulnerability;
+import org.opensourceway.sbom.model.pojo.response.vul.uvp.UvpVulnerabilityReport;
 import org.opensourceway.sbom.model.pojo.vo.sbom.PackageUrlVo;
 import org.opensourceway.sbom.model.spdx.ReferenceCategory;
 import org.opensourceway.sbom.model.spdx.ReferenceType;
 import org.opensourceway.sbom.model.spdx.RelationshipType;
+import org.opensourceway.sbom.service.vul.impl.UvpServiceImpl;
 import org.opensourceway.sbom.utils.PurlUtil;
 import org.opensourceway.sbom.utils.SbomApplicationContextHolder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +54,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -107,6 +112,38 @@ public class SbomDataInitTest {
     @Autowired
     private SbomElementRelationshipRepository elementRelationshipRepository;
 
+    @Autowired
+    private UvpServiceImpl uvpService;
+
+    @Autowired
+    private UvpClientImpl uvpClientImpl;
+
+    @Test
+    public void test() {
+        List<String> externalPurls = List.of(
+                "pkg:maven/org.apache.logging.log4j/log4j-core",
+                "pkg:golang/github.com/microcosm-cc/bluemonday",
+                "pkg:golang/go.etcd.io/etcd",
+                "pkg:rpm/fedora/networkmanager@0.7.2");
+
+        UvpVulnerabilityReport[] response = uvpClientImpl.getComponentReport(externalPurls).block();
+        assert response != null;
+        assertThat(Arrays.stream(response).count()).isEqualTo(4);
+        UvpVulnerabilityReport uvpVulnerabilityReport = response[0];
+        assertThat(uvpVulnerabilityReport.getUvpVulnerabilities().size()).isEqualTo(7);
+
+        UvpVulnerability uvpVulnerability = uvpVulnerabilityReport.getUvpVulnerabilities().stream().filter(vul -> vul.getId().equals("GHSA-jfh8-c2jp-5v3q")).findFirst().orElse(null);
+        assert uvpVulnerability != null;
+        assertThat(uvpVulnerability.getId()).isEqualTo("GHSA-jfh8-c2jp-5v3q");
+        assertThat(uvpVulnerability.getSummary()).isEqualTo("Remote code injection in Log4j");
+        assertThat(uvpVulnerability.getSeverities().size()).isEqualTo(1);
+        assertThat(uvpVulnerability.getSeverities().get(0).getType()).isEqualTo("CVSS_V3");
+        assertThat(uvpVulnerability.getSeverities().get(0).getScore()).isEqualTo("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H");
+        assertThat(uvpVulnerability.getReferences().size()).isEqualTo(62);
+        assertThat(uvpVulnerability.getReferences().get(0).getType()).isEqualTo("ADVISORY");
+        assertThat(uvpVulnerability.getReferences().get(0).getUrl()).isEqualTo("https://nvd.nist.gov/vuln/detail/CVE-2021-44228");
+    }
+
     @Test
     @Order(1)
     public void uploadSbomFile() throws Exception {
@@ -126,22 +163,20 @@ public class SbomDataInitTest {
     @Test
     @Order(2)
     public void insertVulnerability() {
-        Vulnerability vul_1 = insertVulnerability("CVE-2022-00000-test", "CVE_MANAGER");
-        insertVulScore(vul_1, VulScoringSystem.CVSS3.name(), 5.3, "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N");
 
-        Vulnerability vul_2 = insertVulnerability("CVE-2022-00001-test", "CVE_MANAGER");
-        insertVulScore(vul_2, VulScoringSystem.CVSS2.name(), 9.8, "(AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H)");
+        Vulnerability vul_2 = insertVulnerability("CVE-2022-00001-test");
+        insertVulScore(vul_2, VulScoringSystem.CVSS_V2.name(), 9.8, "(AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H)");
         insertVulRef(vul_2, VulRefSource.NVD.name(), "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00001-test");
 
-        Vulnerability vul_3 = insertVulnerability("CVE-2022-00000-test", "OSS_INDEX");
-        insertVulScore(vul_3, VulScoringSystem.CVSS3.name(), 5.3, "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N");
-        insertVulScore(vul_3, VulScoringSystem.CVSS2.name(), 7.5, "AV:N/AC:L/Au:N/C:P/I:P/A:P");
-        insertVulRef(vul_3, VulRefSource.NVD.name(), "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00000-test");
-        insertVulRef(vul_3, VulRefSource.OSS_INDEX.name(), "https://ossindex.sonatype.org/vulnerability/sonatype-2022-00000-test");
+        Vulnerability vul_1 = insertVulnerability("CVE-2022-00000-test");
+        insertVulScore(vul_1, VulScoringSystem.CVSS_V3.name(), 5.3, "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N");
+        insertVulScore(vul_1, VulScoringSystem.CVSS_V2.name(), 7.5, "AV:N/AC:L/Au:N/C:P/I:P/A:P");
+        insertVulRef(vul_1, VulRefSource.NVD.name(), "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00000-test");
+        insertVulRef(vul_1, VulRefSource.OSS_INDEX.name(), "https://ossindex.sonatype.org/vulnerability/sonatype-2022-00000-test");
 
-        Vulnerability vul_4 = insertVulnerability("CVE-2022-00002-test", "OSS_INDEX");
-        insertVulRef(vul_4, VulRefSource.NVD.name(), "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00002-test");
-        insertVulRef(vul_4, VulRefSource.GITHUB.name(), "https://github.com/xxx/xxx/security/advisories/xxx");
+        Vulnerability vul_3 = insertVulnerability("CVE-2022-00002-test");
+        insertVulRef(vul_3, VulRefSource.NVD.name(), "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00002-test");
+        insertVulRef(vul_3, VulRefSource.GITHUB.name(), "https://github.com/xxx/xxx/security/advisories/xxx");
 
         Sbom sbom = sbomRepository.findByProductName(TestConstants.SAMPLE_PRODUCT_NAME).orElse(null);
         assertThat(sbom).isNotNull();
@@ -153,20 +188,17 @@ public class SbomDataInitTest {
         insertExternalVulRef(pkg, vul_1, "pkg:pypi/asttokens@2.0.5");
         insertExternalVulRef(pkg, vul_2, "pkg:pypi/asttokens@2.0.5");
         insertExternalVulRef(pkg, vul_3, "pkg:pypi/asttokens@2.0.5");
-        insertExternalVulRef(pkg, vul_4, "pkg:pypi/asttokens@2.0.5");
     }
 
-    private Vulnerability insertVulnerability(String vulId, String source) {
+    private Vulnerability insertVulnerability(String vulId) {
         Vulnerability existVulnerability = vulnerabilityRepository
-                .findByVulIdAndSource(vulId, source).orElse(null);
+                .findByVulId(vulId).orElse(null);
         if (Objects.nonNull(existVulnerability)) {
             vulnerabilityRepository.delete(existVulnerability);
         }
 
         Vulnerability vulnerability = new Vulnerability();
         vulnerability.setVulId(vulId);
-        vulnerability.setType("cve");
-        vulnerability.setSource(source);
         return vulnerabilityRepository.save(vulnerability);
     }
 
@@ -193,7 +225,6 @@ public class SbomDataInitTest {
         externalVulRef.setPkg(pkg);
         externalVulRef.setVulnerability(vul);
         externalVulRef.setCategory("SECURITY");
-        externalVulRef.setType("cve");
         externalVulRef.setPurl(PurlUtil.strToPackageUrlVo(purl));
         externalVulRefRepository.save(externalVulRef);
     }

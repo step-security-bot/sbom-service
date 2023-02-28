@@ -599,7 +599,7 @@ class SbomServiceTest {
 
     private void assertVulWithMediumSeverity(VulnerabilityVo vo, String expectedPurl) {
         assertThat(vo.getVulId()).isEqualTo("CVE-2022-00000-test");
-        assertThat(vo.getScoringSystem()).isEqualTo("CVSS3");
+        assertThat(vo.getScoringSystem()).isEqualTo("CVSS_V3");
         assertThat(vo.getScore()).isEqualTo(5.3);
         assertThat(vo.getVector()).isEqualTo("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N");
         assertThat(vo.getSeverity()).isEqualTo(CvssSeverity.MEDIUM.name());
@@ -621,7 +621,7 @@ class SbomServiceTest {
 
     private void assertVulWithHighSeverity(VulnerabilityVo vo, String expectedPurl) {
         assertThat(vo.getVulId()).isEqualTo("CVE-2022-00001-test");
-        assertThat(vo.getScoringSystem()).isEqualTo("CVSS2");
+        assertThat(vo.getScoringSystem()).isEqualTo("CVSS_V2");
         assertThat(vo.getScore()).isEqualTo(9.8);
         assertThat(vo.getVector()).isEqualTo("(AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H)");
         assertThat(vo.getSeverity()).isEqualTo(CvssSeverity.HIGH.name());

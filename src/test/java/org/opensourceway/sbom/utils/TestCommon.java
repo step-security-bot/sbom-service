@@ -9,9 +9,6 @@ import org.opensourceway.sbom.model.cyclonedx.Dependency;
 import org.opensourceway.sbom.model.cyclonedx.ExternalReference;
 import org.opensourceway.sbom.model.cyclonedx.ExternalReferenceType;
 import org.opensourceway.sbom.model.cyclonedx.Property;
-import org.opensourceway.sbom.model.cyclonedx.Vulnerability;
-import org.opensourceway.sbom.model.cyclonedx.VulnerabilityMethod;
-import org.opensourceway.sbom.model.cyclonedx.VulnerabilitySeverity;
 import org.opensourceway.sbom.model.entity.Product;
 import org.opensourceway.sbom.model.entity.RawSbom;
 import org.opensourceway.sbom.model.enums.SbomContentType;
@@ -114,22 +111,6 @@ public class TestCommon {
         Dependency dependency = dependencyOptional.get();
         assertThat(dependency.getDependsOn().size()).isEqualTo(1);
         assertThat(dependency.getDependsOn().get(0)).isEqualTo("SPDXRef-Package-PyPI-six-1.16.0");
-
-        List<Vulnerability> vulnerabilities = cycloneDXDocument.getVulnerabilities();
-        assertThat(vulnerabilities.size()).isEqualTo(4);
-        Optional<Vulnerability> vulnerabilityOptional = vulnerabilities.stream().filter(vlnerability ->
-                vlnerability.getId().equals("CVE-2022-00001-test")).findFirst();
-        assertThat(vulnerabilityOptional.isPresent()).isTrue();
-        Vulnerability vulnerability = vulnerabilityOptional.get();
-        assertThat(vulnerability.getAffects().size()).isEqualTo(1);
-        assertThat(vulnerability.getAffects().get(0).getRef()).isEqualTo("SPDXRef-Package-PyPI-asttokens-2.0.5");
-        assertThat(vulnerability.getSource().getName()).isEqualTo("NVD");
-        assertThat(vulnerability.getSource().getUrl()).isEqualTo("http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-00001-test");
-        assertThat(vulnerability.getRatings().size()).isEqualTo(1);
-        assertThat(vulnerability.getRatings().get(0).getMethod()).isEqualTo(VulnerabilityMethod.CVSS2);
-        assertThat(vulnerability.getRatings().get(0).getScore()).isEqualTo("9.8");
-        assertThat(vulnerability.getRatings().get(0).getSeverity()).isEqualTo(VulnerabilitySeverity.HIGH);
-        assertThat(vulnerability.getRatings().get(0).getVector()).isEqualTo("(AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H)");
 
     }
 

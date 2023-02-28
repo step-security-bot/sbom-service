@@ -132,7 +132,7 @@ class SpdxReaderTest {
         if (sbom == null) {
             return;
         }
-        Vulnerability vulnerability = vulnerabilityRepository.findByVulIdAndSource("cve-2022-00000", "CVE_MANAGER").orElse(null);
+        Vulnerability vulnerability = vulnerabilityRepository.findByVulId("cve-2022-00000").orElse(null);
 
         long sbomCreatorSize = sbomCreatorRepository.count();
         long sbomElementRelationshipSize = sbomElementRelationshipRepository.count();
@@ -163,10 +163,8 @@ class SpdxReaderTest {
 
     private void functionBody() throws IOException {
         Vulnerability vulnerability = vulnerabilityRepository
-                .findByVulIdAndSource("cve-2022-00000", "CVE_MANAGER").orElse(new Vulnerability());
+                .findByVulId("cve-2022-00000").orElse(new Vulnerability());
         vulnerability.setVulId("cve-2022-00000");
-        vulnerability.setType("cve");
-        vulnerability.setSource("CVE_MANAGER");
         vulnerabilityRepository.save(vulnerability);
 
         spdxReader.read(PRODUCT_NAME, new ClassPathResource(TestConstants.SAMPLE_UPLOAD_FILE_NAME).getFile());
