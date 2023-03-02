@@ -22,9 +22,6 @@ public class RepoMetaUtil {
         if (StringUtils.equalsIgnoreCase(productType, SbomConstants.PRODUCT_OPENEULER_NAME)) {
             return repoMetaRepository.queryRepoMetaByPackageName(productType, productVersion, pkgName)
                     .stream().findFirst();
-        } else if (StringUtils.equalsIgnoreCase(productType, SbomConstants.PRODUCT_OPENHARMONY_NAME)) {
-            String productName = product.getName();
-            return repoMetaRepository.findByProductNameAndPackageName(productName, pkgName);
         }
         return Optional.empty();
     }
@@ -33,8 +30,6 @@ public class RepoMetaUtil {
         if (StringUtils.equalsIgnoreCase(productType, SbomConstants.PRODUCT_OPENEULER_NAME)) {
             return repoMetaRepository.queryRepoMetaByPackageName(productType, productVersion, pkgName)
                     .stream().findFirst();
-        } else if (StringUtils.equalsIgnoreCase(productType, SbomConstants.PRODUCT_OPENHARMONY_NAME)) {
-            return repoMetaRepository.findByProductNameAndPackageName(productName, pkgName);
         }
         return Optional.empty();
     }

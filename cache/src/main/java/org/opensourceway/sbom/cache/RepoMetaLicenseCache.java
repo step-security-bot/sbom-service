@@ -11,6 +11,7 @@ import org.opensourceway.sbom.model.entity.Product;
 import org.opensourceway.sbom.model.entity.RepoMeta;
 import org.opensourceway.sbom.model.pojo.vo.license.LicenseInfoVo;
 import org.opensourceway.sbom.model.pojo.vo.sbom.PackageUrlVo;
+import org.opensourceway.sbom.utils.RepoMetaUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,8 @@ public class RepoMetaLicenseCache {
     @Autowired
     private RepoMetaRepository repoMetaRepository;
 
+    @Autowired
+    private RepoMetaUtil repoMetaUtil;
 
     @Bean
     public CacheProperties repoMetaLicenseCacheProperties() {
@@ -56,7 +59,7 @@ public class RepoMetaLicenseCache {
     @Cacheable(value = {CacheConstants.REPO_META_LICENSE_CACHE_NAME}, key = CacheConstants.REPO_META_LICENSE_CACHE_KEY_PATTERN)
     public RepoMeta getRepoMeta(PackageUrlVo packageUrlVo, Product product, String repo, String branch) {
 
-        Optional<RepoMeta> repoMetaOptional = repoMetaRepository.findByProductTypeAndRepoNameAndBranch(product.getProductType(), repo, branch);
+        Optional<RepoMeta> repoMetaOptional = repoMetaUtil.getRepoMeta(product, packageUrlVo.getName());
         if (repoMetaOptional.isEmpty()) {
             return null;
         }

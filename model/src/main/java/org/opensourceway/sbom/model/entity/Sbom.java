@@ -43,7 +43,7 @@ public class Sbom {
     /**
      * Name of a sbom document.
      */
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "TEXT")
     private String name;
 
     /**

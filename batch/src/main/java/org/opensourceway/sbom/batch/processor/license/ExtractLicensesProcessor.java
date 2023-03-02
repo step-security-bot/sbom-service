@@ -113,7 +113,7 @@ public class ExtractLicensesProcessor implements ItemProcessor<List<ExternalPurl
         logger.info("Start to extract License for sbom {}, chunk size:{}", sbomId, externalPurlChunk.size());
         Set<Pair<ExternalPurlRef, LicenseInfoVo>> resultSet;
         Product product = productRepository.findBySbomId(sbomId);
-        if (SbomConstants.PRODUCT_OPENEULER_NAME.equals(product.getProductType()) || SbomConstants.PRODUCT_OPENHARMONY_NAME.equals(product.getProductType())) {
+        if (SbomConstants.PRODUCT_OPENEULER_NAME.equals(product.getProductType())) {
             resultSet = extractLicenseWithRepoMeta(sbomId, externalPurlChunk, product);
         } else {
             resultSet = extractLicenseWithoutRepoMeta(sbomId, externalPurlChunk, product);
