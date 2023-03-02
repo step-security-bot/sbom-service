@@ -143,6 +143,7 @@ public class UvpServiceImpl extends AbstractVulService {
         List<VulReference> vulReferences = persistVulReferences(vulnerability, uvpVulnerability);
         vulnerability.setAliases(uvpVulnerability.getAliases());
         vulnerability.setVulReferences(vulReferences);
+        vulnerability.setDescription(uvpVulnerability.getDetails());
         List<VulScore> vulScores = persistVulScores(vulnerability, uvpVulnerability);
         vulnerability.setVulScores(vulScores);
         return vulnerability;
