@@ -876,10 +876,12 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.content.[0].licenseName").value("License for test"))
                 .andExpect(jsonPath("$.content.[0].licenseUrl").value("https://xxx/licenses/License-test"))
                 .andExpect(jsonPath("$.content.[0].legal").value(false))
+                .andExpect(jsonPath("$.content.[0].count").value(1))
                 .andExpect(jsonPath("$.content.[1].licenseId").value("License-test1"))
                 .andExpect(jsonPath("$.content.[1].licenseName").value("License for test"))
                 .andExpect(jsonPath("$.content.[1].licenseUrl").value("https://xxx/licenses/License-test"))
-                .andExpect(jsonPath("$.content.[1].legal").value(true));
+                .andExpect(jsonPath("$.content.[1].legal").value(true))
+                .andExpect(jsonPath("$.content.[1].count").value(2));
 
         this.mockMvc
                 .perform(get("/sbom-api/queryLicenseUniversalApi/")
@@ -895,10 +897,12 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.content.[0].licenseName").value("License for test"))
                 .andExpect(jsonPath("$.content.[0].licenseUrl").value("https://xxx/licenses/License-test"))
                 .andExpect(jsonPath("$.content.[0].legal").value(true))
+                .andExpect(jsonPath("$.content.[0].count").value(2))
                 .andExpect(jsonPath("$.content.[1].licenseId").value("License-test"))
                 .andExpect(jsonPath("$.content.[1].licenseName").value("License for test"))
                 .andExpect(jsonPath("$.content.[1].licenseUrl").value("https://xxx/licenses/License-test"))
-                .andExpect(jsonPath("$.content.[1].legal").value(false));
+                .andExpect(jsonPath("$.content.[1].legal").value(false))
+                .andExpect(jsonPath("$.content.[1].count").value(1));
 
         this.mockMvc
                 .perform(get("/sbom-api/queryLicenseUniversalApi/")
@@ -913,7 +917,8 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.content.[0].licenseId").value("License-test"))
                 .andExpect(jsonPath("$.content.[0].licenseName").value("License for test"))
                 .andExpect(jsonPath("$.content.[0].licenseUrl").value("https://xxx/licenses/License-test"))
-                .andExpect(jsonPath("$.content.[0].legal").value(false));
+                .andExpect(jsonPath("$.content.[0].legal").value(false))
+                .andExpect(jsonPath("$.content.[0].count").value(1));
 
         this.mockMvc
                 .perform(get("/sbom-api/queryLicenseUniversalApi/")
@@ -928,7 +933,8 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.content.[0].licenseId").value("License-test1"))
                 .andExpect(jsonPath("$.content.[0].licenseName").value("License for test"))
                 .andExpect(jsonPath("$.content.[0].licenseUrl").value("https://xxx/licenses/License-test"))
-                .andExpect(jsonPath("$.content.[0].legal").value(true));
+                .andExpect(jsonPath("$.content.[0].legal").value(true))
+                .andExpect(jsonPath("$.content.[0].count").value(2));
 
         this.mockMvc
                 .perform(get("/sbom-api/queryLicenseUniversalApi/")
@@ -944,7 +950,8 @@ public class PkgQueryControllerTests {
                 .andExpect(jsonPath("$.content.[0].licenseId").value("License-test1"))
                 .andExpect(jsonPath("$.content.[0].licenseName").value("License for test"))
                 .andExpect(jsonPath("$.content.[0].licenseUrl").value("https://xxx/licenses/License-test"))
-                .andExpect(jsonPath("$.content.[0].legal").value(true));
+                .andExpect(jsonPath("$.content.[0].legal").value(true))
+                .andExpect(jsonPath("$.content.[0].count").value(2));
 
     }
 
