@@ -737,13 +737,13 @@ class SbomServiceTest {
 
         Package akg = packages.stream().filter(p -> StringUtils.equals(p.getName(), "akg")).findFirst().orElse(null);
         assertThat(akg).isNotNull();
-        assertThat(akg.getSpdxId()).isEqualTo("SPDXRef-Package-gitee-mindspore-akg-1.7.0");
-        assertThat(akg.getVersion()).isEqualTo("1.7.0");
+        assertThat(akg.getSpdxId()).isEqualTo("SPDXRef-Package-gitee-mindspore-akg-v1.7.0");
+        assertThat(akg.getVersion()).isEqualTo("v1.7.0");
 
         Package protobuf = packages.stream().filter(p -> StringUtils.equals(p.getName(), "protobuf")).findFirst().orElse(null);
         assertThat(protobuf).isNotNull();
-        assertThat(protobuf.getSpdxId()).isEqualTo("SPDXRef-Package-github-protocolbuffers-protobuf-3.13.0");
-        assertThat(protobuf.getVersion()).isEqualTo("3.13.0");
+        assertThat(protobuf.getSpdxId()).isEqualTo("SPDXRef-Package-github-protocolbuffers-protobuf-v3.13.0");
+        assertThat(protobuf.getVersion()).isEqualTo("v3.13.0");
     }
 
 

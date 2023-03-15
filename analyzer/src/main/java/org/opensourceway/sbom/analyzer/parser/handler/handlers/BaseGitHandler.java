@@ -66,7 +66,7 @@ public class BaseGitHandler {
             if (m.matches() && StringUtils.isNotEmpty(m.group(2))) {
                 String tag = m.group(1);
                 String version = m.group(2);
-                return vcsPackageGenerator.generatePackageFromVcs(host, org, repo, version, commitId, tag, null);
+                return vcsPackageGenerator.generatePackageFromVcs(host, org, repo, tag, commitId, tag, null);
             }
         }
         return null;

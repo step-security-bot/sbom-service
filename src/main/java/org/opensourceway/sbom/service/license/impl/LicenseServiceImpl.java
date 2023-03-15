@@ -84,6 +84,8 @@ public class LicenseServiceImpl implements LicenseService {
                 purl = dealOpenEulerPurl(packageUrlVo, product);
             } else if (SbomConstants.PRODUCT_OPENHARMONY_NAME.equals(product.getProductType())) {
                 purl = dealOpenHarmonyPurl(packageUrlVo, product);
+            } else if (SbomConstants.PRODUCT_OPENGAUSS_NAME.equals(product.getProductType())) {
+                purl = dealOpenGaussPurl(packageUrlVo);
             }
         } catch (MalformedPackageURLException e) {
             logger.error("failed to get purl for License ");
@@ -130,10 +132,7 @@ public class LicenseServiceImpl implements LicenseService {
      * pkg:gitee/mindspore/akg@1.7.0 -> pkg:gitee/mindspore/akg@v1.7.0
      ***/
     private String dealMindsporePurl(PackageUrlVo packageUrlVo) throws MalformedPackageURLException {
-        if ("mindspore".equals(packageUrlVo.getNamespace())) {
-            return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(),
-                    packageUrlVo.getNamespace(), packageUrlVo.getName(), "v" + packageUrlVo.getVersion(), null, null)));
-        } else if (packageUrlVo.getType() != null && packageUrlVo.getType().contains("git")) {
+        if (packageUrlVo.getType() != null && packageUrlVo.getType().contains("git")) {
             return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(),
                     packageUrlVo.getName(), packageUrlVo.getVersion(), null, null)));
         } else {
@@ -159,4 +158,12 @@ public class LicenseServiceImpl implements LicenseService {
         }
     }
 
+    private String dealOpenGaussPurl(PackageUrlVo packageUrlVo) throws MalformedPackageURLException {
+        if (packageUrlVo.getType() != null && packageUrlVo.getType().contains("git")) {
+            return (PurlUtil.canonicalizePurl(PurlUtil.newPackageURL(packageUrlVo.getType(), packageUrlVo.getNamespace(),
+                    packageUrlVo.getName(), packageUrlVo.getVersion(), null, null)));
+        } else {
+            return null;
+        }
+    }
 }

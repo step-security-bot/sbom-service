@@ -61,7 +61,7 @@ public class VcsPackageGenerator extends AbstractPackageGenerator {
                     continue;
                 }
                 if (Stream.of(org, repo, tag, version).allMatch(StringUtils::isNotEmpty)) {
-                    return generatePackageFromVcs(host, org, repo, version, "", tag, url);
+                    return generatePackageFromVcs(host, org, repo, tag, "", tag, url);
                 }
             }
         }
