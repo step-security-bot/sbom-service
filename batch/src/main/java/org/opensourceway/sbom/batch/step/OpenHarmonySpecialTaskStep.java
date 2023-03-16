@@ -21,6 +21,7 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 public class OpenHarmonySpecialTaskStep implements Tasklet {
@@ -38,7 +39,9 @@ public class OpenHarmonySpecialTaskStep implements Tasklet {
         logger.info("start OpenHarmonySpecialTaskStep rawSbomId: {}, productName: {}", rawSbomId, productName);
 
         var sbomDocument = (SpdxDocument) jobContext.get(BatchContextConstants.BATCH_SBOM_DOCUMENT_KEY);
-        sbomDocument.getPackages().forEach(this::changeThirdPartyVersion);
+        Optional.ofNullable(sbomDocument)
+                .flatMap(it -> Optional.ofNullable(it.getPackages()))
+                .ifPresent(it -> it.stream().filter(Objects::nonNull).forEach(this::changeThirdPartyVersion));
         jobContext.put(BatchContextConstants.BATCH_SBOM_DOCUMENT_KEY, sbomDocument);
 
         logger.info("finish OpenHarmonySpecialTaskStep rawSbomId: {}, productName: {}", rawSbomId, productName);
@@ -46,6 +49,10 @@ public class OpenHarmonySpecialTaskStep implements Tasklet {
     }
 
     private void changeThirdPartyVersion(SpdxPackage pkg) {
+        if (Objects.isNull(pkg.getExternalRefs())) {
+            return;
+        }
+
         var ref = pkg.getExternalRefs().stream()
                 .filter(it -> ReferenceCategory.PACKAGE_MANAGER.equals(it.referenceCategory()))
                 .findFirst().orElse(null);
