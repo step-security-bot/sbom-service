@@ -1,50 +1,48 @@
 package org.opensourceway.sbom.model.pojo.vo.sbom;
 
-import org.opensourceway.sbom.model.entity.ExternalPurlRef;
-
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
 public class BinaryManagementVo implements Serializable {
 
-    private List<ExternalPurlRef> packageList = Collections.emptyList();
+    private List<BinaryManagementItemVo> packageList = Collections.emptyList();
 
-    private List<ExternalPurlRef> provideList = Collections.emptyList();
+    private List<BinaryManagementItemVo> provideList = Collections.emptyList();
 
-    private List<ExternalPurlRef> externalList = Collections.emptyList();
+    private List<BinaryManagementItemVo> externalList = Collections.emptyList();
 
-    private List<ExternalPurlRef> relationshipList = Collections.emptyList();
+    private List<BinaryManagementItemVo> relationshipList = Collections.emptyList();
 
-    public List<ExternalPurlRef> getPackageList() {
+    public List<BinaryManagementItemVo> getPackageList() {
         return packageList;
     }
 
-    public void setPackageList(List<ExternalPurlRef> packageList) {
+    public void setPackageList(List<BinaryManagementItemVo> packageList) {
         this.packageList = packageList;
     }
 
-    public List<ExternalPurlRef> getProvideList() {
+    public List<BinaryManagementItemVo> getProvideList() {
         return provideList;
     }
 
-    public void setProvideList(List<ExternalPurlRef> provideList) {
+    public void setProvideList(List<BinaryManagementItemVo> provideList) {
         this.provideList = provideList;
     }
 
-    public List<ExternalPurlRef> getExternalList() {
+    public List<BinaryManagementItemVo> getExternalList() {
         return externalList;
     }
 
-    public void setExternalList(List<ExternalPurlRef> externalList) {
+    public void setExternalList(List<BinaryManagementItemVo> externalList) {
         this.externalList = externalList;
     }
 
-    public List<ExternalPurlRef> getRelationshipList() {
+    public List<BinaryManagementItemVo> getRelationshipList() {
         return relationshipList;
     }
 
-    public void setRelationshipList(List<ExternalPurlRef> relationshipList) {
+    public void setRelationshipList(List<BinaryManagementItemVo> relationshipList) {
         this.relationshipList = relationshipList;
     }
 }

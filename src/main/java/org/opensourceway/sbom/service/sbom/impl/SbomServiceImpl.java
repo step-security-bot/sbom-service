@@ -44,6 +44,7 @@ import org.opensourceway.sbom.model.pojo.request.sbom.AddProductRequest;
 import org.opensourceway.sbom.model.pojo.request.sbom.PublishSbomRequest;
 import org.opensourceway.sbom.model.pojo.request.sbom.QuerySbomPackagesRequest;
 import org.opensourceway.sbom.model.pojo.response.sbom.PublishResultResponse;
+import org.opensourceway.sbom.model.pojo.vo.sbom.BinaryManagementItemVo;
 import org.opensourceway.sbom.model.pojo.vo.sbom.BinaryManagementVo;
 import org.opensourceway.sbom.model.pojo.vo.sbom.CopyrightVo;
 import org.opensourceway.sbom.model.pojo.vo.sbom.LicenseVo;
@@ -323,19 +324,29 @@ public class SbomServiceImpl implements SbomService {
 
         BinaryManagementVo vo = new BinaryManagementVo();
         if (referenceCategory == null || referenceCategory == ReferenceCategory.PACKAGE_MANAGER) {
-            vo.setPackageList(externalPurlRefRepository.queryPackageRef(packageUUID, ReferenceCategory.PACKAGE_MANAGER.name(), ReferenceType.PURL.getType()));
+            vo.setPackageList(externalPurlRefRepository.queryPackageRef(
+                            packageUUID, ReferenceCategory.PACKAGE_MANAGER.name(), ReferenceType.PURL.getType())
+                    .stream().map(BinaryManagementItemVo::fromExternalPurlRef).toList());
         }
 
         if (referenceCategory == null || referenceCategory == ReferenceCategory.PROVIDE_MANAGER) {
-            vo.setProvideList(externalPurlRefRepository.queryPackageRef(packageUUID, ReferenceCategory.PROVIDE_MANAGER.name(), ReferenceType.PURL.getType()));
+            vo.setProvideList(externalPurlRefRepository.queryPackageRef(
+                            packageUUID, ReferenceCategory.PROVIDE_MANAGER.name(), ReferenceType.PURL.getType())
+                    .stream().map(BinaryManagementItemVo::fromExternalPurlRef).toList());
         }
 
         if (referenceCategory == null || referenceCategory == ReferenceCategory.EXTERNAL_MANAGER) {
-            vo.setExternalList(externalPurlRefRepository.queryPackageRef(packageUUID, ReferenceCategory.EXTERNAL_MANAGER.name(), ReferenceType.PURL.getType()));
+            vo.setExternalList(externalPurlRefRepository.queryPackageRef(
+                            packageUUID, ReferenceCategory.EXTERNAL_MANAGER.name(), ReferenceType.PURL.getType())
+                    .stream().map(BinaryManagementItemVo::fromExternalPurlRef).toList());
         }
 
         if (referenceCategory == null || referenceCategory == ReferenceCategory.RELATIONSHIP_MANAGER) {
-            packageRepository.findById(packageUUID).ifPresentOrElse(pkg -> vo.setRelationshipList(externalPurlRefRepository.queryRelationPackageRef(pkg.getSbom().getId(), pkg.getSpdxId())), () -> vo.setRelationshipList(Lists.newArrayList()));
+            packageRepository.findById(packageUUID)
+                    .ifPresentOrElse(pkg -> vo.setRelationshipList(externalPurlRefRepository.queryRelationPackageRef(
+                                            pkg.getSbom().getId(), pkg.getSpdxId())
+                                    .stream().map(BinaryManagementItemVo::fromExternalPurlRef).toList()),
+                            () -> vo.setRelationshipList(Lists.newArrayList()));
         }
         return vo;
     }
