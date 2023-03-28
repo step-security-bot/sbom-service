@@ -24,7 +24,7 @@ public class PackagePurlVo implements Serializable {
 
     private String downloadLocation;
 
-    private boolean filesAnalyzed;
+    private Boolean filesAnalyzed;
 
     private String licenseConcluded;
 
@@ -124,11 +124,11 @@ public class PackagePurlVo implements Serializable {
         this.downloadLocation = downloadLocation;
     }
 
-    public boolean isFilesAnalyzed() {
+    public Boolean isFilesAnalyzed() {
         return filesAnalyzed;
     }
 
-    public void setFilesAnalyzed(boolean filesAnalyzed) {
+    public void setFilesAnalyzed(Boolean filesAnalyzed) {
         this.filesAnalyzed = filesAnalyzed;
     }
 
