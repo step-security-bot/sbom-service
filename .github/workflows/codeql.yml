@@ -20,6 +20,9 @@ on:
   schedule:
     - cron: '20 5 * * 3'
 
+permissions:
+  contents: read
+
 jobs:
   analyze:
     name: Analyze
@@ -39,8 +42,13 @@ jobs:
         # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
 
     steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@1f99358870fe1c846a3ccba386cc2b2246836776 # v2.2.1
+      with:
+        egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
       with:
         submodules: 'true'
 
@@ -52,7 +60,7 @@ jobs:
         
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@04df1262e6247151b5ac09cd2c303ac36ad3f62b # v2.2.9
       with:
         languages: ${{ matrix.language }}
         # If you wish to specify custom queries, you can do so here or in a config file.
@@ -72,6 +80,6 @@ jobs:
         arguments: -Dorg.gradle.jvmargs=-Xmx2g -Dkotlin.daemon.jvm.options="-Xmx1g" bootWar
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@04df1262e6247151b5ac09cd2c303ac36ad3f62b # v2.2.9
       with:
         category: "/language:${{matrix.language}}"
